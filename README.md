@@ -13,7 +13,7 @@ Thankfully the datasheets are very verbose in terms of register descriptions and
 
 ### Program Usage
 
-The following lines are taken straight from the commandline help screen.
+The following lines are taken directly from the commandline help screen.
 
 ```
 Usage is:
