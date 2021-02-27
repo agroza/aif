@@ -10,3 +10,26 @@ Since this kind of hardware is well out of marketing purposes (my design is not 
 I used the Pascal programming language and I wrote time-critical routines in assembly language. Initially I inspected the optimized OPTi 82c929 driver programmed by Jan Knipperts, thinking that I could do a quick and dirty adaptation. But I think that if it worth the effort to design all the hardware, then it definitely worths to do the software as well. So I quickly decided to write everything on my own.
 
 Thankfully the datasheets are very verbose in terms of register descriptions and principles of operation. I ended up using some of Jan's code for the Sound Blaster Pro interface and MPU-401 initialization -- thanks for allowing me to use your code! I had to rewrite large portions of that code to adapt it to my project. Furthermore I removed everything else that I wasn't planning to use while optimizing the remaining stuff.
+
+### Program Usage
+
+I pasted these lines straight from the commandline help screen.
+
+```
+Usage is:
+  aif.exe [-help] [-setup] [-mixer] [-init | -wss | -sb ] [-quiet] [-status]
+
+Where:
+  -help   shows this screen; all other parameters are ignored
+  -setup  starts the setup program; all other parameters are ignored
+  -mixer  starts the volume mixer program
+  -init   initializes the audio interface to preset mode
+  -wss    initializes the audio interface to Windows Sound System mode
+  -sb     initializes the audio interface to Sound Blaster mode
+  -quiet  reduces text verbosity
+  -status displays the current audio interface configuration
+
+Examples:
+  aif.exe -init
+  aif.exe -mixer -init -quiet -status
+```
