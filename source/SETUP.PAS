@@ -931,9 +931,6 @@ begin
 
   LFileName := ReplaceFileExt(FExpand(ParamStr(0)), fmBINFiles);
 
-  if not FileExists(LFileName) then
-    Exit;
-
 {$I-}
   Assign(LFile, LFileName);
   Rewrite(LFile, 1);

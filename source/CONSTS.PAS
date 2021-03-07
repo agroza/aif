@@ -1,6 +1,6 @@
 { --------------------------------------------------------------------------- }
 { - Audio Interface - Constants (consts.pas)                                - }
-{ - Copyright (C) 1998-2020 Alexandru Groza of Microprogramming TECHNIQUES  - }
+{ - Copyright (C) 1998-2021 Alexandru Groza of Microprogramming TECHNIQUES  - }
 { - All rights reserved.                                                    - }
 { --------------------------------------------------------------------------- }
 { - License: GNU General Public License v3.0                                - }
@@ -15,8 +15,8 @@ uses
 
 const
   { program stringtable }
-  sProgramTitle            = 'AUDIO INTERFACE  VER. 1.9 REV. B';
-  sProgramCopyright        = 'Copyright (C) 1998-2020 Microprogramming TECHNIQUES';
+  sProgramTitle            = 'AUDIO INTERFACE  VER. 1.9 REV. C';
+  sProgramCopyright        = 'Copyright (C) 1998-2021 Microprogramming TECHNIQUES';
   sProgramAuthor           = 'Programming/PC Code: Alexandru Groza';
   sProgramRights           = 'All rights reserved.';
 
