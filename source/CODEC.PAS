@@ -1,6 +1,6 @@
 { --------------------------------------------------------------------------- }
 { - Audio Interface - Audio Codec Interface (codec.pas)                     - }
-{ - Copyright (C) 1998-2020 Alexandru Groza of Microprogramming TECHNIQUES  - }
+{ - Copyright (C) 1998-2021 Alexandru Groza of Microprogramming TECHNIQUES  - }
 { - Portions Copyright (C) 2019 Jan Knipperts                               - }
 { - All rights reserved.                                                    - }
 { --------------------------------------------------------------------------- }
@@ -110,8 +110,10 @@ procedure CodecMuteAUX1(const AChannel: TSoundChannel; const AMute: Boolean);
 procedure CodecMuteAUX2(const AChannel: TSoundChannel; const AMute: Boolean);
 procedure CodecMuteDAC(const AChannel: TSoundChannel; const AMute: Boolean);
 
-procedure CodecEnableLED(const AValue: Boolean);
-procedure CodecEnableOutputs(const AValue: Boolean);
+procedure CodecSetLEDEnabled(const AValue: Boolean);
+
+function CodecGetOutputsEnabled: Boolean;
+procedure CodecSetOutputsEnabled(const AValue: Boolean);
 
 implementation
 
@@ -367,12 +369,17 @@ begin
 end;
 
 function CodecCalibrate: Boolean;
+var
+  LPinControlMask: Byte;
+
 begin
   asm
     cli
   end;
 
-  CodecWrite(kREGISTER_PIN_CONTROL, $40);
+  LPinControlMask := CodecRead(kREGISTER_PIN_CONTROL) and $40;
+
+  CodecWrite(kREGISTER_PIN_CONTROL, LPinControlMask);
 
   SetMCE(True);
 
@@ -390,8 +397,8 @@ begin
 
   CodecWrite(kREGISTER_LOWER_BASE_COUNT, $FF);
   CodecWrite(kREGISTER_UPPER_BASE_COUNT, $FF);
-  { TODO -oagroza -cImplement : Enable outputs. }
-  CodecWrite(kREGISTER_PIN_CONTROL, $82{C2});
+
+  CodecWrite(kREGISTER_PIN_CONTROL, $82 or LPinControlMask);
 
   CodecCalibrate := True;
 
@@ -833,12 +840,17 @@ begin
   end;
 end;
 
-procedure CodecEnableLED(const AValue: Boolean);
+procedure CodecSetLEDEnabled(const AValue: Boolean);
 begin
   SetRegisterBit(kREGISTER_PIN_CONTROL, kBitXCTL1, AValue);
 end;
 
-procedure CodecEnableOutputs(const AValue: Boolean);
+function CodecGetOutputsEnabled: Boolean;
+begin
+  CodecGetOutputsEnabled := not GetBit(CodecRead(kREGISTER_PIN_CONTROL), kBitXCTL0);
+end;
+
+procedure CodecSetOutputsEnabled(const AValue: Boolean);
 begin
   SetRegisterBit(kREGISTER_PIN_CONTROL, kBitXCTL0, not AValue);
 end;

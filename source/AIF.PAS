@@ -1,6 +1,6 @@
 { --------------------------------------------------------------------------- }
 { - Audio Interface - Program (aif.pas)                                     - }
-{ - Copyright (C) 1998-2020 Alexandru Groza of Microprogramming TECHNIQUES  - }
+{ - Copyright (C) 1998-2021 Alexandru Groza of Microprogramming TECHNIQUES  - }
 { - All rights reserved.                                                    - }
 { --------------------------------------------------------------------------- }
 { - License: GNU General Public License v3.0                                - }
@@ -19,43 +19,42 @@ uses
   Status,
   Types;
 
+function ProcessParameters: Boolean;
 var
-  GParameters: TParameters;
+  LValue: String;
 
-function ProcessParameters(var AParameters: TParameters): Boolean;
 begin
-  FillChar(AParameters, SizeOf(AParameters), $00);
+  FillChar(GParameters, SizeOf(GParameters), $00);
 
   if ParamCount > 0 then
   begin
-    AParameters.Setup := FindSimpleParameter(pSetup);
-    AParameters.Mixer := FindSimpleParameter(pMixer);
+    GParameters.Setup := FindSimpleParameter(pSetup);
+    GParameters.Mixer := FindSimpleParameter(pMixer);
 
     if FindSimpleParameter(pInit) then
     begin
-      case GControllerConfig.BitMOD of
-        bsNotSet:
-          GParameters.InitMode := imSB;
-
-        bsSet:
-          GParameters.InitMode := imWSS;
-
-      end;
+      { TODO -oagroza -cFix : Known issue - always returns default initialization mode. }
+      { Severity: Low / Impact: Low }
+      GParameters.InitMode := SetupGetInitMode;
     end else
     if FindSimpleParameter(pWSS) then
     begin
-      AParameters.InitMode := imWSS;
+      GParameters.InitMode := imWSS;
     end else
     if FindSimpleParameter(pSB) then
     begin
-      AParameters.InitMode := imSB;
+      GParameters.InitMode := imSB;
     end;
 
-    AParameters.Quiet := FindSimpleParameter(pQuiet);
-    AParameters.Status := FindSimpleParameter(pStatus);
+    GParameters.Quiet := FindSimpleParameter(pQuiet);
+    GParameters.Status := FindSimpleParameter(pStatus);
 
-    ProcessParameters := AParameters.Setup or AParameters.Mixer or
-      AParameters.Status or (AParameters.InitMode <> imInvalid);
+    GParameters.LineOut := FindComplexParameter(pLineOut, LValue);
+    GParameters.LineOutRelay := GParameters.LineOut and
+      (LowerCase(Copy(LValue, Succ(Pos(cEqual, LValue)), 3)) = pOn);
+
+    ProcessParameters := GParameters.Setup or GParameters.Mixer or
+      GParameters.Status or GParameters.LineOut or (GParameters.InitMode <> imInvalid);
   end else
   begin
     ProcessParameters := False;
@@ -81,6 +80,7 @@ begin
   Writeln(sHelpParameters1);
   Writeln(sHelpParameters2);
   Writeln(sHelpParameters3);
+  Writeln(sHelpParameters4);
 
   Writeln;
 
@@ -95,8 +95,7 @@ begin
 end;
 
 var
-  GValue: Boolean;
-  GString: String;
+  GConfigLoaded: Boolean;
 
 begin
   WriteProgramHeader;
@@ -106,28 +105,31 @@ begin
     WriteHelp;
   end else
   begin
-    if ProcessParameters(GParameters) then
+    if ProcessParameters then
     begin
-      GValue := SetupLoadConfig;
-      ScreenWriteActionIf(sLoadingConfiguration, GValue, not GParameters.Quiet);
+      GConfigLoaded := SetupLoadConfig;
+      ScreenWriteActionIf(sLoadingConfiguration, GConfigLoaded, not GParameters.Quiet);
 
-      if not GValue then
+      if not GConfigLoaded then
       begin
         SetupDefaultConfig;
         MixerDefaultConfig;
       end;
 
-      if GParameters.Setup or not GValue then
+      if GParameters.Setup or not GConfigLoaded then
       begin
         SetupStart;
         Exit;
       end;
 
-      GValue := InitControllerDetect(GString);
-      ScreenWriteActionIf(sDetecting82c924 + GString, GValue, not GParameters.Quiet);
+      InitAIFBasic;
 
-      GValue := InitCodecDetect(GString);
-      ScreenWriteActionIf(GString, GValue, not GParameters.Quiet);
+      if GParameters.LineOut then
+      begin
+        InitLineOut(GParameters);
+
+        Exit;
+      end;
 
       if GParameters.Mixer then
       begin
@@ -136,15 +138,7 @@ begin
 
       if GParameters.InitMode <> imInvalid then
       begin
-        ScreenWriteActionIf(sInitializing82c924, InitControllerInitialize, not GParameters.Quiet);
-        ScreenWriteActionIf(IfThenElse(GNewChip, sInitializingAD1845, sInitializingAD1848),
-          InitCodecInitialize, not GParameters.Quiet);
-
-        ScreenWriteActionIf(sInitializingMPU, InitMPUInitialize, not GParameters.Quiet);
-        { TODO -oagroza -cImplement : Weird way of passing SB parameter. }
-        ScreenWriteActionIf(sSettingMixerConfig, MixerSetConfig(GParameters.InitMode = imSB), not GParameters.Quiet);
-
-        InitAISetMode(GParameters);
+        InitAIFComplete;
       end;
 
       if GParameters.Status then

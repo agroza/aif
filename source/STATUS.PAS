@@ -1,6 +1,6 @@
 { --------------------------------------------------------------------------- }
 { - Audio Interface - Status Subprogram (status.pas)                        - }
-{ - Copyright (C) 1998-2020 Alexandru Groza of Microprogramming TECHNIQUES  - }
+{ - Copyright (C) 1998-2021 Alexandru Groza of Microprogramming TECHNIQUES  - }
 { - All rights reserved.                                                    - }
 { --------------------------------------------------------------------------- }
 { - License: GNU General Public License v3.0                                - }
@@ -10,16 +10,14 @@ unit Status;
 
 interface
 
-uses
-  Codec,
-  Control;
-
 procedure StatusWrite;
 
 implementation
 
 uses
+  Codec,
   Consts,
+  Control,
   Crt,
   Routines,
   SBPro,
@@ -37,6 +35,7 @@ type
     MPU401: Boolean;
     GamePort: Boolean;
     OutputFormat: String;
+    LineOutRelay: Boolean;
   end;
 
 { private declarations }
@@ -122,6 +121,10 @@ begin
   LStatusItems.MPU401 := GControllerConfig.BitMPU401 = bsSet;
   LStatusItems.GamePort := GControllerConfig.BitGPEN = bsSet;
 
+  ControllerAllowCodecAccess(GControllerConfig);
+  LStatusItems.LineOutRelay := CodecGetOutputsEnabled;
+  ControllerDisallowCodecAccess;
+
   WriteItem(sStatusAIFMode, sAIFMode[LStatusItems.BitMOD]);
   WriteItem(sStatusBASE, IntToHex(LStatusItems.Address));
   WriteItem(sStatusIRQ, IfThenElse(LStatusItems.IRQ < $FF, IntToStr(LStatusItems.IRQ), sEnabledDisabled[False]));
@@ -131,6 +134,7 @@ begin
   WriteItem(sStatusMPU401, IfThenElse(LStatusItems.MPU401, IntToHex(GControllerConfig.MPUBASE), sEnabledDisabled[False]));
   WriteItem(sStatusGamePort, IfThenElse(LStatusItems.GamePort, sEnabledDisabled[True], sEnabledDisabled[False]));
   WriteItem(sStatusOutputFormat, LStatusItems.OutputFormat);
+  WriteItem(sStatusLineOutRelay, sEnabledDisabled[LStatusItems.LineOutRelay]);
 end;
 
 end.

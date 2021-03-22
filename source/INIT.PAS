@@ -1,6 +1,6 @@
 { --------------------------------------------------------------------------- }
 { - Audio Interface - Initialization Subprogram (init.pas)                  - }
-{ - Copyright (C) 1998-2020 Alexandru Groza of Microprogramming TECHNIQUES  - }
+{ - Copyright (C) 1998-2021 Alexandru Groza of Microprogramming TECHNIQUES  - }
 { - All rights reserved.                                                    - }
 { --------------------------------------------------------------------------- }
 { - License: GNU General Public License v3.0                                - }
@@ -11,8 +11,6 @@ unit Init;
 interface
 
 uses
-  Codec,
-  Control,
   Types;
 
 type
@@ -22,25 +20,25 @@ type
     InitMode: TAIFInitMode;
     Status: Boolean;
     Quiet: Boolean;
+    LineOut: Boolean;
+    LineOutRelay: Boolean;
   end;
 
 var
-  GNewChip: Boolean;
+  GParameters: TParameters;
 
-function InitControllerDetect(var AOutputString: String): Boolean;
-function InitControllerInitialize: Boolean;
+procedure InitLineOut(var AParameters: TParameters);
 
-function InitCodecDetect(var AOutputString: String): Boolean;
-function InitCodecInitialize: Boolean;
-
-function InitMPUInitialize: Boolean;
-
-procedure InitAISetMode(const AParameters: TParameters);
+procedure InitAIFBasic;
+procedure InitAIFComplete;
 
 implementation
 
 uses
+  Codec,
   Consts,
+  Control,
+  Mixer,
   MPU,
   Routines,
   SBPro,
@@ -49,6 +47,9 @@ uses
 
 const
   kVolumeNorm = 4.28;
+
+var
+  GNewChip: Boolean;
 
 { private declarations }
 
@@ -112,7 +113,7 @@ begin
   end;
 end;
 
-{ public declarations }
+{ TODO -oagroza -cRename : Remove Init prefix. }
 
 function InitControllerDetect(var AOutputString: String): Boolean;
 begin
@@ -169,7 +170,7 @@ begin
   ControllerDisallowCodecAccess;
 end;
 
-function InitMPUInitialize: Boolean;
+function MPUInitialize: Boolean;
 begin
   if GControllerConfig.BitMPU401 = bsSet then
   begin
@@ -179,20 +180,20 @@ begin
 
     if not MPUReset(mrmDumbUART) then
     begin
-      InitMPUInitialize := False;
+      MPUInitialize := False;
       Exit;
     end;
 
     MPUReset(mrmPowerOnDefaults);
 
-    InitMPUInitialize := True;
+    MPUInitialize := True;
   end else
   begin
-    InitMPUInitialize := False;
+    MPUInitialize := False;
   end;
 end;
 
-procedure InitAISetMode(const AParameters: TParameters);
+procedure AISetMode(const AParameters: TParameters);
 var
   LAction: Boolean;
 
@@ -202,6 +203,7 @@ begin
       begin
         LAction := AISetWSSMode;
         ScreenWriteActionIf(sSettingWSSMode, LAction, not AParameters.Quiet);
+
         if LAction and AParameters.Quiet then
         begin
           Writeln(sAIInitializedWSSMode);
@@ -220,6 +222,45 @@ begin
       end;
 
   end;
+end;
+
+{ public declarations }
+
+procedure InitLineOut(var AParameters: TParameters);
+begin
+  AParameters.InitMode := SetupGetInitMode;
+  GCodecMixerConfig.OutputsEnabled := AParameters.LineOutRelay;
+
+  InitAIFComplete;
+
+  Writeln;
+  Writeln(sLineOutRelay + LowerCase(sEnabledDisabled[GCodecMixerConfig.OutputsEnabled]) + cFullStop);
+end;
+
+procedure InitAIFBasic;
+var
+  LValue: Boolean;
+  LString: String;
+
+begin
+  InitControllerDetect(LString);
+  ScreenWriteActionIf(sDetecting82c924 + LString, LValue, not GParameters.Quiet);
+
+  LValue := InitCodecDetect(LString);
+  ScreenWriteActionIf(LString, LValue, not GParameters.Quiet);
+end;
+
+procedure InitAIFComplete;
+begin
+  ScreenWriteActionIf(sInitializing82c924, InitControllerInitialize, not GParameters.Quiet);
+  ScreenWriteActionIf(IfThenElse(GNewChip, sInitializingAD1845, sInitializingAD1848),
+    InitCodecInitialize, not GParameters.Quiet);
+
+  ScreenWriteActionIf(sInitializingMPU, MPUInitialize, not GParameters.Quiet);
+  { TODO -oagroza -cRefactor : Suboptimal way of passing SB parameter. }
+  ScreenWriteActionIf(sSettingMixerConfig, MixerSetConfig(GParameters.InitMode = imSB), not GParameters.Quiet);
+
+  AISetMode(GParameters);
 end;
 
 end.

@@ -1,6 +1,6 @@
 { --------------------------------------------------------------------------- }
 { - Audio Interface - Mixer Subprogram (mixer.pas)                          - }
-{ - Copyright (C) 1998-2020 Alexandru Groza of Microprogramming TECHNIQUES  - }
+{ - Copyright (C) 1998-2021 Alexandru Groza of Microprogramming TECHNIQUES  - }
 { - All rights reserved.                                                    - }
 { --------------------------------------------------------------------------- }
 { - License: GNU General Public License v3.0                                - }
@@ -68,20 +68,6 @@ var
   IGMixerOptions: array[TMixerOption] of TMixerOptionData;
 
 { private declarations }
-
-procedure EnableOutputs(const AValue: Boolean);
-begin
-  ControllerAllowCodecAccess(GControllerConfig);
-
-  CodecEnableOutputs(AValue);
-
-  if GControllerConfig.BitMOD = bsNotSet then
-  begin
-    ControllerSetMode(cmSB, GControllerConfig);
-  end;
-
-  ControllerDisallowCodecAccess;
-end;
 
 procedure SetVolumes;
 begin
@@ -355,8 +341,6 @@ begin
 
             kKeyF10:
               begin
-                { TODO -oagroza -cDecide : Do I want dynamic? }
-                { MixerSetVolumes(True); }
                 SetVolumes;
                 SetInputConfigOptions;
                 SetupSaveConfig;
@@ -452,11 +436,7 @@ begin
         ToggleHighlightOption(moDigitalMix);
 
       sMixerCmd7:
-        begin
-          ToggleHighlightOption(moOutputsEnabled);
-          { TODO -oagroza -cDecide : Do I want dynamic? }
-          { MixerEnableOutputs(IGMixerOptions[moOutputsEnabled].Enabled); }
-        end;
+        ToggleHighlightOption(moOutputsEnabled);
 
     end;
   end;
@@ -496,10 +476,9 @@ begin
     (CodecGetInputGain(scLeft) = GCodecMixerConfig.InputGainLeft) and
     (CodecGetInputGain(scRight) = GCodecMixerConfig.InputGainRight);
 
-  { TODO -oagroza -cDecide : Enable outputs via relay? }
-  { CodecEnableOutputs(GCodecMixerConfig.OutputsEnabled); }
+  CodecSetOutputsEnabled(GCodecMixerConfig.OutputsEnabled);
 
-  { TODO : Ugly as fuck. }
+  { TODO -oagroza -cRefactor : Set controller mode via appropriate parameter. }
   if ASBMode then
   begin
     ControllerSetMode(cmSB, GControllerConfig);

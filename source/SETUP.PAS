@@ -1,6 +1,6 @@
 { --------------------------------------------------------------------------- }
 { - Audio Interface - Setup Subprogram (setup.pas)                          - }
-{ - Copyright (C) 1998-2020 Alexandru Groza of Microprogramming TECHNIQUES  - }
+{ - Copyright (C) 1998-2021 Alexandru Groza of Microprogramming TECHNIQUES  - }
 { - All rights reserved.                                                    - }
 { --------------------------------------------------------------------------- }
 { - License: GNU General Public License v3.0                                - }
@@ -12,7 +12,8 @@ interface
 
 uses
   Codec,
-  Control;
+  Control,
+  Types;
 
 var
   GControllerConfig: TControllerConfig;
@@ -25,6 +26,8 @@ function SetupSaveConfig: Boolean;
 
 procedure SetupDefaultConfig;
 
+function SetupGetInitMode: TAIFInitMode;
+
 procedure SetupStart;
 
 implementation
@@ -36,7 +39,6 @@ uses
   Mixer,
   Routines,
   Screen,
-  Types,
   Video;
 
 type
@@ -1015,6 +1017,18 @@ begin
   GSBAudioConfig.SampleRate := sr22050;
   GSBAudioConfig.BitDepth := bd8bit;
   GSBAudioConfig.SoundOutput := soStereo;
+end;
+
+function SetupGetInitMode: TAIFInitMode;
+begin
+  case GControllerConfig.BitMOD of
+    bsNotSet:
+      SetupGetInitMode := imSB;
+
+    bsSet:
+      SetupGetInitMode := imWSS;
+
+  end;
 end;
 
 procedure SetupStart;

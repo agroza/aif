@@ -15,7 +15,7 @@ uses
 
 const
   { program stringtable }
-  sProgramTitle            = 'AUDIO INTERFACE  VER. 1.9 REV. C';
+  sProgramTitle            = 'AUDIO INTERFACE  VER. 2.3 REV. D';
   sProgramCopyright        = 'Copyright (C) 1998-2021 Microprogramming TECHNIQUES';
   sProgramAuthor           = 'Programming/PC Code: Alexandru Groza';
   sProgramRights           = 'All rights reserved.';
@@ -25,16 +25,18 @@ const
   sTypeHelp                = 'Type:' + #13#10 +
                              '  aif.exe -help';
   sHelpUsage               = 'Usage is:' + #13#10 +
-                             '  aif.exe [-help] [-setup] [-mixer] [-init | -wss | -sb ] [-quiet] [-status]' + #13#10;
+                             '  aif.exe [-help] [-setup] [-mixer] [-init | -wss | -sb ] [-quiet] [-status]' + #13#10 +
+                             '    [-lineout=on|off]' + #13#10;
   sHelpParameters1         = 'Where:' + #13#10 +
-                             '  -help   shows this screen; all other parameters are ignored' + #13#10 +
-                             '  -setup  starts the setup program; all other parameters are ignored' + #13#10 +
-                             '  -mixer  starts the volume mixer program';
-  sHelpParameters2         = '  -init   initializes the audio interface to preset mode' + #13#10 +
-                             '  -wss    initializes the audio interface to Windows Sound System mode' + #13#10 +
-                             '  -sb     initializes the audio interface to Sound Blaster mode';
-  sHelpParameters3         = '  -quiet  reduces text verbosity' + #13#10 +
-                             '  -status displays the current audio interface configuration';
+                             '  -help     shows this screen; all other parameters are ignored' + #13#10 +
+                             '  -setup    starts the setup program; all other parameters are ignored' + #13#10 +
+                             '  -mixer    starts the volume mixer program';
+  sHelpParameters2         = '  -init     initializes the audio interface to preset mode' + #13#10 +
+                             '  -wss      initializes the audio interface to Windows Sound System mode' + #13#10 +
+                             '  -sb       initializes the audio interface to Sound Blaster mode';
+  sHelpParameters3         = '  -quiet    reduces text verbosity' + #13#10 +
+                             '  -status   displays the current audio interface configuration';
+  sHelpParameters4         = '  -lineout  enables or disabled Line Out; all other parameters are ignored';
 
   sHelpExamples            = 'Examples:' + #13#10 +
                              '  aif.exe -init' + #13#10 +
@@ -55,6 +57,8 @@ const
 
   sAIInitializedSBMode     = 'Audio Interface initialized in Sound Blaster (SB) mode.';
   sAIInitializedWSSMode    = 'Audio Interface initialized in Windows Sound System (WSS) mode.';
+
+  sLineOutRelay            = 'Line Out relay control is ';
 
   sMode                    = 'mode';
   sModePnP                 = 'PnP';
@@ -124,6 +128,7 @@ const
   cFullStop                = '.';
   cSemicolon               = ':';
   cSlash                   = '/';
+  cEqual                   = '=';
   cOpenBracket             = '(';
   cClosedBracket           = ')';
   cOpenSquareBracket       = '[';
@@ -138,6 +143,9 @@ const
   pSB                      = '-sb';
   pQuiet                   = '-quiet';
   pStatus                  = '-status';
+  pLineOut                 = '-lineout=';
+
+  pOn                      = 'on';
 
   { file masks }
   fmBINFiles               = 'bin';
@@ -342,6 +350,7 @@ const
   sStatusMPU401            = 'MPU-401 Address';
   sStatusGamePort          = 'Game Port';
   sStatusOutputFormat      = 'Audio Output Format';
+  sStatusLineOutRelay      = 'Line Out Relay';
 
   { Status constants }
   kStatusValueX            = 22;
