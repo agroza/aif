@@ -95,7 +95,7 @@ begin
 end;
 
 var
-  GConfigLoaded: Boolean;
+  GPConfigLoaded: Boolean;
 
 begin
   WriteProgramHeader;
@@ -107,16 +107,16 @@ begin
   begin
     if ProcessParameters then
     begin
-      GConfigLoaded := SetupLoadConfig;
-      ScreenWriteActionIf(sLoadingConfiguration, GConfigLoaded, not GParameters.Quiet);
+      GPConfigLoaded := SetupLoadConfig;
+      ScreenWriteActionIf(sLoadingConfiguration, GPConfigLoaded, not GParameters.Quiet);
 
-      if not GConfigLoaded then
+      if not GPConfigLoaded then
       begin
         SetupDefaultConfig;
         MixerDefaultConfig;
       end;
 
-      if GParameters.Setup or not GConfigLoaded then
+      if GParameters.Setup or not GPConfigLoaded then
       begin
         SetupStart;
         Exit;
@@ -126,7 +126,7 @@ begin
 
       if GParameters.LineOut then
       begin
-        InitLineOut(GParameters);
+        InitLineOut;
 
         Exit;
       end;

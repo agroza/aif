@@ -13,21 +13,10 @@ interface
 uses
   Types;
 
-type
-  TParameters = record
-    Setup: Boolean;
-    Mixer: Boolean;
-    InitMode: TAIFInitMode;
-    Status: Boolean;
-    Quiet: Boolean;
-    LineOut: Boolean;
-    LineOutRelay: Boolean;
-  end;
-
 var
   GParameters: TParameters;
 
-procedure InitLineOut(var AParameters: TParameters);
+procedure InitLineOut;
 
 procedure InitAIFBasic;
 procedure InitAIFComplete;
@@ -49,11 +38,11 @@ const
   kVolumeNorm = 4.28;
 
 var
-  GNewChip: Boolean;
+  GINewChip: Boolean;
 
 { private declarations }
 
-procedure SetAudioOutputFormat(const ACodecAudioConfig: TCodecAudioConfig);
+procedure AISetAudioOutputFormat(const ACodecAudioConfig: TCodecAudioConfig);
 var
   LFormat: TCodecOutputFormat;
 
@@ -74,7 +63,7 @@ function AISetWSSMode: Boolean;
 begin
   ControllerAllowCodecAccess(GControllerConfig);
 
-  SetAudioOutputFormat(GWSSAudioConfig);
+  AISetAudioOutputFormat(GWSSAudioConfig);
 
   ControllerDisallowCodecAccess;
 
@@ -85,7 +74,7 @@ function AISetSBMode: Boolean;
 begin
   ControllerAllowCodecAccess(GControllerConfig);
 
-  SetAudioOutputFormat(GSBAudioConfig);
+  AISetAudioOutputFormat(GSBAudioConfig);
 
   ControllerSetMode(cmSB, GControllerConfig);
 
@@ -113,26 +102,24 @@ begin
   end;
 end;
 
-{ TODO -oagroza -cRename : Remove Init prefix. }
-
-function InitControllerDetect(var AOutputString: String): Boolean;
+function AIControllerDetect(var AOutputString: String): Boolean;
 begin
   if ControllerDetect then
   begin
     AOutputString := cSpace + cOpenBracket + IfThenElse(GPnPMode, sModePnP, sModenonPnP) + cSpace + sMode + cClosedBracket;
-    InitControllerDetect := True;
+    AIControllerDetect := True;
   end else
   begin
-    InitControllerDetect := False;
+    AIControllerDetect := False;
   end;
 end;
 
-function InitControllerInitialize: Boolean;
+function AIControllerInitialize: Boolean;
 begin
-  InitControllerInitialize := True;
+  AIControllerInitialize := True;
 end;
 
-function InitCodecDetect(var AOutputString: String): Boolean;
+function AICodecDetect(var AOutputString: String): Boolean;
 var
   LControllerSBMode: Boolean;
 
@@ -143,14 +130,14 @@ begin
 
   if CodecDetect(GControllerConfig.WSSBASE) then
   begin
-    GNewChip := CodecDetectNew;
+    GINewChip := CodecDetectNew;
 
-    AOutputString := IfThenElse(GNewChip, sDetectingAD1845, sDetectingAD1848);
-    InitCodecDetect := True;
+    AOutputString := IfThenElse(GINewChip, sDetectingAD1845, sDetectingAD1848);
+    AICodecDetect := True;
   end else
   begin
     AOutputString := sDetectingAD1848orAD1845;
-    InitCodecDetect := False;
+    AICodecDetect := False;
   end;
 
   if LControllerSBMode then
@@ -161,16 +148,16 @@ begin
   ControllerDisallowCodecAccess;
 end;
 
-function InitCodecInitialize: Boolean;
+function AICodecInitialize: Boolean;
 begin
   ControllerAllowCodecAccess(GControllerConfig);
 
-  InitCodecInitialize := CodecInitialize and CodecDetectWSS;
+  AICodecInitialize := CodecInitialize and CodecDetectWSS;
 
   ControllerDisallowCodecAccess;
 end;
 
-function MPUInitialize: Boolean;
+function AIMPUInitialize: Boolean;
 begin
   if GControllerConfig.BitMPU401 = bsSet then
   begin
@@ -180,16 +167,16 @@ begin
 
     if not MPUReset(mrmDumbUART) then
     begin
-      MPUInitialize := False;
+      AIMPUInitialize := False;
       Exit;
     end;
 
     MPUReset(mrmPowerOnDefaults);
 
-    MPUInitialize := True;
+    AIMPUInitialize := True;
   end else
   begin
-    MPUInitialize := False;
+    AIMPUInitialize := False;
   end;
 end;
 
@@ -226,10 +213,10 @@ end;
 
 { public declarations }
 
-procedure InitLineOut(var AParameters: TParameters);
+procedure InitLineOut;
 begin
-  AParameters.InitMode := SetupGetInitMode;
-  GCodecMixerConfig.OutputsEnabled := AParameters.LineOutRelay;
+  GParameters.InitMode := SetupGetInitMode;
+  GCodecMixerConfig.OutputsEnabled := GParameters.LineOutRelay;
 
   InitAIFComplete;
 
@@ -243,22 +230,21 @@ var
   LString: String;
 
 begin
-  InitControllerDetect(LString);
+  AIControllerDetect(LString);
   ScreenWriteActionIf(sDetecting82c924 + LString, LValue, not GParameters.Quiet);
 
-  LValue := InitCodecDetect(LString);
+  LValue := AICodecDetect(LString);
   ScreenWriteActionIf(LString, LValue, not GParameters.Quiet);
 end;
 
 procedure InitAIFComplete;
 begin
-  ScreenWriteActionIf(sInitializing82c924, InitControllerInitialize, not GParameters.Quiet);
-  ScreenWriteActionIf(IfThenElse(GNewChip, sInitializingAD1845, sInitializingAD1848),
-    InitCodecInitialize, not GParameters.Quiet);
+  ScreenWriteActionIf(sInitializing82c924, AIControllerInitialize, not GParameters.Quiet);
+  ScreenWriteActionIf(IfThenElse(GINewChip, sInitializingAD1845, sInitializingAD1848),
+    AICodecInitialize, not GParameters.Quiet);
 
-  ScreenWriteActionIf(sInitializingMPU, MPUInitialize, not GParameters.Quiet);
-  { TODO -oagroza -cRefactor : Suboptimal way of passing SB parameter. }
-  ScreenWriteActionIf(sSettingMixerConfig, MixerSetConfig(GParameters.InitMode = imSB), not GParameters.Quiet);
+  ScreenWriteActionIf(sInitializingMPU, AIMPUInitialize, not GParameters.Quiet);
+  ScreenWriteActionIf(sSettingMixerConfig, MixerSetConfig(GParameters.InitMode), not GParameters.Quiet);
 
   AISetMode(GParameters);
 end;

@@ -15,7 +15,7 @@ uses
 
 const
   { program stringtable }
-  sProgramTitle            = 'AUDIO INTERFACE  VER. 2.3 REV. D';
+  sProgramTitle            = 'AUDIO INTERFACE  VER. 2.4 REV. A';
   sProgramCopyright        = 'Copyright (C) 1998-2021 Microprogramming TECHNIQUES';
   sProgramAuthor           = 'Programming/PC Code: Alexandru Groza';
   sProgramRights           = 'All rights reserved.';
@@ -338,6 +338,18 @@ const
   kMixerSliderX            = 2;
 
   kMixerCmdX               = 52;
+
+  { Mixer default constants }
+  kMixerDACDefault         = 14;
+  kMixerAUX1Default        = 30;
+  kMixerAUX2Default        = 0;
+  { TODO -oagroza -cIdea : Move this type to global types? }
+  {kMixerInputDeviceDefault = cidtLineIn;}
+  kMixerInputGainDefault   = 0;
+  kMixerMicGainDefault     = False;
+  kMixerDigitalMixDefault  = False;
+  kMixerDMEDefault         = 0;
+  kMixerOutputsEnDefault   = True;
 
   { Status stringtable }
   sStatusAIFModel          = 'ISA Audio Interface model 2486-AIF-401';

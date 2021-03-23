@@ -10,7 +10,10 @@ unit Mixer;
 
 interface
 
-function MixerSetConfig(const ASBMode: Boolean): Boolean;
+uses
+  Types;
+
+function MixerSetConfig(const AInitMode: TAIFInitMode): Boolean;
 
 procedure MixerDefaultConfig;
 
@@ -26,7 +29,6 @@ uses
   Routines,
   Setup,
   Screen,
-  Types,
   Video;
 
 type
@@ -444,7 +446,7 @@ end;
 
 { public declarations }
 
-function MixerSetConfig(const ASBMode: Boolean): Boolean;
+function MixerSetConfig(const AInitMode: TAIFInitMode): Boolean;
 begin
   ControllerAllowCodecAccess(GControllerConfig);
 
@@ -479,7 +481,7 @@ begin
   CodecSetOutputsEnabled(GCodecMixerConfig.OutputsEnabled);
 
   { TODO -oagroza -cRefactor : Set controller mode via appropriate parameter. }
-  if ASBMode then
+  if AInitMode = imSB then
   begin
     ControllerSetMode(cmSB, GControllerConfig);
   end;
@@ -489,21 +491,21 @@ end;
 
 procedure MixerDefaultConfig;
 begin
-  GCodecMixerConfig.DACLeft := 14;
-  GCodecMixerConfig.DACRight := 14;
-  GCodecMixerConfig.AUX1Left := 30;
-  GCodecMixerConfig.AUX1Right := 30;
-  GCodecMixerConfig.AUX2Left := 0;
-  GCodecMixerConfig.AUX2Right := 0;
+  GCodecMixerConfig.DACLeft := kMixerDACDefault;
+  GCodecMixerConfig.DACRight := kMixerDACDefault;
+  GCodecMixerConfig.AUX1Left := kMixerAUX1Default;
+  GCodecMixerConfig.AUX1Right := kMixerAUX1Default;
+  GCodecMixerConfig.AUX2Left := kMixerAUX2Default;
+  GCodecMixerConfig.AUX2Right := kMixerAUX2Default;
   GCodecMixerConfig.InputDeviceLeft := cidtLineIn;
   GCodecMixerConfig.InputDeviceRight := cidtLineIn;
-  GCodecMixerConfig.InputGainLeft := 0;
-  GCodecMixerConfig.InputGainRight := 0;
-  GCodecMixerConfig.MicGainLeft := False;
-  GCodecMixerConfig.MicGainRight := False;
-  GCodecMixerConfig.DigitalMix := False;
-  GCodecMixerConfig.DMELeftRight := 0;
-  GCodecMixerConfig.OutputsEnabled := True;
+  GCodecMixerConfig.InputGainLeft := kMixerInputGainDefault;
+  GCodecMixerConfig.InputGainRight := kMixerInputGainDefault;
+  GCodecMixerConfig.MicGainLeft := kMixerMicGainDefault;
+  GCodecMixerConfig.MicGainRight := kMixerMicGainDefault;
+  GCodecMixerConfig.DigitalMix := kMixerDigitalMixDefault;
+  GCodecMixerConfig.DMELeftRight := kMixerDMEDefault;
+  GCodecMixerConfig.OutputsEnabled := kMixerOutputsEnDefault;
 end;
 
 procedure MixerStart;
