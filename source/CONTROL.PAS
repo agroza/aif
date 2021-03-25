@@ -1,6 +1,6 @@
 { --------------------------------------------------------------------------- }
 { - Audio Interface - Sound Controller Interface (control.pas)              - }
-{ - Copyright (C) 1998-2020 Alexandru Groza of Microprogramming TECHNIQUES  - }
+{ - Copyright (C) 1998-2021 Alexandru Groza of Microprogramming TECHNIQUES  - }
 { - Portions Copyright (C) 2018 Jan Knipperts                               - }
 { - All rights reserved.                                                    - }
 { --------------------------------------------------------------------------- }
@@ -68,7 +68,7 @@ type
   end;
 
 var
-  GPnPMode: Boolean;
+  GAIFDetectionMode: TAIFDetectionMode;
 
 function ControllerDetect: Boolean;
 function ControllerGetRevision: Byte;
@@ -180,14 +180,19 @@ begin
     cli
   end;
 
-  if GPnPMode then
-  begin
-    Port[kREGISTER_PASSWORD - $80] := kRegisterPassword;
-    ControllerRead := Port[APort - $80];
-  end else
-  begin
-    Port[kREGISTER_PASSWORD] := kRegisterPassword;
-    ControllerRead := Port[APort];
+  case GAIFDetectionMode of
+    dmPnP:
+      begin
+        Port[kREGISTER_PASSWORD - $80] := kRegisterPassword;
+        ControllerRead := Port[APort - $80];
+      end;
+
+    dmnonPnP:
+      begin
+        Port[kREGISTER_PASSWORD] := kRegisterPassword;
+        ControllerRead := Port[APort];
+      end;
+
   end;
 
   asm
@@ -201,14 +206,19 @@ begin
     cli
   end;
 
-  if GPnPMode then
-  begin
-    Port[kREGISTER_PASSWORD - $80] := kRegisterPassword;
-    Port[APort - $80] := AValue and $FF;
-  end else
-  begin
-    Port[kREGISTER_PASSWORD] := kRegisterPassword;
-    Port[APort] := AValue and $FF;
+  case GAIFDetectionMode of
+    dmPnP:
+      begin
+        Port[kREGISTER_PASSWORD - $80] := kRegisterPassword;
+        Port[APort - $80] := AValue and $FF;
+      end;
+
+    dmnonPnP:
+      begin
+        Port[kREGISTER_PASSWORD] := kRegisterPassword;
+        Port[APort] := AValue and $FF;
+      end;
+
   end;
 
   asm
@@ -226,14 +236,16 @@ begin
   ControllerWrite(ARegister, LData);
 end;
 
-function DetectMAD16: Boolean;
+function Detect82c924(const AAIFDetectionMode: TAIFDetectionMode): Boolean;
 { Checks if the gate is closed on first I/O after writing the password. }
 var
   LData: Byte;
 
 begin
+  GAIFDetectionMode := AAIFDetectionMode;
+
   LData := ControllerRead(kREGISTER_MC1);
-  DetectMAD16 := (LData <> $FF) and (LData <> Port[kREGISTER_MC1]);
+  Detect82c924 := (LData <> $FF) and (LData <> Port[kREGISTER_MC1]);
 end;
 
 procedure SetWSSConfig(const AControllerConfig: TControllerConfig);
@@ -910,8 +922,7 @@ end;
 
 function ControllerDetect: Boolean;
 begin
-  GPnPMode := not DetectMAD16;
-  ControllerDetect := GPnPMode;
+  ControllerDetect := Detect82c924(dmPnP) or Detect82c924(dmnonPnP);
 end;
 
 function ControllerGetRevision: Byte;

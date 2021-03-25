@@ -11,6 +11,11 @@ unit Types;
 interface
 
 type
+  TAIFDetectionMode = (
+    dmPnP,
+    dmnonPnP
+  );
+
   TAIFInitMode = (
     imInvalid,
     imWSS,

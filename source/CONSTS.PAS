@@ -14,8 +14,10 @@ uses
   Types;
 
 const
+  sEmpty                  = '';
+
   { program stringtable }
-  sProgramTitle            = 'AUDIO INTERFACE  VER. 2.4 REV. A';
+  sProgramTitle            = 'AUDIO INTERFACE  VER. 2.4 REV. B';
   sProgramCopyright        = 'Copyright (C) 1998-2021 Microprogramming TECHNIQUES';
   sProgramAuthor           = 'Programming/PC Code: Alexandru Groza';
   sProgramRights           = 'All rights reserved.';
@@ -61,8 +63,6 @@ const
   sLineOutRelay            = 'Line Out relay control is ';
 
   sMode                    = 'mode';
-  sModePnP                 = 'PnP';
-  sModenonPnP              = 'non-PnP';
 
   sHz                      = 'Hz';
   sOPL3                    = 'OPL3';
@@ -75,6 +75,11 @@ const
   sNA                      = 'N/A';
   sOK                      = 'OK';
   sFAILED                  = 'FAILED';
+
+  sAIFDetectionMode: array[TAIFDetectionMode] of String[7] = (
+    'PnP',
+    'non-PnP'
+  );
 
   sAIFMode: array[TBitStatus] of String[20] = (
     'Sound Blaster',

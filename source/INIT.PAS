@@ -106,10 +106,11 @@ function AIControllerDetect(var AOutputString: String): Boolean;
 begin
   if ControllerDetect then
   begin
-    AOutputString := cSpace + cOpenBracket + IfThenElse(GPnPMode, sModePnP, sModenonPnP) + cSpace + sMode + cClosedBracket;
+    AOutputString := cSpace + cOpenBracket + sAIFDetectionMode[GAIFDetectionMode] + cSpace + sMode + cClosedBracket;
     AIControllerDetect := True;
   end else
   begin
+    AOutputString := sEmpty;
     AIControllerDetect := False;
   end;
 end;
@@ -230,7 +231,7 @@ var
   LString: String;
 
 begin
-  AIControllerDetect(LString);
+  LValue := AIControllerDetect(LString);
   ScreenWriteActionIf(sDetecting82c924 + LString, LValue, not GParameters.Quiet);
 
   LValue := AICodecDetect(LString);
