@@ -17,7 +17,7 @@ const
   sEmpty                  = '';
 
   { program stringtable }
-  sProgramTitle            = 'AUDIO INTERFACE  VER. 2.4 REV. B';
+  sProgramTitle            = 'AUDIO INTERFACE  VER. 2.4 REV. C';
   sProgramCopyright        = 'Copyright (C) 1998-2021 Microprogramming TECHNIQUES';
   sProgramAuthor           = 'Programming/PC Code: Alexandru Groza';
   sProgramRights           = 'All rights reserved.';

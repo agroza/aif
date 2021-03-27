@@ -216,7 +216,6 @@ end;
 
 procedure InitLineOut;
 begin
-  GParameters.InitMode := SetupGetInitMode;
   GCodecMixerConfig.OutputsEnabled := GParameters.LineOutRelay;
 
   InitAIFComplete;

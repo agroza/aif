@@ -18,6 +18,7 @@ type
 
   TAIFInitMode = (
     imInvalid,
+    imSetup,
     imWSS,
     imSB
   );

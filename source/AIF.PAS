@@ -33,9 +33,7 @@ begin
 
     if FindSimpleParameter(pInit) then
     begin
-      { TODO -oagroza -cFix : Known issue - always returns default initialization mode. }
-      { Severity: Low / Impact: Low }
-      GParameters.InitMode := SetupGetInitMode;
+      GParameters.InitMode := imSetup;
     end else
     if FindSimpleParameter(pWSS) then
     begin
@@ -44,6 +42,9 @@ begin
     if FindSimpleParameter(pSB) then
     begin
       GParameters.InitMode := imSB;
+    end else
+    begin
+      GParameters.InitMode := imInvalid;
     end;
 
     GParameters.Quiet := FindSimpleParameter(pQuiet);
@@ -119,10 +120,16 @@ begin
       if GParameters.Setup or not GPConfigLoaded then
       begin
         SetupStart;
+
         Exit;
       end;
 
       InitAIFBasic;
+
+      if (GParameters.InitMode = imSetup) or GParameters.LineOut then
+      begin
+        GParameters.InitMode := SetupGetInitMode;
+      end;
 
       if GParameters.LineOut then
       begin
