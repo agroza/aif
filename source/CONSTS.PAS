@@ -17,7 +17,7 @@ const
   sEmpty                  = '';
 
   { program stringtable }
-  sProgramTitle            = 'AUDIO INTERFACE  VER. 2.4 REV. C';
+  sProgramTitle            = 'AUDIO INTERFACE  VER. 2.4 REV. D';
   sProgramCopyright        = 'Copyright (C) 1998-2021 Microprogramming TECHNIQUES';
   sProgramAuthor           = 'Programming/PC Code: Alexandru Groza';
   sProgramRights           = 'All rights reserved.';
@@ -265,6 +265,13 @@ const
 
   kSetupCmdX               = 52;
 
+  kSetupOptionX            = 1;
+  kSetupOptionWidth        = 23;
+  kSetupOptionHeight       = 1;
+  kSetupOptionEditX        = 24;
+  kSetupOptionEditWidth    = 26;
+  kSetupOptionEditHeight   = 1;
+
   { Mixer stringtable }
   sMixerTitle              = 'AUDIO INTERFACE MIXER';
 
@@ -342,7 +349,20 @@ const
 
   kMixerSliderX            = 2;
 
+  kMixerDACSliderY         = 2;
+  kMixerAUX1SliderY        = 7;
+  kMixerAUX2SliderY        = 12;
+  kMixerInputGainSliderY   = 17;
+  kMixerDMESliderY         = 22;
+
+  kMixerSliderMin          = 0;
+  kMixerSliderMax          = 30;
+
   kMixerCmdX               = 52;
+
+  kMixerOptionX            = 57;
+  kMixerOptionWidth        = 21;
+  kMixerOptionHeight       = 1;
 
   { Mixer default constants }
   kMixerDACDefault         = 14;

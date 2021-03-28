@@ -55,16 +55,6 @@ type
     Enabled: Boolean;
   end;
 
-const
-  kMixerDACSliderY       = 2;
-  kMixerAUX1SliderY      = 7;
-  kMixerAUX2SliderY      = 12;
-  kMixerInputGainSliderY = 17;
-  kMixerDMESliderY       = 22;
-
-  kMixerSliderMin        = 0;
-  kMixerSliderMax        = 30;
-
 var
   IGStereoSliders: array[TStereoSlider] of TStereoSliderData;
   IGMixerOptions: array[TMixerOption] of TMixerOptionData;
@@ -254,7 +244,8 @@ begin
     LAttribute := VideoAttribute(clDynCmdFore, clDynCmdBack);
   end;
 
-  VideoHighlightRegion(57, IGMixerOptions[AOption].PositionY, 21, 1, LAttribute);
+  VideoHighlightRegion(kMixerOptionX, IGMixerOptions[AOption].PositionY,
+    kMixerOptionWidth, kMixerOptionHeight, LAttribute);
 end;
 
 procedure HighlightOptions;
@@ -480,7 +471,6 @@ begin
 
   CodecSetOutputsEnabled(GCodecMixerConfig.OutputsEnabled);
 
-  { TODO -oagroza -cRefactor : Set controller mode via appropriate parameter. }
   if AInitMode = imSB then
   begin
     ControllerSetMode(cmSB, GControllerConfig);

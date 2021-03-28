@@ -705,8 +705,10 @@ begin
     LEditAttribute := VideoAttribute(clSetupFore, clSetupBack);
   end;
 
-  VideoHighlightRegion(1, IGSetupOptions[ASetupOption].PositionY, 23, 1, LAttribute);
-  VideoHighlightRegion(24, IGSetupOptions[ASetupOption].PositionY, 26, 1, LEditAttribute);
+  VideoHighlightRegion(kSetupOptionX, IGSetupOptions[ASetupOption].PositionY,
+    kSetupOptionWidth, kSetupOptionHeight, LAttribute);
+  VideoHighlightRegion(kSetupOptionEditX, IGSetupOptions[ASetupOption].PositionY,
+    kSetupOptionEditWidth, kSetupOptionEditHeight, LEditAttribute);
 end;
 
 procedure EditOption(const ASetupOption: TSetupOption; const AArrayAdvance: TArrayAdvance);
@@ -743,8 +745,10 @@ begin
 
   end;
 
-  VideoWriteRegion(24, LSetupOptionData.PositionY, 26, 1, cSpace, VideoAttribute(clRed, clRed));
-  VideoWriteStringAt(kSetupValueX, LSetupOptionData.PositionY, LSetupOptionData.GSVFunction(LIndex, True), clYellow, clRed);
+  VideoWriteRegion(kSetupOptionEditX, LSetupOptionData.PositionY,
+    kSetupOptionEditWidth, kSetupOptionEditHeight, cSpace, VideoAttribute(clRed, clRed));
+  VideoWriteStringAt(kSetupValueX, LSetupOptionData.PositionY,
+    LSetupOptionData.GSVFunction(LIndex, True), clYellow, clRed);
 
   IGSetupOptions[ASetupOption].Index := LIndex;
 end;
@@ -917,10 +921,7 @@ begin
   Close(LFile);
 {$I+}
 
-  if (IOResult <> 0) or (LFileSignature <> kFileSignature) then
-    Exit;
-
-  SetupLoadConfig := True;
+  SetupLoadConfig := (IOResult = 0) and (LFileSignature = kFileSignature);
 end;
 
 function SetupSaveConfig: Boolean;
@@ -946,10 +947,7 @@ begin
   Close(LFile);
 {$I+}
 
-  if IOResult <> 0 then
-    Exit;
-
-  SetupSaveConfig := True;
+  SetupSaveConfig := IOResult = 0;
 end;
 
 procedure SetupDefaultConfig;
