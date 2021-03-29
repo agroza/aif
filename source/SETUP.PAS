@@ -678,7 +678,8 @@ var
   LSetupOptionData: TSetupOptionData;
 
 begin
-  VideoWriteRegion(1, 2, 49, 25, cSpace, VideoAttribute(clSetupFore, clSetupBack));
+  VideoWriteRegion(kSetupOptionsLeft, kSetupOptionsTop, kSetupOptionsWidth,
+    kSetupOptionsHeight, cSpace, VideoAttribute(clSetupFore, clSetupBack));
 
   for LSetupOption := Low(TSetupOption) to High(TSetupOption) do
   begin
@@ -761,7 +762,8 @@ end;
 
 procedure DrawCommands;
 begin
-  VideoWriteRegion(50, 2, 31, 25, cSpace, VideoAttribute(clSetupCmdFore, clSetupCmdBack));
+  VideoWriteRegion(kSetupCommandsLeft, kSetupCommandsTop, kSetupCommandsWidth,
+    kSetupCommandsHeight, cSpace, VideoAttribute(clSetupCmdFore, clSetupCmdBack));
 
   VideoWriteStringAt(kSetupCmdX, 3, sSetupCmdProgramCmds, clSetupCmdHeader, clSetupCmdBack);
   DrawCommand(kSetupCmdX, 4, clSetupCmdHigh, clSetupCmdFore, clSetupCmdBack, sSetupCmdF8, sSetupCmdDefaultConfig);
@@ -955,66 +957,66 @@ begin
   { Controller Register Configuration }
 
   { Mode Control Register 1 Bits }
-  GControllerConfig.BitMOD := bsNotSet;
-  GControllerConfig.BitPDN := bsNotSet;
-  GControllerConfig.BitGPEN := bsSet;
+  GControllerConfig.BitMOD := kSetupBitMODDefault;
+  GControllerConfig.BitPDN := kSetupBitPDNDefault;
+  GControllerConfig.BitGPEN := kSetupBitGPENDefault;
 
   { Mode Control Register 2 Bits }
-  GControllerConfig.BitOPL4 := bsNotSet;
+  GControllerConfig.BitOPL4 := kSetupBitOPL4Default;
 
   { Mode Control Register 3 Bits }
-  GControllerConfig.BitFMAP := bsNotSet;
-  GControllerConfig.BitCMDPAS := bsSet;
+  GControllerConfig.BitFMAP := kSetupBitFMAPDefault;
+  GControllerConfig.BitCMDPAS := kSetupBitCMDPASDefault;
 
   { Mode Control Register 4 Bits }
-  GControllerConfig.BitADPCMEN := bsSet;
-  GControllerConfig.BitGPOUT := bsNotSet;
-  GControllerConfig.BitPNPMODE := bsSet;
-  GControllerConfig.BitFMCLK := bsNotSet;
-  GControllerConfig.BitSILENCE := bsNotSet;
+  GControllerConfig.BitADPCMEN := kSetupBitADPCMENDefault;
+  GControllerConfig.BitGPOUT := kSetupBitGPOUTDefault;
+  GControllerConfig.BitPNPMODE := kSetupBitPNPMODEDefault;
+  GControllerConfig.BitFMCLK := kSetupBitFMCLKDefault;
+  GControllerConfig.BitSILENCE := kSetupBitSILENCEDefault;
 
   { Mode Control Register 5 Bits }
-  GControllerConfig.BitAVCEN := bsSet;
-  GControllerConfig.BitOPL5 := bsNotSet;
-  GControllerConfig.BitSHPASS := bsSet;
-  GControllerConfig.BitSBACCESS := bsNotSet;
-  GControllerConfig.BitCFIFO := bsSet;
-  GControllerConfig.BitEPEN := bsSet;
-  GControllerConfig.BitCFIX := bsSet;
+  GControllerConfig.BitAVCEN := kSetupBitAVCENDefault;
+  GControllerConfig.BitOPL5 := kSetupBitOPL5Default;
+  GControllerConfig.BitSHPASS := kSetupBitSHPASSDefault;
+  GControllerConfig.BitSBACCESS := kSetupBitSBACCESSDefault;
+  GControllerConfig.BitCFIFO := kSetupBitCFIFODefault;
+  GControllerConfig.BitEPEN := kSetupBitEPENDefault;
+  GControllerConfig.BitCFIX := kSetupBitCFIXDefault;
 
   { Mode Control Register 6 Bits }
-  GControllerConfig.BitMPU401 := bsSet;
-  GControllerConfig.BitDRQTMEN := bsSet;
-  GControllerConfig.BitAUDIOEN := bsSet;
+  GControllerConfig.BitMPU401 := kSetupBitMPU401Default;
+  GControllerConfig.BitDRQTMEN := kSetupBitDRQTMENDefault;
+  GControllerConfig.BitAUDIOEN := kSetupBitAUDIOENDefault;
 
-  GControllerConfig.WSSBASE := $0530;
-  GControllerConfig.WSSIRQ := $FF;
-  GControllerConfig.WSSDRQ := 1;
+  GControllerConfig.WSSBASE := kSetupWSSBASEDefault;
+  GControllerConfig.WSSIRQ := kSetupWSSIRQDefault;
+  GControllerConfig.WSSDRQ := kSetupWSSDRQDefault;
 
-  GControllerConfig.SBBASE := $0220;
-  GControllerConfig.SBIRQ := 5;
-  GControllerConfig.SBDRQ := 1;
-  GControllerConfig.SBDSPVersion := sdVersion32;
+  GControllerConfig.SBBASE := kSetupSBBASEDefault;
+  GControllerConfig.SBIRQ := kSetupSBIRQDefault;
+  GControllerConfig.SBDRQ := kSetupSBDRQDefault;
+  GControllerConfig.SBDSPVersion := kSetupSBDSPVerDefault;
 
-  GControllerConfig.MPUBASE := $330;
-  GControllerConfig.MPUIRQ := 9;
+  GControllerConfig.MPUBASE := kSetupMPUBASEDefault;
+  GControllerConfig.MPUIRQ := kSetupMPUIRQDefault;
 
-  GControllerConfig.CDBASE := $0340;
-  GControllerConfig.CDIRQ := $FF;
-  GControllerConfig.CDDRQ := 3;
-  GControllerConfig.IDECDROM := bsNotSet;
+  GControllerConfig.CDBASE := kSetupCDBASEDefault;
+  GControllerConfig.CDIRQ := kSetupCDIRQDefault;
+  GControllerConfig.CDDRQ := kSetupCDDRQDefault;
+  GControllerConfig.IDECDROM := kSetupIDECDROMDefault;
 
   { Codec WSS Mode Audio Configuration }
 
-  GWSSAudioConfig.SampleRate := sr44100;
-  GWSSAudioConfig.BitDepth := bd16bit;
-  GWSSAudioConfig.SoundOutput := soStereo;
+  GWSSAudioConfig.SampleRate := kSetupWSSSmpRateDefault;
+  GWSSAudioConfig.BitDepth := kSetupWSSBitDepthDefault;
+  GWSSAudioConfig.SoundOutput := kSetupWSSSndOutDefault;
 
   { Codec SB Mode Audio Configuration }
 
-  GSBAudioConfig.SampleRate := sr22050;
-  GSBAudioConfig.BitDepth := bd8bit;
-  GSBAudioConfig.SoundOutput := soStereo;
+  GSBAudioConfig.SampleRate := kSetupSBSmpRateDefault;
+  GSBAudioConfig.BitDepth := kSetupSBBitDepthDefault;
+  GSBAudioConfig.SoundOutput := kSetupSBSndOutDefault;
 end;
 
 function SetupGetInitMode: TAIFInitMode;

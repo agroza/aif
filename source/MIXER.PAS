@@ -137,7 +137,8 @@ end;
 
 procedure DrawSliders;
 begin
-  VideoWriteRegion(1, 2, 49, 25, cSpace, VideoAttribute(clMixerFore, clMixerBack));
+  VideoWriteRegion(kMixerSlidersLeft, kMixerSlidersTop, kMixerSlidersWidth,
+    kMixerSlidersHeight, cSpace, VideoAttribute(clMixerFore, clMixerBack));
 
   ScreenDrawStereoSlider(IGStereoSliders[ssDACStereoSlider]);
   ScreenDrawStereoSlider(IGStereoSliders[ssAUX1StereoSlider]);
@@ -154,7 +155,8 @@ end;
 
 procedure DrawCommands;
 begin
-  VideoWriteRegion(50, 2, 31, 12, cSpace, VideoAttribute(clStatCmdFore, clStatCmdBack));
+  VideoWriteRegion(kMixerCommandsLeft, kMixerCommandsTop, kMixerCommandsWidth,
+    kMixerCommandsHeight, cSpace, VideoAttribute(clStatCmdFore, clStatCmdBack));
 
   VideoWriteStringAt(kMixerCmdX, 3, sMixerCmdProgramCmds, clStatCmdHeader, clStatCmdBack);
   DrawCommand(kMixerCmdX, 4, clSetupCmdHigh, clStatCmdFore, clStatCmdBack, sMixerCmdF8, sMixerCmdDefaultConfig);
@@ -217,7 +219,8 @@ end;
 
 procedure DrawOptions;
 begin
-  VideoWriteRegion(50, 14, 31, 25, cSpace, VideoAttribute(clDynCmdFore, clDynCmdBack));
+  VideoWriteRegion(kMixerOptionsLeft, kMixerOptionsTop, kMixerOptionsWidth,
+    kMixerOptionsHeight, cSpace, VideoAttribute(clDynCmdFore, clDynCmdBack));
 
   VideoWriteStringAt(kMixerCmdX, 15, sMixerCmdInputDeviceCmds, clDynCmdHeader, clDynCmdBack);
   DrawCommand(kMixerCmdX, 16, clMixerCmdHigh, clDynCmdFore, clDynCmdBack, sMixerCmd1, sMixerCmdLineIn);

@@ -14,10 +14,10 @@ uses
   Types;
 
 const
-  sEmpty                  = '';
+  sEmpty                   = '';
 
   { program stringtable }
-  sProgramTitle            = 'AUDIO INTERFACE  VER. 2.4 REV. D';
+  sProgramTitle            = 'AUDIO INTERFACE  VER. 2.5 REV. A';
   sProgramCopyright        = 'Copyright (C) 1998-2021 Microprogramming TECHNIQUES';
   sProgramAuthor           = 'Programming/PC Code: Alexandru Groza';
   sProgramRights           = 'All rights reserved.';
@@ -263,7 +263,17 @@ const
   kSetupNameX              = 2;
   kSetupValueX             = 25;
 
+  kSetupCommandsLeft       = 50;
+  kSetupCommandsTop        = 2;
+  kSetupCommandsWidth      = 31;
+  kSetupCommandsHeight     = 25;
+
   kSetupCmdX               = 52;
+
+  kSetupOptionsLeft        = 1;
+  kSetupOptionsTop         = 2;
+  kSetupOptionsWidth       = 49;
+  kSetupOptionsHeight      = 25;
 
   kSetupOptionX            = 1;
   kSetupOptionWidth        = 23;
@@ -271,6 +281,59 @@ const
   kSetupOptionEditX        = 24;
   kSetupOptionEditWidth    = 26;
   kSetupOptionEditHeight   = 1;
+
+  { Setup default initialization values }
+  kSetupBitMODDefault      = bsNotSet;
+  kSetupBitPDNDefault      = bsNotSet;
+  kSetupBitGPENDefault     = bsSet;
+
+  kSetupBitOPL4Default     = bsNotSet;
+
+  kSetupBitFMAPDefault     = bsNotSet;
+  kSetupBitCMDPASDefault   = bsSet;
+
+  kSetupBitADPCMENDefault  = bsSet;
+  kSetupBitGPOUTDefault    = bsNotSet;
+  kSetupBitPNPMODEDefault  = bsSet;
+  kSetupBitFMCLKDefault    = bsNotSet;
+  kSetupBitSILENCEDefault  = bsNotSet;
+
+  kSetupBitAVCENDefault    = bsSet;
+  kSetupBitOPL5Default     = bsNotSet;
+  kSetupBitSHPASSDefault   = bsSet;
+  kSetupBitSBACCESSDefault = bsNotSet;
+  kSetupBitCFIFODefault    = bsSet;
+  kSetupBitEPENDefault     = bsSet;
+  kSetupBitCFIXDefault     = bsSet;
+
+  kSetupBitMPU401Default   = bsSet;
+  kSetupBitDRQTMENDefault  = bsSet;
+  kSetupBitAUDIOENDefault  = bsSet;
+
+  kSetupWSSBASEDefault     = $0530;
+  kSetupWSSIRQDefault      = $FF;
+  kSetupWSSDRQDefault      = $01;
+
+  kSetupSBBASEDefault      = $0220;
+  kSetupSBIRQDefault       = $05;
+  kSetupSBDRQDefault       = $01;
+  kSetupSBDSPVerDefault    = sdVersion32;
+
+  kSetupMPUBASEDefault     = $0330;
+  kSetupMPUIRQDefault      = $09;
+
+  kSetupCDBASEDefault      = $0340;
+  kSetupCDIRQDefault       = $FF;
+  kSetupCDDRQDefault       = $03;
+  kSetupIDECDROMDefault    = bsNotSet;
+
+  kSetupWSSSmpRateDefault  = sr44100;
+  kSetupWSSBitDepthDefault = bd16bit;
+  kSetupWSSSndOutDefault   = soStereo;
+
+  kSetupSBSmpRateDefault   = sr22050;
+  kSetupSBBitDepthDefault  = bd8bit;
+  kSetupSBSndOutDefault    = soStereo;
 
   { Mixer stringtable }
   sMixerTitle              = 'AUDIO INTERFACE MIXER';
@@ -347,6 +410,11 @@ const
   { Mixer constants }
   kMixerStartupDelay       = 500;
 
+  kMixerSlidersLeft        = 1;
+  kMixerSlidersTop         = 2;
+  kMixerSlidersWidth       = 49;
+  kMixerSlidersHeight      = 25;
+
   kMixerSliderX            = 2;
 
   kMixerDACSliderY         = 2;
@@ -358,13 +426,23 @@ const
   kMixerSliderMin          = 0;
   kMixerSliderMax          = 30;
 
+  kMixerCommandsLeft       = 50;
+  kMixerCommandsTop        = 2;
+  kMixerCommandsWidth      = 31;
+  kMixerCommandsHeight     = 12;
+
   kMixerCmdX               = 52;
+
+  kMixerOptionsLeft        = 50;
+  kMixerOptionsTop         = 14;
+  kMixerOptionsWidth       = 31;
+  kMixerOptionsHeight      = 25;
 
   kMixerOptionX            = 57;
   kMixerOptionWidth        = 21;
   kMixerOptionHeight       = 1;
 
-  { Mixer default constants }
+  { Mixer default initialization values }
   kMixerDACDefault         = 14;
   kMixerAUX1Default        = 30;
   kMixerAUX2Default        = 0;

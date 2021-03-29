@@ -134,10 +134,11 @@ const
   kRetries                            = $FFFF;
 
   { Codec Direct Registers }
-  kREGISTER_CODEC_INDEX_OFFSET        = 4;
-  kREGISTER_CODEC_INDEXED_DATA_OFFSET = 5;
-  kREGISTER_CODEC_STATUS_OFFSET       = 6;
-  kREGISTER_CODEC_DIRECT_DATA_OFFSET  = 7;
+  kREGISTER_CODEC_WSS_ID_OFFSET       = $03;
+  kREGISTER_CODEC_INDEX_OFFSET        = $04;
+  kREGISTER_CODEC_INDEXED_DATA_OFFSET = $05;
+  kREGISTER_CODEC_STATUS_OFFSET       = $06;
+  kREGISTER_CODEC_DIRECT_DATA_OFFSET  = $07;
 
   { Codec Indirect Registers }
   kREGISTER_LEFT_INPUT_CONTROL        = $00;
@@ -448,7 +449,7 @@ var
   LValue: Byte;
 
 begin
-  LValue := Port[GICodecConfig.WSSPort + 3] and $3F;
+  LValue := Port[GICodecConfig.WSSPort + kREGISTER_CODEC_WSS_ID_OFFSET] and $3F;
   CodecDetectWSS := (LValue = $04) or (LValue = $0F) or (LValue = $00);
 end;
 
