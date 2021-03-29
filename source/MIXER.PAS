@@ -304,7 +304,7 @@ end;
 procedure UILoop;
 var
   LStereoSlider: TStereoSlider;
-  LSoundChannel: TSoundChannel;
+  LSoundChannel: TCodecSoundChannel;
 
 begin
   LStereoSlider := ssDACStereoSlider;
@@ -490,8 +490,8 @@ begin
   GCodecMixerConfig.AUX1Right := kMixerAUX1Default;
   GCodecMixerConfig.AUX2Left := kMixerAUX2Default;
   GCodecMixerConfig.AUX2Right := kMixerAUX2Default;
-  GCodecMixerConfig.InputDeviceLeft := cidtLineIn;
-  GCodecMixerConfig.InputDeviceRight := cidtLineIn;
+  GCodecMixerConfig.InputDeviceLeft := kMixerInputDeviceDefault;
+  GCodecMixerConfig.InputDeviceRight := kMixerInputDeviceDefault;
   GCodecMixerConfig.InputGainLeft := kMixerInputGainDefault;
   GCodecMixerConfig.InputGainRight := kMixerInputGainDefault;
   GCodecMixerConfig.MicGainLeft := kMixerMicGainDefault;

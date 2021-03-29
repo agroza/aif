@@ -58,7 +58,7 @@ var
   LStatusItems: TStatusItems;
   LFrequency: Word;
   LOutputFormat: TCodecOutputFormat;
-  LSoundOutput: TSoundOutput;
+  LSoundOutput: TCodecSoundOutput;
   LFormat: String;
   LStereo: Boolean;
   LFilter: Boolean;
@@ -112,7 +112,7 @@ begin
         LStatusItems.DSP := True;
         LStatusItems.OutputFormat :=
           AddSizeSeparator(IntToStr(kSampleRates[GSBAudioConfig.SampleRate].Frequency) + cSpace + sHz, True) +
-          cSpace + sBitDepth[GSBAudioConfig.BitDepth] + cSpace + sSoundOutput[TSoundOutput(LStereo)];
+          cSpace + sBitDepth[GSBAudioConfig.BitDepth] + cSpace + sSoundOutput[TCodecSoundOutput(LStereo)];
       end;
 
   end;

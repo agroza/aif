@@ -1,7 +1,7 @@
 { --------------------------------------------------------------------------- }
 { - Audio Interface - Sound Blaster Pro Interface (sbpro.pas)               - }
 { - Copyright (C) 2000 Jan Knipperts                                        - }
-{ - Improvements (C) 2020 Alexandru Groza                                   - }
+{ - Improvements (C) 2020-2021 Alexandru Groza                              - }
 { - All rights reserved.                                                    - }
 { --------------------------------------------------------------------------- }
 { - License: GNU General Public License v3.0                                - }
@@ -31,8 +31,8 @@ procedure SBDSPEnableSpeaker(const AValue: Boolean);
 
 procedure SBMixerReset;
 
-function SBMixerGetVolume(const ADeviceType: TSBMixerDeviceType; const AChannel: TSoundChannel): Byte;
-procedure SBMixerSetVolume(const ADeviceType: TSBMixerDeviceType; const AChannel: TSoundChannel; AVolume: Byte);
+function SBMixerGetVolume(const ADeviceType: TSBMixerDeviceType; const AChannel: TCodecSoundChannel): Byte;
+procedure SBMixerSetVolume(const ADeviceType: TSBMixerDeviceType; const AChannel: TCodecSoundChannel; AVolume: Byte);
 
 procedure SBMixerSetOutput(const AStereo, AFilter: Boolean);
 procedure SBMixerGetOutput(var AStereo, AFilter: Boolean);
@@ -184,7 +184,7 @@ begin
   MixerWrite(kMIXER_REGISTER_RESET, kMIXER_COMMAND_RESET);
 end;
 
-function SBMixerGetVolume(const ADeviceType: TSBMixerDeviceType; const AChannel: TSoundChannel): Byte;
+function SBMixerGetVolume(const ADeviceType: TSBMixerDeviceType; const AChannel: TCodecSoundChannel): Byte;
 var
   Volume: Byte;
 
@@ -202,7 +202,7 @@ begin
   end;
 end;
 
-procedure SBMixerSetVolume(const ADeviceType: TSBMixerDeviceType; const AChannel: TSoundChannel; AVolume: Byte);
+procedure SBMixerSetVolume(const ADeviceType: TSBMixerDeviceType; const AChannel: TCodecSoundChannel; AVolume: Byte);
 var
   Volume: Byte;
 

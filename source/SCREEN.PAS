@@ -1,7 +1,7 @@
 { --------------------------------------------------------------------------- }
 { - VersaVision Screen Routines (Screen.pas)                                - }
 { - Integrant part of VersaVision Framework                                 - }
-{ - Copyright (C) 1998-2020 Alexandru Groza of Microprogramming TECHNIQUES  - }
+{ - Copyright (C) 1998-2021 Alexandru Groza of Microprogramming TECHNIQUES  - }
 { - All rights reserved.                                                    - }
 { --------------------------------------------------------------------------- }
 { - License: GNU General Public License v3.0                                - }
@@ -37,9 +37,9 @@ procedure ScreenDrawTitleBar(const AForeColor, ABackColor, ATextColor: Byte; con
 
 procedure ScreenDrawStereoSlider(const ASliderData: TStereoSliderData);
 procedure ScreenHighlightStereoSlider(const ASliderData: TStereoSliderData;
-  const AChannel: TSoundChannel; const AValue: Boolean);
+  const AChannel: TCodecSoundChannel; const AValue: Boolean);
 procedure ScreenMoveStereoSlider(var ASliderData: TStereoSliderData;
-  const AChannel: TSoundChannel; const ADirection: TSliderDirection);
+  const AChannel: TCodecSoundChannel; const ADirection: TSliderDirection);
 
 implementation
 
@@ -105,7 +105,7 @@ begin
   end;
 end;
 
-procedure ScreenUpdateStereoSlider(const ASliderData: TStereoSliderData; const AChannel: TSoundChannel);
+procedure ScreenUpdateStereoSlider(const ASliderData: TStereoSliderData; const AChannel: TCodecSoundChannel);
 var
   LPosition: Byte;
   LPositionY: Byte;
@@ -169,7 +169,7 @@ begin
 end;
 
 procedure ScreenHighlightStereoSlider(const ASliderData: TStereoSliderData;
-  const AChannel: TSoundChannel; const AValue: Boolean);
+  const AChannel: TCodecSoundChannel; const AValue: Boolean);
 var
   LLeftAttribute: Byte;
   LRightAttribute: Byte;
@@ -237,7 +237,7 @@ begin
 end;
 
 procedure ScreenMoveStereoSlider(var ASliderData: TStereoSliderData;
-  const AChannel: TSoundChannel; const ADirection: TSliderDirection);
+  const AChannel: TCodecSoundChannel; const ADirection: TSliderDirection);
 begin
   if ASliderData.Locked then
   begin

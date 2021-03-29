@@ -56,7 +56,7 @@ type
     SBBASE: Word;
     SBIRQ: Byte;
     SBDRQ: Byte;
-    SBDSPVersion: TSBDSPVersion;
+    SBDSPVersion: TCodecSBDSPVersion;
 
     MPUBASE: Word;
     MPUIRQ: Byte;
@@ -613,7 +613,7 @@ begin
   end;
 end;
 
-function GetSBDSPVersion(const AData: Byte): TSBDSPVersion;
+function GetSBDSPVersion(const AData: Byte): TCodecSBDSPVersion;
 begin
   case AData and $03 of
     $00:
@@ -631,7 +631,7 @@ begin
   end;
 end;
 
-procedure SetSBDSPVersion(var AData: Byte; const AValue: TSBDSPVersion);
+procedure SetSBDSPVersion(var AData: Byte; const AValue: TCodecSBDSPVersion);
 begin
   AData := AData and $FC;
 

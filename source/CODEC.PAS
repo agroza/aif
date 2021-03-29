@@ -15,30 +15,10 @@ uses
   Types;
 
 type
-  TCodecDeviceType = (
-    cdtAUX1,
-    cdtAUX2,
-    cdtDAC
-  );
-
-  TCodecInputDeviceType = (
-    cidtLineIn,
-    cidtAUX1In,
-    cidtMicrophone,
-    cidtPostMixedDAC
-  );
-
-  TCodecOutputFormat = (
-    cof8bitUlawCompanded,
-    cof8bitAlawCompanded,
-    cof8bitUnsignedPCM,
-    cof16bitTwosComplementPCM
-  );
-
   TCodecAudioConfig = record
-    SampleRate: TSampleRate;
-    BitDepth: TBitDepth;
-    SoundOutput: TSoundOutput;
+    SampleRate: TCodecSampleRate;
+    BitDepth: TCodecBitDepth;
+    SoundOutput: TCodecSoundOutput;
   end;
 
   TCodecMixerConfig = record
@@ -66,7 +46,7 @@ type
   end;
 
 const
-  kSampleRates: array[TSampleRate] of TSampleRateData = (
+  kSampleRates: array[TCodecSampleRate] of TSampleRateData = (
     ( Divider: 0; Crystal: 2; Frequency:  5512 ),
     ( Divider: 7; Crystal: 2; Frequency:  6615 ),
     ( Divider: 0; Crystal: 1; Frequency:  8000 ),
@@ -92,23 +72,25 @@ function CodecDetectWSS: Boolean;
 
 function CodecInitialize: Boolean;
 
-procedure CodecGetOutputFormat(var AFrequency: Word; var AFormat: TCodecOutputFormat; var ASoundOutput: TSoundOutput);
-procedure CodecSetOutputFormat(const AFrequency: Word; const AFormat: TCodecOutputFormat; const ASoundOutput: TSoundOutput);
+procedure CodecGetOutputFormat(var AFrequency: Word; var AFormat: TCodecOutputFormat;
+  var ASoundOutput: TCodecSoundOutput);
+procedure CodecSetOutputFormat(const AFrequency: Word;
+  const AFormat: TCodecOutputFormat; const ASoundOutput: TCodecSoundOutput);
 
-function CodecGetInputGain(const AChannel: TSoundChannel): Byte;
-function CodecGetInputDevice(const AChannel: TSoundChannel): TCodecInputDeviceType;
-function CodecGetMicGain(const AChannel: TSoundChannel): Boolean;
+function CodecGetInputGain(const AChannel: TCodecSoundChannel): Byte;
+function CodecGetInputDevice(const AChannel: TCodecSoundChannel): TCodecInputDeviceType;
+function CodecGetMicGain(const AChannel: TCodecSoundChannel): Boolean;
 procedure CodecSetInputConfig(const AInputDeviceType: TCodecInputDeviceType; const AMicrophoneGain: Boolean;
-  const AInputGain: Byte; const AChannel: TSoundChannel);
+  const AInputGain: Byte; const AChannel: TCodecSoundChannel);
 
 procedure CodecSetDigitalMix(const AEnabled: Boolean; AVolume: Byte);
 
-function CodecGetVolume(const ADeviceType: TCodecDeviceType; const AChannel: TSoundChannel): Byte;
-procedure CodecSetVolume(const ADeviceType: TCodecDeviceType; const AChannel: TSoundChannel; AVolume: Byte);
+function CodecGetVolume(const ADeviceType: TCodecDeviceType; const AChannel: TCodecSoundChannel): Byte;
+procedure CodecSetVolume(const ADeviceType: TCodecDeviceType; const AChannel: TCodecSoundChannel; AVolume: Byte);
 
-procedure CodecMuteAUX1(const AChannel: TSoundChannel; const AMute: Boolean);
-procedure CodecMuteAUX2(const AChannel: TSoundChannel; const AMute: Boolean);
-procedure CodecMuteDAC(const AChannel: TSoundChannel; const AMute: Boolean);
+procedure CodecMuteAUX1(const AChannel: TCodecSoundChannel; const AMute: Boolean);
+procedure CodecMuteAUX2(const AChannel: TCodecSoundChannel; const AMute: Boolean);
+procedure CodecMuteDAC(const AChannel: TCodecSoundChannel; const AMute: Boolean);
 
 procedure CodecSetLEDEnabled(const AValue: Boolean);
 
@@ -492,10 +474,11 @@ begin
   end;
 end;
 
-procedure CodecGetOutputFormat(var AFrequency: Word; var AFormat: TCodecOutputFormat; var ASoundOutput: TSoundOutput);
+procedure CodecGetOutputFormat(var AFrequency: Word; var AFormat: TCodecOutputFormat;
+  var ASoundOutput: TCodecSoundOutput);
 var
   LOutputFormat: Byte;
-  LSampleRate: TSampleRate;
+  LSampleRate: TCodecSampleRate;
   LDivider: Byte;
   LCrystal: Byte;
 
@@ -529,7 +512,7 @@ begin
   LCrystal := Succ(Ord(GetBit(LOutputFormat, kBitCSS)));
   LDivider := LOutputFormat shr $01;
 
-  for LSampleRate := Low(TSampleRate) to High(TSampleRate) do
+  for LSampleRate := Low(TCodecSampleRate) to High(TCodecSampleRate) do
   begin
     if (LDivider = kSampleRates[LSampleRate].Divider) and
        (LCrystal = kSampleRates[LSampleRate].Crystal) then
@@ -540,13 +523,14 @@ begin
   end;
 end;
 
-procedure CodecSetOutputFormat(const AFrequency: Word; const AFormat: TCodecOutputFormat; const ASoundOutput: TSoundOutput);
+procedure CodecSetOutputFormat(const AFrequency: Word; const AFormat: TCodecOutputFormat;
+  const ASoundOutput: TCodecSoundOutput);
 var
-  LSampleRate: TSampleRate;
+  LSampleRate: TCodecSampleRate;
   LOutputFormat: Byte;
 
 begin
-  for LSampleRate := Low(TSampleRate) to High(TSampleRate) do
+  for LSampleRate := Low(TCodecSampleRate) to High(TCodecSampleRate) do
     if AFrequency = kSampleRates[LSampleRate].Frequency then
       Break;
 
@@ -582,7 +566,7 @@ begin
   CodecCalibrate;
 end;
 
-function CodecGetInputDevice(const AChannel: TSoundChannel): TCodecInputDeviceType;
+function CodecGetInputDevice(const AChannel: TCodecSoundChannel): TCodecInputDeviceType;
 var
   LInputDevice: Byte;
 
@@ -617,7 +601,7 @@ begin
   end;
 end;
 
-function CodecGetMicGain(const AChannel: TSoundChannel): Boolean;
+function CodecGetMicGain(const AChannel: TCodecSoundChannel): Boolean;
 begin
   case AChannel of
     scLeft:
@@ -634,7 +618,7 @@ begin
   end;
 end;
 
-function CodecGetInputGain(const AChannel: TSoundChannel): Byte;
+function CodecGetInputGain(const AChannel: TCodecSoundChannel): Byte;
 var
   LGain: Byte;
   LGainLeft: Byte;
@@ -660,7 +644,7 @@ begin
 end;
 
 procedure CodecSetInputConfig(const AInputDeviceType: TCodecInputDeviceType; const AMicrophoneGain: Boolean;
-  const AInputGain: Byte; const AChannel: TSoundChannel);
+  const AInputGain: Byte; const AChannel: TCodecSoundChannel);
 var
   LInputConfig: Byte;
 
@@ -724,7 +708,7 @@ begin
   CodecWrite(kREGISTER_DIGITAL_MIX, LValue);
 end;
 
-function CodecGetVolume(const ADeviceType: TCodecDeviceType; const AChannel: TSoundChannel): Byte;
+function CodecGetVolume(const ADeviceType: TCodecDeviceType; const AChannel: TCodecSoundChannel): Byte;
 var
   LRegister: Byte;
   LVolume: Byte;
@@ -752,7 +736,7 @@ begin
   CodecGetVolume := 30 - LVolume;
 end;
 
-procedure CodecSetVolume(const ADeviceType: TCodecDeviceType; const AChannel: TSoundChannel; AVolume: Byte);
+procedure CodecSetVolume(const ADeviceType: TCodecDeviceType; const AChannel: TCodecSoundChannel; AVolume: Byte);
 var
   LRegister: Byte;
 
@@ -787,7 +771,7 @@ begin
   end;
 end;
 
-procedure CodecMuteAUX1(const AChannel: TSoundChannel; const AMute: Boolean);
+procedure CodecMuteAUX1(const AChannel: TCodecSoundChannel; const AMute: Boolean);
 begin
   case AChannel of
     scLeft:
@@ -805,7 +789,7 @@ begin
   end;
 end;
 
-procedure CodecMuteAUX2(const AChannel: TSoundChannel; const AMute: Boolean);
+procedure CodecMuteAUX2(const AChannel: TCodecSoundChannel; const AMute: Boolean);
 begin
   case AChannel of
     scLeft:
@@ -823,7 +807,7 @@ begin
   end;
 end;
 
-procedure CodecMuteDAC(const AChannel: TSoundChannel; const AMute: Boolean);
+procedure CodecMuteDAC(const AChannel: TCodecSoundChannel; const AMute: Boolean);
 begin
   case AChannel of
     scLeft:

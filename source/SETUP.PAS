@@ -102,13 +102,13 @@ type
     IDECDROM: TBitStatus;
     CFIX: TBitStatus;
     FMAP: TBitStatus;
-    WSSSampleRate: TSampleRate;
-    WSSBitDepth: TBitDepth;
-    WSSSoundOutput: TSoundOutput;
-    SBSampleRate: TSampleRate;
-    SBBitDepth: TBitDepth;
-    SBSoundOutput: TSoundOutput;
-    SBDSPVersion: TSBDSPVersion;
+    WSSSampleRate: TCodecSampleRate;
+    WSSBitDepth: TCodecBitDepth;
+    WSSSoundOutput: TCodecSoundOutput;
+    SBSampleRate: TCodecSampleRate;
+    SBBitDepth: TCodecBitDepth;
+    SBSoundOutput: TCodecSoundOutput;
+    SBDSPVersion: TCodecSBDSPVersion;
     SBADPCM: TBitStatus;
     CFIFO: TBitStatus;
     AVC: TBitStatus;
@@ -354,70 +354,70 @@ function GSVWSSSampleRate(const AIndex: Byte; const ASetValue: Boolean): String;
 begin
   if ASetValue then
   begin
-    IGSetupConfig.WSSSampleRate := TSampleRate(AIndex);
+    IGSetupConfig.WSSSampleRate := TCodecSampleRate(AIndex);
   end;
 
-  GSVWSSSampleRate := AddSizeSeparator(IntToStr(kSampleRates[TSampleRate(AIndex)].Frequency) + cSpace + sHz, True);
+  GSVWSSSampleRate := AddSizeSeparator(IntToStr(kSampleRates[TCodecSampleRate(AIndex)].Frequency) + cSpace + sHz, True);
 end;
 
 function GSVWSSBitDepth(const AIndex: Byte; const ASetValue: Boolean): String;
 begin
   if ASetValue then
   begin
-    IGSetupConfig.WSSBitDepth := TBitDepth(AIndex);
+    IGSetupConfig.WSSBitDepth := TCodecBitDepth(AIndex);
   end;
 
-  GSVWSSBitDepth := sBitDepth[TBitDepth(AIndex)];
+  GSVWSSBitDepth := sBitDepth[TCodecBitDepth(AIndex)];
 end;
 
 function GSVWSSSoundOutput(const AIndex: Byte; const ASetValue: Boolean): String;
 begin
   if ASetValue then
   begin
-    IGSetupConfig.WSSSoundOutput := TSoundOutput(AIndex);
+    IGSetupConfig.WSSSoundOutput := TCodecSoundOutput(AIndex);
   end;
 
-  GSVWSSSoundOutput := sSoundOutput[TSoundOutput(AIndex)];
+  GSVWSSSoundOutput := sSoundOutput[TCodecSoundOutput(AIndex)];
 end;
 
 function GSVSBSampleRate(const AIndex: Byte; const ASetValue: Boolean): String;
 begin
   if ASetValue then
   begin
-    IGSetupConfig.SBSampleRate := TSampleRate(AIndex);
+    IGSetupConfig.SBSampleRate := TCodecSampleRate(AIndex);
   end;
 
-  GSVSBSampleRate := AddSizeSeparator(IntToStr(kSampleRates[TSampleRate(AIndex)].Frequency) + cSpace + sHz, True);
+  GSVSBSampleRate := AddSizeSeparator(IntToStr(kSampleRates[TCodecSampleRate(AIndex)].Frequency) + cSpace + sHz, True);
 end;
 
 function GSVSBBitDepth(const AIndex: Byte; const ASetValue: Boolean): String;
 begin
   if ASetValue then
   begin
-    IGSetupConfig.SBBitDepth := TBitDepth(AIndex);
+    IGSetupConfig.SBBitDepth := TCodecBitDepth(AIndex);
   end;
 
-  GSVSBBitDepth := sBitDepth[TBitDepth(AIndex)];
+  GSVSBBitDepth := sBitDepth[TCodecBitDepth(AIndex)];
 end;
 
 function GSVSBSoundOutput(const AIndex: Byte; const ASetValue: Boolean): String;
 begin
   if ASetValue then
   begin
-    IGSetupConfig.SBSoundOutput := TSoundOutput(AIndex);
+    IGSetupConfig.SBSoundOutput := TCodecSoundOutput(AIndex);
   end;
 
-  GSVSBSoundOutput := sSoundOutput[TSoundOutput(AIndex)];
+  GSVSBSoundOutput := sSoundOutput[TCodecSoundOutput(AIndex)];
 end;
 
 function GSVSBDSPVersion(const AIndex: Byte; const ASetValue: Boolean): String;
 begin
   if ASetValue then
   begin
-    IGSetupConfig.SBDSPVersion := TSBDSPVersion(AIndex);
+    IGSetupConfig.SBDSPVersion := TCodecSBDSPVersion(AIndex);
   end;
 
-  GSVSBDSPVersion := sSBDSPVersions[TSBDSPVersion(AIndex)];
+  GSVSBDSPVersion := sSBDSPVersions[TCodecSBDSPVersion(AIndex)];
 end;
 
 function GSVSBADPCM(const AIndex: Byte; const ASetValue: Boolean): String;

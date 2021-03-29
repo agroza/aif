@@ -17,7 +17,7 @@ const
   sEmpty                   = '';
 
   { program stringtable }
-  sProgramTitle            = 'AUDIO INTERFACE  VER. 2.5 REV. A';
+  sProgramTitle            = 'AUDIO INTERFACE  VER. 2.5 REV. B';
   sProgramCopyright        = 'Copyright (C) 1998-2021 Microprogramming TECHNIQUES';
   sProgramAuthor           = 'Programming/PC Code: Alexandru Groza';
   sProgramRights           = 'All rights reserved.';
@@ -96,17 +96,17 @@ const
     'Enabled'
   );
 
-  sBitDepth: array[TBitDepth] of String[6] = (
+  sBitDepth: array[TCodecBitDepth] of String[6] = (
     '8-bit',
     '16-bit'
   );
 
-  sSoundOutput: array[TSoundOutput] of String[6] = (
+  sSoundOutput: array[TCodecSoundOutput] of String[6] = (
     'Mono',
     'Stereo'
   );
 
-  sSBDSPVersions: array[TSBDSPVersion] of String[3] = (
+  sSBDSPVersions: array[TCodecSBDSPVersion] of String[3] = (
     '2.1',
     '1.5',
     '3.2',
@@ -446,8 +446,7 @@ const
   kMixerDACDefault         = 14;
   kMixerAUX1Default        = 30;
   kMixerAUX2Default        = 0;
-  { TODO -oagroza -cIdea : Move this type to global types? }
-  {kMixerInputDeviceDefault = cidtLineIn;}
+  kMixerInputDeviceDefault = cidtLineIn;
   kMixerInputGainDefault   = 0;
   kMixerMicGainDefault     = False;
   kMixerDigitalMixDefault  = False;
@@ -470,7 +469,7 @@ const
   { Status constants }
   kStatusValueX            = 22;
 
-  kSBDSPVersions: array[TSBDSPVersion] of Byte = (
+  kSBDSPVersions: array[TCodecSBDSPVersion] of Byte = (
     2,
     1,
     3,

@@ -38,23 +38,7 @@ type
     bsSet
   );
 
-  TBitDepth = (
-    bd8bit,
-    bd16bit
-  );
-
-  TSoundOutput = (
-    soMono,
-    soStereo
-  );
-
-  TSoundChannel = (
-    scLeft,
-    scRight,
-    scLeftRight
-  );
-
-  TSampleRate = (
+  TCodecSampleRate = (
     sr5512,
     sr6615,
     sr8000,
@@ -71,7 +55,43 @@ type
     sr48000
   );
 
-  TSBDSPVersion = (
+  TCodecBitDepth = (
+    bd8bit,
+    bd16bit
+  );
+
+  TCodecSoundOutput = (
+    soMono,
+    soStereo
+  );
+
+  TCodecSoundChannel = (
+    scLeft,
+    scRight,
+    scLeftRight
+  );
+
+  TCodecDeviceType = (
+    cdtAUX1,
+    cdtAUX2,
+    cdtDAC
+  );
+
+  TCodecInputDeviceType = (
+    cidtLineIn,
+    cidtAUX1In,
+    cidtMicrophone,
+    cidtPostMixedDAC
+  );
+
+  TCodecOutputFormat = (
+    cof8bitUlawCompanded,
+    cof8bitAlawCompanded,
+    cof8bitUnsignedPCM,
+    cof16bitTwosComplementPCM
+  );
+
+  TCodecSBDSPVersion = (
     sdVersion21,
     sdVersion15,
     sdVersion32,
