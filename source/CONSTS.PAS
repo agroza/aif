@@ -17,7 +17,7 @@ const
   sEmpty                   = '';
 
   { program stringtable }
-  sProgramTitle            = 'AUDIO INTERFACE  VER. 2.5 REV. C';
+  sProgramTitle            = 'AUDIO INTERFACE  VER. 2.5 REV. D';
   sProgramCopyright        = 'Copyright (C) 1998-2021 Microprogramming TECHNIQUES';
   sProgramAuthor           = 'Programming/PC Code: Alexandru Groza';
   sProgramRights           = 'All rights reserved.';
@@ -382,6 +382,8 @@ const
   sMixerSliderRight        = 'RIGHT';
   sMixerSliderGrid         = 'цдедедедедедедедедедедедедедед╢';
   cMixerSliderTip          = 'ш';
+  cMixerSliderLeftBar      = 'ъ';
+  cMixerSliderRightBar     = 'э';
 
   { Mixer color theme }
   clMixerFore              = clLightGray;
@@ -414,6 +416,10 @@ const
   kMixerSlidersTop         = 2;
   kMixerSlidersWidth       = 49;
   kMixerSlidersHeight      = 25;
+  kMixerSlidersLeftY       = 1;
+  kMixerSlidersRightY      = 3;
+  kMixerSlidersTipX        = 7;
+  kMixerSlidersValueX      = 40;
 
   kMixerSliderX            = 2;
 

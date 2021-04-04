@@ -34,8 +34,8 @@ type
 procedure ScreenWriteActionIf(const AMessage: String; const AAction, ACondition: Boolean);
 
 procedure ScreenStoreColors;
-procedure ScreenSetVVColors;
 procedure ScreenRestoreColors;
+procedure ScreenSetVVColors;
 
 procedure ScreenDrawTitleBar(const AForeColor, ABackColor, ATextColor: Byte; const ACaption: String);
 
@@ -109,18 +109,6 @@ begin
   end;
 end;
 
-procedure ScreenSetVVColors;
-begin
-  ScreenStoreColors;
-
-  VideoSetPaletteColor(clVGAPaletteBlue, kVVBlue);
-  VideoSetPaletteColor(clVGAPaletteRed, kVVRed);
-  VideoSetPaletteColor(clVGAPaletteDarkGray, kVVDarkGray);
-  VideoSetPaletteColor(clVGAPaletteLightRed, kVVLightRed);
-  VideoSetPaletteColor(clVGAPaletteLightGreen, kVVLightGreen);
-  VideoSetPaletteColor(clVGAPaletteYellow, kVVYellow);
-end;
-
 procedure ScreenRestoreColors;
 var
   I: Byte;
@@ -131,6 +119,18 @@ begin
     VideoSetPaletteColor(I, GIVGAPaletteLow[I]);
     VideoSetPaletteColor(I + kVGAPaletteHighStart, GIVGAPaletteHigh[I + kVGAPaletteHighStart]);
   end;
+end;
+
+procedure ScreenSetVVColors;
+begin
+  ScreenStoreColors;
+
+  VideoSetPaletteColor(clVGAPaletteBlue, kVVBlue);
+  VideoSetPaletteColor(clVGAPaletteRed, kVVRed);
+  VideoSetPaletteColor(clVGAPaletteDarkGray, kVVDarkGray);
+  VideoSetPaletteColor(clVGAPaletteLightRed, kVVLightRed);
+  VideoSetPaletteColor(clVGAPaletteLightGreen, kVVLightGreen);
+  VideoSetPaletteColor(clVGAPaletteYellow, kVVYellow);
 end;
 
 procedure ScreenDrawTitleBar(const AForeColor, ABackColor, ATextColor: Byte; const ACaption: String);
@@ -167,20 +167,20 @@ begin
     scLeft:
       begin
         LPosition := ASliderData.LeftPosition;
-        LPositionY := 1;
+        LPositionY := kMixerSlidersLeftY;
       end;
 
     scRight:
       begin
         LPosition := ASliderData.RightPosition;
-        LPositionY := 3;
+        LPositionY := kMixerSlidersRightY;
       end;
 
   end;
 
-  VideoWriteCharAttrAt(ASliderData.PositionX + LPosition + 7, ASliderData.PositionY + LPositionY,
+  VideoWriteCharAttrAt(ASliderData.PositionX + LPosition + kMixerSlidersTipX, ASliderData.PositionY + LPositionY,
     cMixerSliderTip, VideoAttribute(clMixerSliderTip, clMixerBack));
-  VideoWriteStringAt(ASliderData.PositionX + 40, ASliderData.PositionY + LPositionY,
+  VideoWriteStringAt(ASliderData.PositionX + kMixerSlidersValueX, ASliderData.PositionY + LPositionY,
     PadPercent(Round((LPosition / ASliderData.Max) * 100)), clMixerSliderText, clMixerBack);
 end;
 
@@ -194,7 +194,7 @@ begin
 
   for I := 0 to APosition do
   begin
-    VideoWriteCharAttrAt(ASliderData.PositionX + I + 7, ASliderData.PositionY + APositionY,
+    VideoWriteCharAttrAt(ASliderData.PositionX + I + kMixerSlidersTipX, ASliderData.PositionY + APositionY,
       AChar, VideoAttribute(ScreenGetSliderBarColor(I), clMixerBack));
   end;
 
@@ -202,7 +202,7 @@ begin
   begin
     for I := Succ(APosition) to ASliderData.Max do
     begin
-      VideoWriteCharAttrAt(ASliderData.PositionX + I + 7, ASliderData.PositionY + APositionY,
+      VideoWriteCharAttrAt(ASliderData.PositionX + I + kMixerSlidersTipX, ASliderData.PositionY + APositionY,
         AChar, VideoAttribute(clMixerSliderNormal, clMixerBack));
     end;
   end;
@@ -210,11 +210,13 @@ end;
 
 procedure ScreenDrawStereoSlider(const ASliderData: TStereoSliderData);
 begin
-  VideoWriteStringAt(ASliderData.PositionX + 7, ASliderData.PositionY, ASliderData.Title, clMixerSliderTitle, clMixerBack);
-  VideoWriteStringAt(ASliderData.PositionX + 7, ASliderData.PositionY + 2, sMixerSliderGrid, clMixerSliderGrid, clMixerBack);
+  VideoWriteStringAt(ASliderData.PositionX + kMixerSlidersTipX, ASliderData.PositionY,
+    ASliderData.Title, clMixerSliderTitle, clMixerBack);
+  VideoWriteStringAt(ASliderData.PositionX + kMixerSlidersTipX, ASliderData.PositionY + 2,
+    sMixerSliderGrid, clMixerSliderGrid, clMixerBack);
 
-  ScreenDrawSliderBar(ASliderData, ASliderData.LeftPosition, 1, sMixerSliderLeft, 'ß');
-  ScreenDrawSliderBar(ASliderData, ASliderData.RightPosition, 3, sMixerSliderRight, 'Ü');
+  ScreenDrawSliderBar(ASliderData, ASliderData.LeftPosition, kMixerSlidersLeftY, sMixerSliderLeft, cMixerSliderLeftBar);
+  ScreenDrawSliderBar(ASliderData, ASliderData.RightPosition, kMixerSlidersRightY, sMixerSliderRight, cMixerSliderRightBar);
 
   ScreenUpdateStereoSlider(ASliderData, scLeft);
   ScreenUpdateStereoSlider(ASliderData, scRight);
@@ -249,8 +251,8 @@ begin
     LRightAttribute := VideoAttribute(clMixerSliderText, clMixerBack);
   end;
 
-  VideoHighlightRegion(ASliderData.PositionX, ASliderData.PositionY + 1, 4, 1, LLeftAttribute);
-  VideoHighlightRegion(ASliderData.PositionX, ASliderData.PositionY + 3, 5, 1, LRightAttribute);
+  VideoHighlightRegion(ASliderData.PositionX, ASliderData.PositionY + kMixerSlidersLeftY, 4, 1, LLeftAttribute);
+  VideoHighlightRegion(ASliderData.PositionX, ASliderData.PositionY + kMixerSlidersRightY, 5, 1, LRightAttribute);
 end;
 
 procedure ScreenActStereoSlider(const ASliderData: TStereoSliderData; var APosition: Byte;
@@ -285,7 +287,8 @@ begin
 
   end;
 
-  VideoWriteCharAttrAt(ASliderData.PositionX + LDeletePosition + 7, ASliderData.PositionY + APositionY, AChar, LAttribute);
+  VideoWriteCharAttrAt(ASliderData.PositionX + LDeletePosition + kMixerSlidersTipX, ASliderData.PositionY + APositionY,
+    AChar, LAttribute);
 end;
 
 procedure ScreenMoveStereoSlider(var ASliderData: TStereoSliderData;
@@ -293,19 +296,19 @@ procedure ScreenMoveStereoSlider(var ASliderData: TStereoSliderData;
 begin
   if ASliderData.Locked then
   begin
-    ScreenActStereoSlider(ASliderData, ASliderData.LeftPosition, ADirection, 1, 'ß');
+    ScreenActStereoSlider(ASliderData, ASliderData.LeftPosition, ADirection, kMixerSlidersLeftY, cMixerSliderLeftBar);
     ScreenUpdateStereoSlider(ASliderData, scLeft);
 
-    ScreenActStereoSlider(ASliderData, ASliderData.RightPosition, ADirection, 3, 'Ü');
+    ScreenActStereoSlider(ASliderData, ASliderData.RightPosition, ADirection, kMixerSlidersRightY, cMixerSliderRightBar);
     ScreenUpdateStereoSlider(ASliderData, scRight);
   end else
   begin
     case AChannel of
       scLeft:
-        ScreenActStereoSlider(ASliderData, ASliderData.LeftPosition, ADirection, 1, 'ß');
+        ScreenActStereoSlider(ASliderData, ASliderData.LeftPosition, ADirection, kMixerSlidersLeftY, cMixerSliderLeftBar);
 
       scRight:
-        ScreenActStereoSlider(ASliderData, ASliderData.RightPosition, ADirection, 3, 'Ü');
+        ScreenActStereoSlider(ASliderData, ASliderData.RightPosition, ADirection, kMixerSlidersRightY, cMixerSliderRightBar);
 
     end;
 
