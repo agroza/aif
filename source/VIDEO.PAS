@@ -13,19 +13,53 @@ interface
 
 const
   { 80x25 screen coordinates }
-  k80x25Left            = 1;
-  k80x25Top             = 1;
-  k80x25Width           = 80;
-  k80x25Height          = 25;
+  k80x25Left               = 1;
+  k80x25Top                = 1;
+  k80x25Width              = 80;
+  k80x25Height             = 25;
 
-  kVGAColumnCount       = 80;
-  kVGARowCount          = 25;
-  kVGAChAtSize          = 2;
-  kVGARAMSize           = 4000;
+  { general VGA constants }
+  kVGAColumnCount          = 80;
+  kVGARowCount             = 25;
+  kVGAChAtSize             = 2;
+  kVGARAMSize              = 4000;
+
+  { VGA Palette constants }
+  kVGAPaletteLowStart      = 0;
+  kVGAPaletteLowEnd        = 7;
+  kVGAPaletteHighStart     = 56;
+  kVGAPaletteHighEnd       = 63;
+
+  { VGA Palette color constants }
+  clVGAPaletteBlack        = 0;
+  clVGAPaletteBlue         = 1;
+  clVGAPaletteGreen        = 2;
+  clVGAPaletteCyan         = 3;
+  clVGAPaletteRed          = 4;
+  clVGAPaletteMagenta      = 5;
+  clVGAPaletteBrown        = 6;
+  clVGAPaletteLightGray    = 7;
+  clVGAPaletteDarkGray     = 56;
+  clVGAPaletteLightBlue    = 57;
+  clVGAPaletteLightGreen   = 58;
+  clVGAPaletteLightCyan    = 59;
+  clVGAPaletteLightRed     = 60;
+  clVGAPaletteLightMagenta = 61;
+  clVGAPaletteYellow       = 62;
+  clVGAPaletteWhite        = 63;
 
 type
   PVideoRAMData = ^TVideoRAMData;
   TVideoRAMData = array[1..kVGARAMSize] of Byte;
+
+  TPaletteColor = record
+    RIntensity: Byte;
+    GIntensity: Byte;
+    BIntensity: Byte;
+  end;
+
+procedure VideoGetPaletteColor(const AIndex: Byte; var APaletteColor: TPaletteColor);
+procedure VideoSetPaletteColor(const AIndex: Byte; const APaletteColor: TPaletteColor);
 
 procedure VideoEnableHighColors;
 procedure VideoDisableHighColors;
@@ -60,6 +94,52 @@ const
   kEmptySpace           = ' ';
 
 { public declarations }
+
+procedure VideoGetPaletteColor(const AIndex: Byte; var APaletteColor: TPaletteColor); assembler;
+asm
+  mov dx,03C6h
+  mov al,0FFh
+  out dx,al
+
+  mov dx,03C7h
+  mov al,AIndex
+  out dx,al
+
+  mov dx,03C9h
+  les di,[APaletteColor]
+
+  mov cx,3
+
+@@getColor:
+  in al,dx
+  mov [es:di],al
+  inc di
+
+  loop @@getColor
+end;
+
+procedure VideoSetPaletteColor(const AIndex: Byte; const APaletteColor: TPaletteColor); assembler;
+asm
+  mov dx,03C6h
+  mov al,0FFh
+  out dx,al
+
+  mov dx,03C8h
+  mov al,AIndex
+  out dx,al
+
+  mov dx,03C9h
+  les si,[APaletteColor]
+
+  mov cx,3
+
+@@setColor:
+  mov al,[es:si]
+  out dx,al
+  inc si
+
+  loop @@setColor
+end;
 
 procedure VideoEnableHighColors; assembler;
 asm

@@ -1047,8 +1047,12 @@ begin
   VideoEnableHighColors;
   VideoDisableCursor;
 
+  ScreenSetVVColors;
+
   UIDraw;
   UILoop;
+
+  ScreenRestoreColors;
 
   VideoEnableCursor;
   VideoDisableHighColors;

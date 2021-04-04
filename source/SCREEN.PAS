@@ -33,6 +33,10 @@ type
 
 procedure ScreenWriteActionIf(const AMessage: String; const AAction, ACondition: Boolean);
 
+procedure ScreenStoreColors;
+procedure ScreenSetVVColors;
+procedure ScreenRestoreColors;
+
 procedure ScreenDrawTitleBar(const AForeColor, ABackColor, ATextColor: Byte; const ACaption: String);
 
 procedure ScreenDrawStereoSlider(const ASliderData: TStereoSliderData);
@@ -48,6 +52,18 @@ uses
   Crt,
   Routines,
   Video;
+
+const
+  kVVBlue: TPaletteColor = ( RIntensity: 0; GIntensity: 0; BIntensity: 16 );
+  kVVRed: TPaletteColor = ( RIntensity: 32; GIntensity: 0; BIntensity: 0 );
+  kVVDarkGray: TPaletteColor = ( RIntensity: 10; GIntensity: 10; BIntensity: 10 );
+  kVVLightGreen: TPaletteColor = ( RIntensity: 0; GIntensity: 48; BIntensity: 0 );
+  kVVLightRed: TPaletteColor = ( RIntensity: 50; GIntensity: 30; BIntensity: 0 );
+  kVVYellow: TPaletteColor = ( RIntensity: 50; GIntensity: 50; BIntensity: 0 );
+
+var
+  GIVGAPaletteLow: array[kVGAPaletteLowStart..kVGAPaletteLowEnd] of TPaletteColor;
+  GIVGAPaletteHigh: array[kVGAPaletteHighStart..kVGAPaletteHighEnd] of TPaletteColor;
 
 { public declarations }
 
@@ -78,6 +94,42 @@ begin
     end;
 
     VideoWriteCharAt(LPosition, LPositionY, cClosedSquareBracket);
+  end;
+end;
+
+procedure ScreenStoreColors;
+var
+  I: Byte;
+
+begin
+  for I := kVGAPaletteLowStart to kVGAPaletteLowEnd do
+  begin
+    VideoGetPaletteColor(I, GIVGAPaletteLow[I]);
+    VideoGetPaletteColor(I + kVGAPaletteHighStart, GIVGAPaletteHigh[I + kVGAPaletteHighStart]);
+  end;
+end;
+
+procedure ScreenSetVVColors;
+begin
+  ScreenStoreColors;
+
+  VideoSetPaletteColor(clVGAPaletteBlue, kVVBlue);
+  VideoSetPaletteColor(clVGAPaletteRed, kVVRed);
+  VideoSetPaletteColor(clVGAPaletteDarkGray, kVVDarkGray);
+  VideoSetPaletteColor(clVGAPaletteLightRed, kVVLightRed);
+  VideoSetPaletteColor(clVGAPaletteLightGreen, kVVLightGreen);
+  VideoSetPaletteColor(clVGAPaletteYellow, kVVYellow);
+end;
+
+procedure ScreenRestoreColors;
+var
+  I: Byte;
+
+begin
+  for I := kVGAPaletteLowStart to kVGAPaletteLowEnd do
+  begin
+    VideoSetPaletteColor(I, GIVGAPaletteLow[I]);
+    VideoSetPaletteColor(I + kVGAPaletteHighStart, GIVGAPaletteHigh[I + kVGAPaletteHighStart]);
   end;
 end;
 
