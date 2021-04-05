@@ -17,7 +17,7 @@ const
   sEmpty                   = '';
 
   { program stringtable }
-  sProgramTitle            = 'AUDIO INTERFACE  VER. 2.6 REV. A';
+  sProgramTitle            = 'AUDIO INTERFACE  VER. 2.6 REV. B';
   sProgramCopyright        = 'Copyright (C) 1998-2021 Microprogramming TECHNIQUES';
   sProgramAuthor           = 'Programming/PC Code: Alexandru Groza';
   sProgramRights           = 'All rights reserved.';
@@ -61,6 +61,8 @@ const
   sAIInitializedWSSMode    = 'Audio Interface initialized in Windows Sound System (WSS) mode.';
 
   sLineOutRelay            = 'Line Out relay control is ';
+
+  sHardwareInitError       = 'Hardware initialization error. Audio Interface is either not present or faulty.';
 
   sMode                    = 'mode';
 
@@ -395,7 +397,7 @@ const
   clMixerSliderText        = clLightGray;
   clMixerSliderHighFore    = clWhite;
   clMixerSliderHighBack    = clRed;
-  clMixerSliderGrid        = clDarkGray;
+  clMixerSliderGrid        = clBrown;
   clMixerSliderTip         = clWhite;
   clMixerSliderNormal      = clLightGray;
   clMixerSliderLow         = clGreen;

@@ -58,6 +58,7 @@ uses
 const
   kVVBlue: TPaletteColor = ( RIntensity: 0; GIntensity: 0; BIntensity: 16 );
   kVVRed: TPaletteColor = ( RIntensity: 32; GIntensity: 0; BIntensity: 0 );
+  kVVBrown: TPaletteColor = ( RIntensity: 26; GIntensity: 26; BIntensity: 26 );
   kVVDarkGray: TPaletteColor = ( RIntensity: 10; GIntensity: 10; BIntensity: 10 );
   kVVLightGreen: TPaletteColor = ( RIntensity: 0; GIntensity: 48; BIntensity: 0 );
   kVVLightRed: TPaletteColor = ( RIntensity: 50; GIntensity: 30; BIntensity: 0 );
@@ -66,8 +67,7 @@ const
 var
   GIHaltOnErrors: Boolean;
 
-  GIVGAPaletteLow: array[kVGAPaletteLowStart..kVGAPaletteLowEnd] of TPaletteColor;
-  GIVGAPaletteHigh: array[kVGAPaletteHighStart..kVGAPaletteHighEnd] of TPaletteColor;
+  GIVGAPalette: array[kVGAPaletteStart..kVGAPaletteEnd] of TPaletteColor;
 
 { public declarations }
 
@@ -110,6 +110,8 @@ begin
 
   if GIHaltOnErrors and not AAction then
   begin
+    Writeln;
+    Writeln(sHardwareInitError);
     Halt(kHardwareInitError);
   end;
 end;
@@ -119,10 +121,9 @@ var
   I: Byte;
 
 begin
-  for I := kVGAPaletteLowStart to kVGAPaletteLowEnd do
+  for I := kVGAPaletteStart to kVGAPaletteEnd do
   begin
-    VideoGetPaletteColor(I, GIVGAPaletteLow[I]);
-    VideoGetPaletteColor(I + kVGAPaletteHighStart, GIVGAPaletteHigh[I + kVGAPaletteHighStart]);
+    VideoGetPaletteColor(kVGAPaletteIndex[I], GIVGAPalette[I]);
   end;
 end;
 
@@ -131,10 +132,9 @@ var
   I: Byte;
 
 begin
-  for I := kVGAPaletteLowStart to kVGAPaletteLowEnd do
+  for I := kVGAPaletteStart to kVGAPaletteEnd do
   begin
-    VideoSetPaletteColor(I, GIVGAPaletteLow[I]);
-    VideoSetPaletteColor(I + kVGAPaletteHighStart, GIVGAPaletteHigh[I + kVGAPaletteHighStart]);
+    VideoSetPaletteColor(kVGAPaletteIndex[I], GIVGAPalette[I]);
   end;
 end;
 
@@ -144,6 +144,7 @@ begin
 
   VideoSetPaletteColor(clVGAPaletteBlue, kVVBlue);
   VideoSetPaletteColor(clVGAPaletteRed, kVVRed);
+  VideoSetPaletteColor(clVGAPaletteBrown, kVVBrown);
   VideoSetPaletteColor(clVGAPaletteDarkGray, kVVDarkGray);
   VideoSetPaletteColor(clVGAPaletteLightRed, kVVLightRed);
   VideoSetPaletteColor(clVGAPaletteLightGreen, kVVLightGreen);

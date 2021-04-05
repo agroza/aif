@@ -24,12 +24,6 @@ const
   kVGAChAtSize             = 2;
   kVGARAMSize              = 4000;
 
-  { VGA Palette constants }
-  kVGAPaletteLowStart      = 0;
-  kVGAPaletteLowEnd        = 7;
-  kVGAPaletteHighStart     = 56;
-  kVGAPaletteHighEnd       = 63;
-
   { VGA Palette color constants }
   clVGAPaletteBlack        = 0;
   clVGAPaletteBlue         = 1;
@@ -37,7 +31,7 @@ const
   clVGAPaletteCyan         = 3;
   clVGAPaletteRed          = 4;
   clVGAPaletteMagenta      = 5;
-  clVGAPaletteBrown        = 6;
+  clVGAPaletteBrown        = 20;
   clVGAPaletteLightGray    = 7;
   clVGAPaletteDarkGray     = 56;
   clVGAPaletteLightBlue    = 57;
@@ -47,6 +41,28 @@ const
   clVGAPaletteLightMagenta = 61;
   clVGAPaletteYellow       = 62;
   clVGAPaletteWhite        = 63;
+
+  { VGA Palette constants }
+  kVGAPaletteStart         = 0;
+  kVGAPaletteEnd           = 15;
+  kVGAPaletteIndex: array[kVGAPaletteStart..kVGAPaletteEnd] of Byte = (
+    clVGAPaletteBlack,
+    clVGAPaletteBlue,
+    clVGAPaletteGreen,
+    clVGAPaletteCyan,
+    clVGAPaletteRed,
+    clVGAPaletteMagenta,
+    clVGAPaletteBrown,
+    clVGAPaletteLightGray,
+    clVGAPaletteDarkGray,
+    clVGAPaletteLightBlue,
+    clVGAPaletteLightGreen,
+    clVGAPaletteLightCyan,
+    clVGAPaletteLightRed,
+    clVGAPaletteLightMagenta,
+    clVGAPaletteYellow,
+    clVGAPaletteWhite
+  );
 
 type
   PVideoRAMData = ^TVideoRAMData;

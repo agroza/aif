@@ -17,7 +17,8 @@ uses
   Screen,
   Setup,
   Status,
-  Types;
+  Types,
+  video;
 
 function ProcessParameters: Boolean;
 var
