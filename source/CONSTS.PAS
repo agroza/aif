@@ -17,7 +17,7 @@ const
   sEmpty                   = '';
 
   { program stringtable }
-  sProgramTitle            = 'AUDIO INTERFACE  VER. 2.5 REV. D';
+  sProgramTitle            = 'AUDIO INTERFACE  VER. 2.6 REV. A';
   sProgramCopyright        = 'Copyright (C) 1998-2021 Microprogramming TECHNIQUES';
   sProgramAuthor           = 'Programming/PC Code: Alexandru Groza';
   sProgramRights           = 'All rights reserved.';
@@ -188,6 +188,8 @@ const
   clInterfaceBack          = clLightGray;
 
   { Program constants }
+  kHardwareInitError       = 1;
+
   kOKFailedXPosition       = 60;
 
   { keyboard codes }

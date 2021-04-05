@@ -87,9 +87,13 @@ procedure ControllerSilence(const AEnable: Boolean);
 procedure ControllerPowerDown(const AEnable: Boolean);
 procedure ControllerChipTest(const AEnable: Boolean);
 
+function ControllerReadEEPROM(const AFileName: String): Boolean;
+function ControllerWriteEEPROM(const AFileName: String): Boolean;
+
 implementation
 
 uses
+  Consts,
   Routines;
 
 const
@@ -103,6 +107,10 @@ const
   kREGISTER_MC4              = $0F90;
   kREGISTER_MC5              = $0F91;
   kREGISTER_MC6              = $0F92;
+  kREGISTER_MC7              = $0F93;
+
+  kREGISTER_MC_INDIRECT_IDX  = $0F94;
+  kREGISTER_MC_INDIRECT_DATA = $0F95;
 
   kREGISTER_PASSWORD         = $0F8F;
 
@@ -152,9 +160,28 @@ const
   kBitAUDIOEN                = 1;
   kBitATTNEN                 = 0;
 
+  { Mode Control Register 7 Bits }
+  kBitSROMCS                 = 2;
+  kBitSROMCLK                = 1;
+  kBitROMDOUT                = 0;
+
+  { Mode Control Register 9 Bits }
+  kBitROMIN                  = 5;
+
   { WSS Configuration Register Bits }
   kWSSConfigBitRes           = 7;
   kBitISS                    = 6;
+
+  { EEPROM Communication }
+  kEEPROMCommandEWDS         = 0;
+  kEEPROMCommandEWEN         = 0;
+  kEEPROMCommandWRAL         = 0;
+  kEEPROMCommandERAL         = 0;
+  kEEPROMCommandWRITE        = 1;
+  kEEPROMCommandREAD         = 2;
+  kEEPROMCommandERASE        = 3;
+
+  kEEPROMSize                = 512;
 
 { private declarations }
 
@@ -918,6 +945,16 @@ begin
   end;
 end;
 
+function EEPROMRead: Byte;
+begin
+  { TODO -oagroza -cImplement : EEPROMRead function. }
+end;
+
+procedure EEPROMWrite(const AByte: Byte);
+begin
+  { TODO -oagroza -cImplement : EEPROMWrite procedure. }
+end;
+
 { public declarations }
 
 function ControllerDetect: Boolean;
@@ -1009,6 +1046,46 @@ begin
   end;
 
   ControllerWrite(kREGISTER_MC1, LValue);
+end;
+
+function ControllerReadEEPROM(const AFileName: String): Boolean;
+var
+  LFile: File;
+
+begin
+  ControllerReadEEPROM := False;
+
+{$I-}
+  Assign(LFile, AFileName);
+  FileMode := fmReadWrite;
+  Rewrite(LFile, 1);
+
+  { TODO -oagroza -cImplement : ControllerReadEEPROM function. }
+
+  Close(LFile);
+{$I+}
+
+  ControllerReadEEPROM := IOResult = 0;
+end;
+
+function ControllerWriteEEPROM(const AFileName: String): Boolean;
+var
+  LFile: File;
+
+begin
+  ControllerWriteEEPROM := False;
+
+{$I-}
+  Assign(LFile, AFileName);
+  FileMode := fmReadOnly;
+  Reset(LFile, 1);
+
+  { TODO -oagroza -cImplement : ControllerWriteEEPROM function. }
+
+  Close(LFile);
+{$I+}
+
+  ControllerWriteEEPROM := IOResult = 0;
 end;
 
 end.

@@ -31,6 +31,8 @@ type
     sdDown
   );
 
+procedure SetHaltOnErrors(const AValue: Boolean);
+
 procedure ScreenWriteActionIf(const AMessage: String; const AAction, ACondition: Boolean);
 
 procedure ScreenStoreColors;
@@ -62,10 +64,20 @@ const
   kVVYellow: TPaletteColor = ( RIntensity: 50; GIntensity: 50; BIntensity: 0 );
 
 var
+  GIHaltOnErrors: Boolean;
+
   GIVGAPaletteLow: array[kVGAPaletteLowStart..kVGAPaletteLowEnd] of TPaletteColor;
   GIVGAPaletteHigh: array[kVGAPaletteHighStart..kVGAPaletteHighEnd] of TPaletteColor;
 
 { public declarations }
+
+procedure SetHaltOnErrors(const AValue: Boolean);
+begin
+  if GIHaltOnErrors <> AValue then
+  begin
+    GIHaltOnErrors := AValue;
+  end;
+end;
 
 procedure ScreenWriteActionIf(const AMessage: String; const AAction, ACondition: Boolean);
 var
@@ -94,6 +106,11 @@ begin
     end;
 
     VideoWriteCharAt(LPosition, LPositionY, cClosedSquareBracket);
+  end;
+
+  if GIHaltOnErrors and not AAction then
+  begin
+    Halt(kHardwareInitError);
   end;
 end;
 

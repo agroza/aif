@@ -108,6 +108,8 @@ begin
   begin
     if ProcessParameters then
     begin
+      SetHaltOnErrors(False);
+
       GPConfigLoaded := SetupLoadConfig;
       ScreenWriteActionIf(sLoadingConfiguration, GPConfigLoaded, not GParameters.Quiet);
 
@@ -123,6 +125,8 @@ begin
 
         Exit;
       end;
+
+      SetHaltOnErrors(True);
 
       InitAIFBasic;
 

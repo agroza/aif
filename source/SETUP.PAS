@@ -938,6 +938,7 @@ begin
 
 {$I-}
   Assign(LFile, LFileName);
+  FileMode := fmReadWrite;
   Rewrite(LFile, 1);
 
   BlockWrite(LFile, kFileSignature, SizeOf(kFileSignature));
