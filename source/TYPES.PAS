@@ -25,6 +25,7 @@ type
 
   TParameters = record
     Setup: Boolean;
+    PnPSetup: Boolean;
     Mixer: Boolean;
     InitMode: TAIFInitMode;
     Status: Boolean;
@@ -102,6 +103,12 @@ type
     cmWSS,
     cmSB
   );
+
+  TUICommand = record
+    Y: Byte;
+    Accelerator: PChar;
+    Name: PChar;
+  end;
 
 implementation
 

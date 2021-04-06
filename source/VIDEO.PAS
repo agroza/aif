@@ -1,7 +1,7 @@
 { --------------------------------------------------------------------------- }
 { - VersaVision Video Driver (Video.pas)                                    - }
 { - Integrant part of VersaVision Framework                                 - }
-{ - Copyright (C) 1998-2020 Alexandru Groza of Microprogramming TECHNIQUES  - }
+{ - Copyright (C) 1998-2021 Alexandru Groza of Microprogramming TECHNIQUES  - }
 { - All rights reserved.                                                    - }
 { --------------------------------------------------------------------------- }
 { - License: GNU General Public License v3.0                                - }

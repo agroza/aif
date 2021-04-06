@@ -59,6 +59,26 @@ var
   IGStereoSliders: array[TStereoSlider] of TStereoSliderData;
   IGMixerOptions: array[TMixerOption] of TMixerOptionData;
 
+const
+  kUIStatCommands: array[0..5] of TUICommand = (
+    ( Y: 4; Accelerator: sMixerCmdF8; Name: sMixerCmdDefaultConfig ),
+    ( Y: 5; Accelerator: sMixerCmdF9; Name: sMixerCmdReloadConfig ),
+    ( Y: 6; Accelerator: sMixerCmdF10; Name: sMixerCmdSaveExit ),
+    ( Y: 7; Accelerator: sMixerCmdESC; Name: sMixerCmdExit ),
+    ( Y: 11; Accelerator: sMixerCmdUpDown; Name: sMixerCmdSelectDevice ),
+    ( Y: 12; Accelerator: sMixerCmdLeftRight; Name: sMixerCmdModifyVolume )
+  );
+
+  kUIDynCommands: array[0..6] of TUICommand = (
+    ( Y: 16; Accelerator: sMixerCmd1; Name: sMixerCmdLineIn ),
+    ( Y: 17; Accelerator: sMixerCmd2; Name: sMixerCmdFMAUXIn ),
+    ( Y: 18; Accelerator: sMixerCmd3; Name: sMixerCmdMicrophone ),
+    ( Y: 19; Accelerator: sMixerCmd4; Name: sMixerCmdPostMixedDAC ),
+    ( Y: 22; Accelerator: sMixerCmd5; Name: sMixerCmdMicrophoneGain ),
+    ( Y: 23; Accelerator: sMixerCmd6; Name: sMixerCmdDigitalMix ),
+    ( Y: 24; Accelerator: sMixerCmd7; Name: sMixerCmdOutputsEnabled )
+  );
+
 { private declarations }
 
 procedure SetVolumes;
@@ -147,26 +167,22 @@ begin
   ScreenDrawStereoSlider(IGStereoSliders[ssDMEStereoSlider]);
 end;
 
-procedure DrawCommand(const ALeft, ATop, AHighlight, AColor, ABackground: Byte; const AShortcut, ADescription: String);
-begin
-  VideoWriteStringAt(ALeft, ATop, AShortcut, AHighlight, ABackground);
-  VideoWriteStringAt(ALeft + 5, ATop, ADescription, AColor, ABackground);
-end;
-
 procedure DrawCommands;
+var
+  I: Byte;
+
 begin
   VideoWriteRegion(kMixerCommandsLeft, kMixerCommandsTop, kMixerCommandsWidth,
     kMixerCommandsHeight, cSpace, VideoAttribute(clStatCmdFore, clStatCmdBack));
 
   VideoWriteStringAt(kMixerCmdX, 3, sMixerCmdProgramCmds, clStatCmdHeader, clStatCmdBack);
-  DrawCommand(kMixerCmdX, 4, clSetupCmdHigh, clStatCmdFore, clStatCmdBack, sMixerCmdF8, sMixerCmdDefaultConfig);
-  DrawCommand(kMixerCmdX, 5, clMixerCmdHigh, clStatCmdFore, clStatCmdBack, sMixerCmdF9, sMixerCmdReloadConfig);
-  DrawCommand(kMixerCmdX, 6, clMixerCmdHigh, clStatCmdFore, clStatCmdBack, sMixerCmdF10, sMixerCmdSaveExit);
-  DrawCommand(kMixerCmdX, 7, clMixerCmdHigh, clStatCmdFore, clStatCmdBack, sMixerCmdESC, sMixerCmdExit);
-
   VideoWriteStringAt(kMixerCmdX, 10, sMixerCmdVolumeCmds, clStatCmdHeader, clStatCmdBack);
-  DrawCommand(kMixerCmdX, 11, clMixerCmdHigh, clStatCmdFore, clStatCmdBack, sMixerCmdUpDown, sMixerCmdSelectDevice);
-  DrawCommand(kMixerCmdX, 12, clMixerCmdHigh, clStatCmdFore, clStatCmdBack, sMixerCmdLeftRight, sMixerCmdModifyVolume);
+
+  for I := Low(kUIStatCommands) to High(kUIStatCommands) do
+  begin
+    ScreenDrawCommand(kMixerCmdX, kUIStatCommands[I].Y, clMixerCmdHigh, clStatCmdFore,
+      clStatCmdBack, StrPas(kUIStatCommands[I].Accelerator), StrPas(kUIStatCommands[I].Name));
+  end;
 end;
 
 procedure SetInputConfigOptions;
@@ -218,20 +234,21 @@ begin
 end;
 
 procedure DrawOptions;
+var
+  I: Byte;
+
 begin
   VideoWriteRegion(kMixerOptionsLeft, kMixerOptionsTop, kMixerOptionsWidth,
     kMixerOptionsHeight, cSpace, VideoAttribute(clDynCmdFore, clDynCmdBack));
 
   VideoWriteStringAt(kMixerCmdX, 15, sMixerCmdInputDeviceCmds, clDynCmdHeader, clDynCmdBack);
-  DrawCommand(kMixerCmdX, 16, clMixerCmdHigh, clDynCmdFore, clDynCmdBack, sMixerCmd1, sMixerCmdLineIn);
-  DrawCommand(kMixerCmdX, 17, clMixerCmdHigh, clDynCmdFore, clDynCmdBack, sMixerCmd2, sMixerCmdFMAUXIn);
-  DrawCommand(kMixerCmdX, 18, clMixerCmdHigh, clDynCmdFore, clDynCmdBack, sMixerCmd3, sMixerCmdMicrophone);
-  DrawCommand(kMixerCmdX, 19, clMixerCmdHigh, clDynCmdFore, clDynCmdBack, sMixerCmd4, sMixerCmdPostMixedDAC);
-
   VideoWriteStringAt(kMixerCmdX, 21, sMixerCmdAdditionalCmds, clDynCmdHeader, clDynCmdBack);
-  DrawCommand(kMixerCmdX, 22, clMixerCmdHigh, clDynCmdFore, clDynCmdBack, sMixerCmd5, sMixerCmdMicrophoneGain);
-  DrawCommand(kMixerCmdX, 23, clMixerCmdHigh, clDynCmdFore, clDynCmdBack, sMixerCmd6, sMixerCmdDigitalMix);
-  DrawCommand(kMixerCmdX, 24, clMixerCmdHigh, clDynCmdFore, clDynCmdBack, sMixerCmd7, sMixerCmdOutputsEnabled);
+
+  for I := Low(kUIDynCommands) to High(kUIDynCommands) do
+  begin
+    ScreenDrawCommand(kMixerCmdX, kUIDynCommands[I].Y, clMixerCmdHigh, clDynCmdFore,
+      clDynCmdBack, StrPas(kUIDynCommands[I].Accelerator), StrPas(kUIDynCommands[I].Name));
+  end;
 end;
 
 procedure HighlightOption(const AOption: TMixerOption);

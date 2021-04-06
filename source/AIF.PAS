@@ -16,9 +16,9 @@ uses
   Routines,
   Screen,
   Setup,
+  PnPSetup,
   Status,
-  Types,
-  video;
+  Types;
 
 function ProcessParameters: Boolean;
 var
@@ -30,6 +30,7 @@ begin
   if ParamCount > 0 then
   begin
     GParameters.Setup := FindSimpleParameter(pSetup);
+    GParameters.PnPSetup := FindSimpleParameter(pPnPSetup);
     GParameters.Mixer := FindSimpleParameter(pMixer);
 
     if FindSimpleParameter(pInit) then
@@ -55,8 +56,9 @@ begin
     GParameters.LineOutRelay := GParameters.LineOut and
       (LowerCase(Copy(LValue, Succ(Pos(cEqual, LValue)), 3)) = pOn);
 
-    ProcessParameters := GParameters.Setup or GParameters.Mixer or
-      GParameters.Status or GParameters.LineOut or (GParameters.InitMode <> imInvalid);
+    ProcessParameters := GParameters.Setup or GParameters.PnPSetup or
+      GParameters.Mixer or GParameters.Status or GParameters.LineOut or
+      (GParameters.InitMode <> imInvalid);
   end else
   begin
     ProcessParameters := False;
@@ -77,15 +79,19 @@ begin
 end;
 
 procedure WriteHelp;
+var
+  LHelpParameter: Byte;
+
 begin
   Writeln(sHelpUsage);
-  Writeln(sHelpParameters1);
-  Writeln(sHelpParameters2);
-  Writeln(sHelpParameters3);
-  Writeln(sHelpParameters4);
+  Writeln(sHelpWhere);
+
+  for LHelpParameter := Low(kHelpParameters) to High(kHelpParameters) do
+  begin
+    Writeln(StrPas(kHelpParameters[LHelpParameter]));
+  end;
 
   Writeln;
-
   Writeln(sHelpExamples);
 end;
 
@@ -123,6 +129,13 @@ begin
       if GParameters.Setup or not GPConfigLoaded then
       begin
         SetupStart;
+
+        Exit;
+      end;
+
+      if GParameters.PnPSetup then
+      begin
+        PnPSetupStart;
 
         Exit;
       end;

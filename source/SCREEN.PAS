@@ -41,6 +41,8 @@ procedure ScreenSetVVColors;
 
 procedure ScreenDrawTitleBar(const AForeColor, ABackColor, ATextColor: Byte; const ACaption: String);
 
+procedure ScreenDrawCommand(const ALeft, ATop, AHighlight, AColor, ABackground: Byte; const AShortcut, ADescription: String);
+
 procedure ScreenDrawStereoSlider(const ASliderData: TStereoSliderData);
 procedure ScreenHighlightStereoSlider(const ASliderData: TStereoSliderData;
   const AChannel: TCodecSoundChannel; const AValue: Boolean);
@@ -155,6 +157,12 @@ procedure ScreenDrawTitleBar(const AForeColor, ABackColor, ATextColor: Byte; con
 begin
   VideoWriteRegion(k80x25Left, k80x25Top, k80x25Width, 1, cSpace, VideoAttribute(AForeColor, ABackColor));
   VideoWriteStringAt((k80x25Width div 2) - (Length(ACaption) div 2), k80x25Top, ACaption, ATextColor, ABackColor);
+end;
+
+procedure ScreenDrawCommand(const ALeft, ATop, AHighlight, AColor, ABackground: Byte; const AShortcut, ADescription: String);
+begin
+  VideoWriteStringAt(ALeft, ATop, AShortcut, AHighlight, ABackground);
+  VideoWriteStringAt(ALeft + 5, ATop, ADescription, AColor, ABackground);
 end;
 
 function ScreenGetSliderBarColor(const APosition: Byte): Byte;

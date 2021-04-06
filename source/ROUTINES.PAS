@@ -25,6 +25,7 @@ function IntToHex(const AInteger: Integer): String;
 function StrToIntDef(const AString: String; const ADefault: Longint): Longint;
 function AddSizeSeparator(const AString: String; const AUnitPresent: Boolean): String;
 function LowerCase(const AString: String): String;
+function StrPas(const APChar: PChar): String;
 function IntToStr(const AInteger: Longint): String;
 function PadPercent(const AInteger: Longint): String;
 function IfThenElse(const ACondition: Boolean; const AThen, AElse: String): String;
@@ -230,6 +231,29 @@ asm
 @exit:
   pop ds
 
+end;
+
+function StrPas(const APChar: PChar): String; assembler;
+asm
+  push ds
+
+  cld
+
+  les di,APChar
+  xor al,al
+  mov cx,0FFFFh
+  repne scasb
+
+  not cx
+  dec cx
+
+  lds si,APChar
+  les di,@Result
+  mov al,cl
+  stosb
+  rep movsb
+
+  pop ds
 end;
 
 function IntToStr(const AInteger: Longint): String;

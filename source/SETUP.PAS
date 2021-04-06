@@ -126,6 +126,15 @@ const
   kMPUBASEs: array[0..3] of Word = ( $0300, $0310, $0320, $0330 );
   kMPUIRQs: array[0..3] of Byte = ( $05, $07, $09, $0A );
 
+  kUICommands: array[0..5] of TUICommand = (
+    ( Y: 4; Accelerator: sSetupCmdF8; Name: sSetupCmdDefaultConfig ),
+    ( Y: 5; Accelerator: sSetupCmdF9; Name: sSetupCmdReloadConfig ),
+    ( Y: 6; Accelerator: sSetupCmdF10; Name: sSetupCmdSaveExit ),
+    ( Y: 7; Accelerator: sSetupCmdESC; Name: sSetupCmdExit ),
+    ( Y: 12; Accelerator: sSetupCmdUpDown; Name: sSetupCmdSelectOption ),
+    ( Y: 13; Accelerator: sSetupCmdLeftRight; Name: sSetupCmdModifyOption )
+  );
+
 var
   IGSetupOptions: array[TSetupOption] of TSetupOptionData;
   IGSetupConfig: TSetupConfig;
@@ -754,29 +763,25 @@ begin
   IGSetupOptions[ASetupOption].Index := LIndex;
 end;
 
-procedure DrawCommand(const ALeft, ATop, AHighlight, AColor, ABackground: Byte; const AShortcut, ADescription: String);
-begin
-  VideoWriteStringAt(ALeft, ATop, AShortcut, AHighlight, ABackground);
-  VideoWriteStringAt(ALeft + 5, ATop, ADescription, AColor, ABackground);
-end;
-
 procedure DrawCommands;
+var
+  I: Byte;
+
 begin
   VideoWriteRegion(kSetupCommandsLeft, kSetupCommandsTop, kSetupCommandsWidth,
     kSetupCommandsHeight, cSpace, VideoAttribute(clSetupCmdFore, clSetupCmdBack));
 
   VideoWriteStringAt(kSetupCmdX, 3, sSetupCmdProgramCmds, clSetupCmdHeader, clSetupCmdBack);
-  DrawCommand(kSetupCmdX, 4, clSetupCmdHigh, clSetupCmdFore, clSetupCmdBack, sSetupCmdF8, sSetupCmdDefaultConfig);
-  DrawCommand(kSetupCmdX, 5, clSetupCmdHigh, clSetupCmdFore, clSetupCmdBack, sSetupCmdF9, sSetupCmdReloadConfig);
-  DrawCommand(kSetupCmdX, 6, clSetupCmdHigh, clSetupCmdFore, clSetupCmdBack, sSetupCmdF10, sSetupCmdSaveExit);
-  DrawCommand(kSetupCmdX, 7, clSetupCmdHigh, clSetupCmdFore, clSetupCmdBack, sSetupCmdESC, sSetupCmdExit);
-
   VideoWriteStringAt(kSetupCmdX, 11, sSetupCmdOptionCmds, clSetupCmdHeader, clSetupCmdBack);
-  DrawCommand(kSetupCmdX, 12, clSetupCmdHigh, clSetupCmdFore, clSetupCmdBack, sMixerCmdUpDown, sSetupCmdSelectOption);
-  DrawCommand(kSetupCmdX, 13, clSetupCmdHigh, clSetupCmdFore, clSetupCmdBack, sMixerCmdLeftRight, sSetupCmdModifyOption);
+
+  for I := Low(kUICommands) to High(kUICommands) do
+  begin
+    ScreenDrawCommand(kSetupCmdX, kUICommands[I].Y, clSetupCmdHigh, clSetupCmdFore,
+      clSetupCmdBack, StrPas(kUICommands[I].Accelerator), StrPas(kUICommands[I].Name));
+  end;
 end;
 
-procedure DrawRevisions;
+procedure DrawRevision;
 var
   LControllerRevision: Byte;
   LRevisionString: String;
@@ -802,7 +807,7 @@ begin
 
   DrawConfig;
   DrawCommands;
-  DrawRevisions;
+  DrawRevision;
 end;
 
 procedure UILoop;
