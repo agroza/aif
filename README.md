@@ -5,7 +5,7 @@ This project is also known as ```aif```.
 ## Synopsis
 This repository contains the MS-DOS driver source code for my DIY [ISA Audio Interface](http://www.alexandrugroza.ro/microelectronics/system-design/isa-audio-interface/index.html) card that you cand find on the [Microelectronics](http://www.alexandrugroza.ro/microelectronics/index.html) page on my site.
 
-The program allows the setup and initialization of the audio interface hardware while also providing a stereo volume mixer. I programmed all this into one single MS-DOS executable file of roughly 35 Kb. If this file is further compressed, then its size decreases to about 18 Kb. Which is pretty much awesome.
+The program allows the setup and initialization of the audio interface hardware while also providing a stereo volume mixer. I programmed all this into one single MS-DOS executable file of roughly 40 Kb. If this file is further compressed, then its size decreases to about 18 Kb. Which is pretty much awesome.
 
 ![Audio Interface](https://github.com/agroza/aif/blob/master/images/isa-audio-interface-driver1.jpg?raw=true)
 
@@ -25,8 +25,8 @@ The following lines are taken directly from the commandline help screen.
 
 ```
 Usage is:
-  aif.exe [-help] [-setup] [-mixer] [-init | -wss | -sb ] [-quiet] [-status]
-    [-lineout=on|off]
+  aif.exe [-help] [-setup] [-pnpsetup] [-mixer] [-init | -wss | -sb]
+    [-quiet] [-status] [-lineout=on|off]
 
 Where:
   -help     shows this screen; all other parameters are ignored
@@ -37,7 +37,7 @@ Where:
   -sb       initializes the audio interface to Sound Blaster mode
   -quiet    reduces text verbosity
   -status   displays the current audio interface configuration
-  -lineout  enables or disabled Line Out; all other parameters are ignored
+  -lineout  enables or disabled line out; some parameters are ignored
 
 Examples:
   aif.exe -init
