@@ -87,8 +87,8 @@ procedure ControllerSilence(const AEnable: Boolean);
 procedure ControllerPowerDown(const AEnable: Boolean);
 procedure ControllerChipTest(const AEnable: Boolean);
 
-function ControllerReadEEPROM(const AFileName: String): Boolean;
-function ControllerWriteEEPROM(const AFileName: String): Boolean;
+function ControllerReadEEPROM(const AFileName: String; const AUpdateProgress: TUpdateProgress): Boolean;
+function ControllerWriteEEPROM(const AFileName: String; const AUpdateProgress: TUpdateProgress): Boolean;
 
 implementation
 
@@ -173,15 +173,17 @@ const
   kBitISS                    = 6;
 
   { EEPROM Communication }
-  kEEPROMCommandEWDS         = 0;
-  kEEPROMCommandEWEN         = 0;
-  kEEPROMCommandWRAL         = 0;
-  kEEPROMCommandERAL         = 0;
-  kEEPROMCommandWRITE        = 1;
-  kEEPROMCommandREAD         = 2;
-  kEEPROMCommandERASE        = 3;
+  kEEPROMCommandEWDS         = $0800;
+  kEEPROMCommandEWEN         = $0980;
+  kEEPROMCommandERAL         = $0900;
+  kEEPROMCommandWRAL         = $0880;
+  kEEPROMCommandERASE        = $0E00;
+  kEEPROMCommandREAD         = $0C00;
+  kEEPROMCommandWRITE        = $0A00;
 
-  kEEPROMSize                = 512;
+  kEEPROMTimeDelay           = 1;
+  kEEPROMReadyRetries        = $FFFF;
+  kEEPROMSize                = 256;
 
 { private declarations }
 
@@ -945,14 +947,169 @@ begin
   end;
 end;
 
-function EEPROMRead: Byte;
-begin
-  { TODO -oagroza -cImplement : EEPROMRead function. }
+procedure EEPROMDelay; assembler;
+asm
+  mov cx,0FFFFh
+@@decrement:
+  dec cx
+  jnz @@decrement
 end;
 
-procedure EEPROMWrite(const AByte: Byte);
+procedure EEPROMSetCS(const AValue: Boolean);
 begin
-  { TODO -oagroza -cImplement : EEPROMWrite procedure. }
+  SetRegisterBit(kREGISTER_MC7, kBitSROMCS, AValue);
+end;
+
+procedure EEPROMClockPulse;
+begin
+  SetRegisterBit(kREGISTER_MC7, kBitSROMCLK, True);
+
+  EEPROMDelay;
+
+  SetRegisterBit(kREGISTER_MC7, kBitSROMCLK, False);
+
+  EEPROMDelay;
+end;
+
+procedure EEPROMDataOut(const AValue: Boolean);
+begin
+  SetRegisterBit(kREGISTER_MC7, kBitROMDOUT, AValue);
+
+  EEPROMDelay;
+end;
+
+function EEPROMWaitReady: Boolean;
+var
+  LRetries: Word;
+
+begin
+  EEPROMSetCS(False);
+
+  EEPROMDelay;
+
+  EEPROMSetCS(True);
+
+  LRetries := kEEPROMReadyRetries;
+
+  while (not GetBit(ControllerRead(kREGISTER_MC7), kBitROMDOUT)) and (LRetries > 0) do
+  begin
+    Dec(LRetries);
+  end;
+
+  EEPROMWaitReady := LRetries > 0;
+end;
+
+procedure EEPROMSendCommand(const ACommand: Word);
+var
+  I: Byte;
+
+begin
+  for I := 11 downto 0 do
+  begin
+    EEPROMDataOut(Boolean((ACommand shr I) and $01));
+    EEPROMClockPulse;
+  end;
+end;
+
+function EEPROMGetData: Byte;
+var
+  I: Byte;
+  LData: Byte;
+
+begin
+  LData := $00;
+
+  for I := 7 downto 0 do
+  begin
+    EEPROMClockPulse;
+
+    { TODO -oagroza -cReplace : Random(2) with kREGISTER_MC9 / kBitROMIN. }
+    LData := LData or (Random(2) shl I);
+  end;
+
+  EEPROMGetData := LData;
+end;
+
+procedure EEPROMSendData(const AData: Byte);
+var
+  I: Byte;
+
+begin
+  for I := 7 downto 0 do
+  begin
+    EEPROMDataOut(Boolean((AData shr I) and $01));
+    EEPROMClockPulse;
+  end;
+end;
+
+procedure EEPROMWriteDisable;
+begin
+  EEPROMSetCS(True);
+
+  EEPROMSendCommand(kEEPROMCommandEWDS);
+
+  EEPROMSetCS(False);
+end;
+
+procedure EEPROMWriteEnable;
+begin
+  EEPROMSetCS(True);
+
+  EEPROMSendCommand(kEEPROMCommandEWEN);
+
+  EEPROMSetCS(False);
+end;
+
+function EEPROMEraseAll: Boolean;
+begin
+  EEPROMSetCS(True);
+
+  EEPROMSendCommand(kEEPROMCommandERAL);
+  EEPROMEraseAll := EEPROMWaitReady;
+
+  EEPROMSetCS(False);
+end;
+
+function EEPROMWriteAll(const AByte: Byte): Boolean;
+begin
+  EEPROMSetCS(True);
+
+  EEPROMSendCommand(kEEPROMCommandWRAL);
+  EEPROMSendData(AByte);
+  EEPROMWriteAll := EEPROMWaitReady;
+
+  EEPROMSetCS(False);
+end;
+
+function EEPROMErase(const AAddress: Word): Boolean;
+begin
+  EEPROMSetCS(True);
+
+  EEPROMSendCommand(kEEPROMCommandERASE + AAddress);
+  EEPROMErase := EEPROMWaitReady;
+
+  EEPROMSetCS(False);
+end;
+
+function EEPROMRead(const AAddress: Word): Byte;
+begin
+  EEPROMSetCS(True);
+
+  EEPROMSendCommand(kEEPROMCommandREAD + AAddress);
+  EEPROMRead := EEPROMGetData;
+
+  EEPROMSetCS(False);
+end;
+
+function EEPROMWrite(const AAddress: Word; const AByte: Byte): Boolean;
+begin
+  EEPROMSetCS(True);
+
+  EEPROMSendCommand(kEEPROMCommandWRITE + AAddress);
+  EEPROMSendData(AByte);
+  EEPROMWrite := EEPROMWaitReady;
+
+  EEPROMSetCS(False);
 end;
 
 { public declarations }
@@ -1048,42 +1205,91 @@ begin
   ControllerWrite(kREGISTER_MC1, LValue);
 end;
 
-function ControllerReadEEPROM(const AFileName: String): Boolean;
+function ControllerReadEEPROM(const AFileName: String; const AUpdateProgress: TUpdateProgress): Boolean;
 var
-  LFile: File;
+  I: Word;
+  LByte: Byte;
+  LFile: File of Byte;
 
 begin
   ControllerReadEEPROM := False;
 
+  SetRegisterBit(kREGISTER_MC3, kBitWRSROM, True);
+
 {$I-}
   Assign(LFile, AFileName);
   FileMode := fmReadWrite;
-  Rewrite(LFile, 1);
+  Rewrite(LFile);
+{$I+}
+  for I := 0 to Pred(kEEPROMSize) do
+  begin
+    { TODO -oagroza -cImplement : Fail detection. }
+    LByte := EEPROMRead(I);
+{$I-}
+    Write(LFile, LByte);
+{$I+}
+    if IOResult <> 0 then
+    begin
+{$I-}
+      Close(LFile);
+{$I+}
+      SetRegisterBit(kREGISTER_MC3, kBitWRSROM, False);
 
-  { TODO -oagroza -cImplement : ControllerReadEEPROM function. }
+      Exit;
+    end;
 
+    AUpdateProgress(I);
+  end;
+{$I-}
   Close(LFile);
 {$I+}
+
+  SetRegisterBit(kREGISTER_MC3, kBitWRSROM, False);
 
   ControllerReadEEPROM := IOResult = 0;
 end;
 
-function ControllerWriteEEPROM(const AFileName: String): Boolean;
+function ControllerWriteEEPROM(const AFileName: String; const AUpdateProgress: TUpdateProgress): Boolean;
 var
-  LFile: File;
+  I: Word;
+  LByte: Byte;
+  LFile: File of Byte;
 
 begin
   ControllerWriteEEPROM := False;
 
+  SetRegisterBit(kREGISTER_MC3, kBitWRSROM, True);
+
 {$I-}
   Assign(LFile, AFileName);
   FileMode := fmReadOnly;
-  Reset(LFile, 1);
+  Reset(LFile);
+{$I+}
+  for I := 0 to Pred(kEEPROMSize) do
+  begin
+{$I-}
+    Read(LFile, LByte);
+{$I+}
+    if IOResult <> 0 then
+    begin
+{$I-}
+      Close(LFile);
+{$I+}
+      SetRegisterBit(kREGISTER_MC3, kBitWRSROM, False);
 
-  { TODO -oagroza -cImplement : ControllerWriteEEPROM function. }
+      Exit;
+    end;
 
+    { TODO -oagroza -cImplement : Fail detection. }
+    EEPROMWrite(I, LByte);
+
+    AUpdateProgress(I);
+  end;
+{$I-}
   Close(LFile);
 {$I+}
+
+  SetRegisterBit(kREGISTER_MC3, kBitWRSROM, False);
 
   ControllerWriteEEPROM := IOResult = 0;
 end;

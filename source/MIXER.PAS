@@ -100,6 +100,19 @@ begin
   IGStereoSliders[AStereoSlider].PositionX := kMixerSliderX;
   IGStereoSliders[AStereoSlider].PositionY := APositionY;
   IGStereoSliders[AStereoSlider].Title := ATitle;
+  IGStereoSliders[AStereoSlider].Colors.Foreground := clMixerFore;
+  IGStereoSliders[AStereoSlider].Colors.Background := clMixerBack;
+  IGStereoSliders[AStereoSlider].Colors.Title := clMixerSliderTitle;
+  IGStereoSliders[AStereoSlider].Colors.Text := clMixerSliderText;
+  IGStereoSliders[AStereoSlider].Colors.HighForeground := clMixerSliderHighFore;
+  IGStereoSliders[AStereoSlider].Colors.HighBackground := clMixerSliderHighBack;
+  IGStereoSliders[AStereoSlider].Colors.Grid := clMixerSliderGrid;
+  IGStereoSliders[AStereoSlider].Colors.Tip := clMixerSliderTip;
+  IGStereoSliders[AStereoSlider].Colors.Normal := clMixerSliderNormal;
+  IGStereoSliders[AStereoSlider].Colors.Low := clMixerSliderLow;
+  IGStereoSliders[AStereoSlider].Colors.Medium := clMixerSliderMedium;
+  IGStereoSliders[AStereoSlider].Colors.High := clMixerSliderHigh;
+  IGStereoSliders[AStereoSlider].Colors.VeryHigh := clMixerSliderVeryHigh;
   IGStereoSliders[AStereoSlider].Min := kMixerSliderMin;
   IGStereoSliders[AStereoSlider].Max := kMixerSliderMax;
   IGStereoSliders[AStereoSlider].Locked := ALocked;
@@ -157,8 +170,17 @@ end;
 
 procedure DrawSliders;
 begin
-  VideoWriteRegion(kMixerSlidersLeft, kMixerSlidersTop, kMixerSlidersWidth,
-    kMixerSlidersHeight, cSpace, VideoAttribute(clMixerFore, clMixerBack));
+  VideoWriteRegion(
+    kMixerSlidersLeft,
+    kMixerSlidersTop,
+    kMixerSlidersWidth,
+    kMixerSlidersHeight,
+    cSpace,
+    VideoAttribute(
+      clMixerFore,
+      clMixerBack
+    )
+  );
 
   ScreenDrawStereoSlider(IGStereoSliders[ssDACStereoSlider]);
   ScreenDrawStereoSlider(IGStereoSliders[ssAUX1StereoSlider]);
@@ -172,16 +194,45 @@ var
   I: Byte;
 
 begin
-  VideoWriteRegion(kMixerCommandsLeft, kMixerCommandsTop, kMixerCommandsWidth,
-    kMixerCommandsHeight, cSpace, VideoAttribute(clStatCmdFore, clStatCmdBack));
+  VideoWriteRegion(
+    kMixerCommandsLeft,
+    kMixerCommandsTop,
+    kMixerCommandsWidth,
+    kMixerCommandsHeight,
+    cSpace,
+    VideoAttribute(
+      clStatCmdFore,
+      clStatCmdBack
+    )
+  );
 
-  VideoWriteStringAt(kMixerCmdX, 3, sMixerCmdProgramCmds, clStatCmdHeader, clStatCmdBack);
-  VideoWriteStringAt(kMixerCmdX, 10, sMixerCmdVolumeCmds, clStatCmdHeader, clStatCmdBack);
+  VideoWriteStringAt(
+    kMixerCmdX,
+    3,
+    sMixerCmdProgramCmds,
+    clStatCmdHeader,
+    clStatCmdBack
+  );
+
+  VideoWriteStringAt(
+    kMixerCmdX,
+    10,
+    sMixerCmdVolumeCmds,
+    clStatCmdHeader,
+    clStatCmdBack
+  );
 
   for I := Low(kUIStatCommands) to High(kUIStatCommands) do
   begin
-    ScreenDrawCommand(kMixerCmdX, kUIStatCommands[I].Y, clMixerCmdHigh, clStatCmdFore,
-      clStatCmdBack, StrPas(kUIStatCommands[I].Accelerator), StrPas(kUIStatCommands[I].Name));
+    ScreenDrawCommand(
+      kMixerCmdX,
+      kUIStatCommands[I].Y,
+      clMixerCmdHigh,
+      clStatCmdFore,
+      clStatCmdBack,
+      StrPas(kUIStatCommands[I].Accelerator),
+      StrPas(kUIStatCommands[I].Name)
+    );
   end;
 end;
 
@@ -238,16 +289,45 @@ var
   I: Byte;
 
 begin
-  VideoWriteRegion(kMixerOptionsLeft, kMixerOptionsTop, kMixerOptionsWidth,
-    kMixerOptionsHeight, cSpace, VideoAttribute(clDynCmdFore, clDynCmdBack));
+  VideoWriteRegion(
+    kMixerOptionsLeft,
+    kMixerOptionsTop,
+    kMixerOptionsWidth,
+    kMixerOptionsHeight,
+    cSpace,
+    VideoAttribute(
+      clDynCmdFore,
+      clDynCmdBack
+    )
+  );
 
-  VideoWriteStringAt(kMixerCmdX, 15, sMixerCmdInputDeviceCmds, clDynCmdHeader, clDynCmdBack);
-  VideoWriteStringAt(kMixerCmdX, 21, sMixerCmdAdditionalCmds, clDynCmdHeader, clDynCmdBack);
+  VideoWriteStringAt(
+    kMixerCmdX,
+    15,
+    sMixerCmdInputDeviceCmds,
+    clDynCmdHeader,
+    clDynCmdBack
+  );
+
+  VideoWriteStringAt(
+    kMixerCmdX,
+    21,
+    sMixerCmdAdditionalCmds,
+    clDynCmdHeader,
+    clDynCmdBack
+  );
 
   for I := Low(kUIDynCommands) to High(kUIDynCommands) do
   begin
-    ScreenDrawCommand(kMixerCmdX, kUIDynCommands[I].Y, clMixerCmdHigh, clDynCmdFore,
-      clDynCmdBack, StrPas(kUIDynCommands[I].Accelerator), StrPas(kUIDynCommands[I].Name));
+    ScreenDrawCommand(
+      kMixerCmdX,
+      kUIDynCommands[I].Y,
+      clMixerCmdHigh,
+      clDynCmdFore,
+      clDynCmdBack,
+      StrPas(kUIDynCommands[I].Accelerator),
+      StrPas(kUIDynCommands[I].Name)
+    );
   end;
 end;
 
@@ -264,8 +344,13 @@ begin
     LAttribute := VideoAttribute(clDynCmdFore, clDynCmdBack);
   end;
 
-  VideoHighlightRegion(kMixerOptionX, IGMixerOptions[AOption].PositionY,
-    kMixerOptionWidth, kMixerOptionHeight, LAttribute);
+  VideoHighlightRegion(
+    kMixerOptionX,
+    IGMixerOptions[AOption].PositionY,
+    kMixerOptionWidth,
+    kMixerOptionHeight,
+    LAttribute
+  );
 end;
 
 procedure HighlightOptions;

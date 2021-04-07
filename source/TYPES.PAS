@@ -11,6 +11,7 @@ unit Types;
 interface
 
 type
+  { general program types }
   TAIFDetectionMode = (
     dmPnP,
     dmnonPnP
@@ -39,6 +40,9 @@ type
     bsSet
   );
 
+  TUpdateProgress = procedure(const ABytes: Word);
+
+  { codec types }
   TCodecSampleRate = (
     sr5512,
     sr6615,
@@ -99,11 +103,13 @@ type
     sdVersion44
   );
 
+  { controller types }
   TControllerMode = (
     cmWSS,
     cmSB
   );
 
+  { UI types }
   TUICommand = record
     Y: Byte;
     Accelerator: PChar;

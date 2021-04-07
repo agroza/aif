@@ -206,13 +206,25 @@ end;
 procedure VideoSaveScreen(const AVideoRAMData: PVideoRAMData);
 begin
   if Assigned(AVideoRAMData) then
-    Move(Mem[kVGARAMAddress:kVGARAMStartOffset], AVideoRAMData^, kVGARAMSize);
+  begin
+    Move(
+      Mem[kVGARAMAddress:kVGARAMStartOffset],
+      AVideoRAMData^,
+      kVGARAMSize
+    );
+  end;
 end;
 
 procedure VideoRestoreScreen(const AVideoRAMData: PVideoRAMData);
 begin
   if Assigned(AVideoRAMData) then
-    Move(AVideoRAMData^, Mem[kVGARAMAddress:kVGARAMStartOffset], kVGARAMSize);
+  begin
+    Move(
+      AVideoRAMData^,
+      Mem[kVGARAMAddress:kVGARAMStartOffset],
+      kVGARAMSize
+    );
+  end;
 end;
 
 function VideoAttribute(const AForeColor, ABackColor: Byte): Byte; assembler;
@@ -364,7 +376,9 @@ var
 begin
   for I := ALeft to Pred(ALeft + AWidth) do
     for J := ATop to Pred(ATop + AHeight) do
+    begin
       VideoWriteCharAttrAt(I, J, ACharacter, AAttribute);
+    end;
 end;
 
 procedure VideoHighlightRegion(const ALeft, ATop, AWidth, AHeight: Byte; const AAttribute: Byte);
@@ -375,7 +389,9 @@ var
 begin
   for I := ALeft to Pred(ALeft + AWidth) do
     for J := ATop to Pred(ATop + AHeight) do
+    begin
       VideoWriteAttrAt(I, J, AAttribute);
+    end;
 end;
 
 end.

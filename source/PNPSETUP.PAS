@@ -17,22 +17,109 @@ implementation
 uses
   Crt,
   Consts,
+  Control,
   Routines,
   Screen,
   Types,
   Video;
 
+var
+  IGFileName: String;
+  IGProgressBar: TProgressBarData;
+
 const
-  kUICommands: array[0..0] of TUICommand = (
+  kUICommands: array[0..3] of TUICommand = (
+    ( Y: 4; Accelerator: sPnPSetupCmdF6; Name: sPnPSetupCmdEditFilename ),
+    ( Y: 5; Accelerator: sPnPSetupCmdF7; Name: sPnPSetupCmdReadEEPROM ),
+    ( Y: 6; Accelerator: sPnPSetupCmdF8; Name: sPnPSetupCmdWriteEEPROM ),
     ( Y: 7; Accelerator: sPnPSetupCmdESC; Name: sPnPSetupCmdExit )
   );
 
 { private declarations }
 
+procedure UpdateProgressBar(const ABytes: Word); far;
+begin
+  IGProgressBar.Progress := ABytes;
+  ScreenUpdateProgressBar(IGProgressBar);
+end;
+
+procedure ResetProgressBar;
+begin
+  Routines.Delay(kPnPSetupOperationDelay);
+  IGProgressBar.Progress := 0;
+  ScreenResetProgressBar(IGProgressBar);
+end;
+
+procedure ReadEEPROM;
+begin
+  { TODO -oagroza -cImplement : EEPROM read success detection. }
+
+  ControllerReadEEPROM(IGFileName, UpdateProgressBar);
+
+  ResetProgressBar;
+end;
+
+procedure WriteEEPROM;
+begin
+  { TODO -oagroza -cImplement : EEPROM write success detection. }
+
+  ControllerWriteEEPROM(IGFileName, UpdateProgressBar);
+
+  ResetProgressBar;
+end;
+
+procedure DrawOption(const APositionY: Byte; const AName, AValue: String);
+var
+  LKeyValueData: TKeyValueData;
+
+begin
+  LKeyValueData.NameX := kPnPSetupNameX;
+  LKeyValueData.ValueX := kPnPSetupValueX;
+  LKeyValueData.PositionY := APositionY;
+  LKeyValueData.Colors.Foreground := clPnPSetupFore;
+  LKeyValueData.Colors.Background := clPnPSetupBack;
+  LKeyValueData.Name := AName;
+  LKeyValueData.Value := AValue;
+
+  ScreenDrawKeyValue(LKeyValueData);
+end;
+
 procedure DrawOptions;
 begin
-  VideoWriteRegion(kPnPSetupOptionsLeft, kPnPSetupOptionsTop, kPnPSetupOptionsWidth,
-    kPnPSetupOptionsHeight, cSpace, VideoAttribute(clPnPSetupFore, clPnPSetupBack));
+  VideoWriteRegion(
+    kPnPSetupOptionsLeft,
+    kPnPSetupOptionsTop,
+    kPnPSetupOptionsWidth,
+    kPnPSetupOptionsHeight,
+    cSpace,
+    VideoAttribute(
+      clPnPSetupFore,
+      clPnPSetupBack
+    )
+  );
+
+  DrawOption(3, sPnPSetupFilename, IGFileName);
+  DrawOption(4, sPnPSetupOperation, sPnPSetupOperationRead);
+  DrawOption(5, sPnPSetupEEPROM, sPnPSetup93C56A);
+end;
+
+procedure InitProgressBar;
+begin
+  IGProgressBar.PositionX := kPnPSetupProgressBarX;
+  IGProgressBar.PositionY := kPnPSetupProgressBarY;
+  IGProgressBar.Width := kPnPSetupProgressBarWidth;
+  IGProgressBar.Colors.Foreground := clPnPSetupProgressFore;
+  IGProgressBar.Colors.Background := clPnPSetupProgressBack;
+  IGProgressBar.Colors.Title := clPnPSetupProgressTitle;
+  IGProgressBar.Colors.Progress := clPnPSetupProgressColor;
+  IGProgressBar.Min := kPnPSetupProgressBarMin;
+  IGProgressBar.Max := 256;
+  IGProgressBar.Title := sPnPSetupProgress;
+end;
+
+procedure DrawProgressBar;
+begin
+  ScreenDrawProgressBar(IGProgressBar);
 end;
 
 procedure DrawCommands;
@@ -40,21 +127,46 @@ var
   I: Byte;
 
 begin
-  VideoWriteRegion(kPnPSetupCommandsLeft, kPnPSetupCommandsTop, kPnPSetupCommandsWidth,
-    kPnPSetupCommandsHeight, cSpace, VideoAttribute(clPnPSetupCmdFore, clPnPSetupCmdBack));
+  VideoWriteRegion(
+    kPnPSetupCommandsLeft,
+    kPnPSetupCommandsTop,
+    kPnPSetupCommandsWidth,
+    kPnPSetupCommandsHeight,
+    cSpace,
+    VideoAttribute(
+      clPnPSetupCmdFore,
+      clPnPSetupCmdBack
+    )
+  );
 
-  VideoWriteStringAt(kPnPSetupCmdX, 3, sPnPSetupCmdProgramCmds, clPnPSetupCmdHeader, clPnPSetupCmdBack);
+  VideoWriteStringAt(
+    kPnPSetupCmdX,
+    3,
+    sPnPSetupCmdProgramCmds,
+    clPnPSetupCmdHeader,
+    clPnPSetupCmdBack
+  );
 
   for I := Low(kUICommands) to High(kUICommands) do
   begin
-    ScreenDrawCommand(kPnPSetupCmdX, kUICommands[I].Y, clPnPSetupCmdHigh, clPnPSetupCmdFore,
-      clPnPSetupCmdBack, StrPas(kUICommands[I].Accelerator), StrPas(kUICommands[I].Name));
+    ScreenDrawCommand(
+      kPnPSetupCmdX,
+      kUICommands[I].Y,
+      clPnPSetupCmdHigh,
+      clPnPSetupCmdFore,
+      clPnPSetupCmdBack,
+      StrPas(kUICommands[I].Accelerator),
+      StrPas(kUICommands[I].Name)
+    );
   end;
 end;
 
 procedure DrawConfig;
 begin
   DrawOptions;
+
+  InitProgressBar;
+  DrawProgressBar;
 end;
 
 procedure UIDraw;
@@ -73,19 +185,19 @@ begin
       kKeyExtended:
         begin
           case ReadKey of
+            kKeyF6:
+              begin
+                { TODO -oagroza -cImplement : Filename editor. }
+              end;
+
+            kKeyF7:
+              begin
+                ReadEEPROM;
+              end;
+
             kKeyF8:
               begin
-
-              end;
-
-            kKeyF9:
-              begin
-
-              end;
-
-            kKeyF10:
-              begin
-                ;
+                WriteEEPROM;
               end;
 
           end;
@@ -117,6 +229,8 @@ begin
   VideoDisableCursor;
 
   ScreenSetVVColors;
+
+  IGFileName := sPnPSetupDefaultFilename;
 
   UIDraw;
   UILoop;

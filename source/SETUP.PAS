@@ -675,10 +675,19 @@ begin
 end;
 
 procedure DrawOption(const APositionY: Byte; const AName, AValue: String);
+var
+  LKeyValueData: TKeyValueData;
+
 begin
-  VideoWriteStringAt(kSetupNameX, APositionY, AName, clSetupFore, clSetupBack);
-  VideoWriteCharAttrAt(kSetupValueX - 2, APositionY, cSemicolon, VideoAttribute(clSetupFore, clSetupBack));
-  VideoWriteStringAt(kSetupValueX, APositionY, AValue, clSetupFore, clSetupBack);
+  LKeyValueData.NameX := kSetupNameX;
+  LKeyValueData.ValueX := kSetupValueX;
+  LKeyValueData.PositionY := APositionY;
+  LKeyValueData.Colors.Foreground := clSetupFore;
+  LKeyValueData.Colors.Background := clSetupBack;
+  LKeyValueData.Name := AName;
+  LKeyValueData.Value := AValue;
+
+  ScreenDrawKeyValue(LKeyValueData);
 end;
 
 procedure DrawOptions;
@@ -687,15 +696,27 @@ var
   LSetupOptionData: TSetupOptionData;
 
 begin
-  VideoWriteRegion(kSetupOptionsLeft, kSetupOptionsTop, kSetupOptionsWidth,
-    kSetupOptionsHeight, cSpace, VideoAttribute(clSetupFore, clSetupBack));
+  VideoWriteRegion(
+    kSetupOptionsLeft,
+    kSetupOptionsTop,
+    kSetupOptionsWidth,
+    kSetupOptionsHeight,
+    cSpace,
+    VideoAttribute(
+      clSetupFore,
+      clSetupBack
+    )
+  );
 
   for LSetupOption := Low(TSetupOption) to High(TSetupOption) do
   begin
     LSetupOptionData := IGSetupOptions[LSetupOption];
 
-    DrawOption(LSetupOptionData.PositionY, LSetupOptionData.Name,
-      LSetupOptionData.GSVFunction(LSetupOptionData.Index, False));
+    DrawOption(
+      LSetupOptionData.PositionY,
+      LSetupOptionData.Name,
+      LSetupOptionData.GSVFunction(LSetupOptionData.Index, False)
+    );
   end;
 end;
 
@@ -715,10 +736,21 @@ begin
     LEditAttribute := VideoAttribute(clSetupFore, clSetupBack);
   end;
 
-  VideoHighlightRegion(kSetupOptionX, IGSetupOptions[ASetupOption].PositionY,
-    kSetupOptionWidth, kSetupOptionHeight, LAttribute);
-  VideoHighlightRegion(kSetupOptionEditX, IGSetupOptions[ASetupOption].PositionY,
-    kSetupOptionEditWidth, kSetupOptionEditHeight, LEditAttribute);
+  VideoHighlightRegion(
+    kSetupOptionX,
+    IGSetupOptions[ASetupOption].PositionY,
+    kSetupOptionWidth,
+    kSetupOptionHeight,
+    LAttribute
+  );
+
+  VideoHighlightRegion(
+    kSetupOptionEditX,
+    IGSetupOptions[ASetupOption].PositionY,
+    kSetupOptionEditWidth,
+    kSetupOptionEditHeight,
+    LEditAttribute
+  );
 end;
 
 procedure EditOption(const ASetupOption: TSetupOption; const AArrayAdvance: TArrayAdvance);
@@ -755,10 +787,25 @@ begin
 
   end;
 
-  VideoWriteRegion(kSetupOptionEditX, LSetupOptionData.PositionY,
-    kSetupOptionEditWidth, kSetupOptionEditHeight, cSpace, VideoAttribute(clRed, clRed));
-  VideoWriteStringAt(kSetupValueX, LSetupOptionData.PositionY,
-    LSetupOptionData.GSVFunction(LIndex, True), clYellow, clRed);
+  VideoWriteRegion(
+    kSetupOptionEditX,
+    LSetupOptionData.PositionY,
+    kSetupOptionEditWidth,
+    kSetupOptionEditHeight,
+    cSpace,
+    VideoAttribute(
+      clRed,
+      clRed
+    )
+  );
+
+  VideoWriteStringAt(
+    kSetupValueX,
+    LSetupOptionData.PositionY,
+    LSetupOptionData.GSVFunction(LIndex, True),
+    clYellow,
+    clRed
+  );
 
   IGSetupOptions[ASetupOption].Index := LIndex;
 end;
@@ -768,16 +815,45 @@ var
   I: Byte;
 
 begin
-  VideoWriteRegion(kSetupCommandsLeft, kSetupCommandsTop, kSetupCommandsWidth,
-    kSetupCommandsHeight, cSpace, VideoAttribute(clSetupCmdFore, clSetupCmdBack));
+  VideoWriteRegion(
+    kSetupCommandsLeft,
+    kSetupCommandsTop,
+    kSetupCommandsWidth,
+    kSetupCommandsHeight,
+    cSpace,
+    VideoAttribute(
+      clSetupCmdFore,
+      clSetupCmdBack
+    )
+  );
 
-  VideoWriteStringAt(kSetupCmdX, 3, sSetupCmdProgramCmds, clSetupCmdHeader, clSetupCmdBack);
-  VideoWriteStringAt(kSetupCmdX, 11, sSetupCmdOptionCmds, clSetupCmdHeader, clSetupCmdBack);
+  VideoWriteStringAt(
+    kSetupCmdX,
+    3,
+    sSetupCmdProgramCmds,
+    clSetupCmdHeader,
+    clSetupCmdBack
+  );
+
+  VideoWriteStringAt(
+    kSetupCmdX,
+    11,
+    sSetupCmdOptionCmds,
+    clSetupCmdHeader,
+    clSetupCmdBack
+  );
 
   for I := Low(kUICommands) to High(kUICommands) do
   begin
-    ScreenDrawCommand(kSetupCmdX, kUICommands[I].Y, clSetupCmdHigh, clSetupCmdFore,
-      clSetupCmdBack, StrPas(kUICommands[I].Accelerator), StrPas(kUICommands[I].Name));
+    ScreenDrawCommand(
+      kSetupCmdX,
+      kUICommands[I].Y,
+      clSetupCmdHigh,
+      clSetupCmdFore,
+      clSetupCmdBack,
+      StrPas(kUICommands[I].Accelerator),
+      StrPas(kUICommands[I].Name)
+    );
   end;
 end;
 
@@ -790,8 +866,21 @@ begin
   LControllerRevision := ControllerGetRevision;
   LRevisionString := IntToStr(LControllerRevision div 10) + cFullStop + IntToStr(LControllerRevision mod 10);
 
-  VideoWriteStringAt(kSetupCmdX, 23, sSetupSoundController, clSetupCmdHeader, clSetupCmdBack);
-  VideoWriteStringAt(kSetupCmdX, 24, sSetupOPTi82c924 + LRevisionString, clSetupCmdFore, clSetupCmdBack);
+  VideoWriteStringAt(
+    kSetupCmdX,
+    23,
+    sSetupSoundController,
+    clSetupCmdHeader,
+    clSetupCmdBack
+  );
+
+  VideoWriteStringAt(
+    kSetupCmdX,
+    24,
+    sSetupOPTi82c924 + LRevisionString,
+    clSetupCmdFore,
+    clSetupCmdBack
+  );
 end;
 
 procedure DrawConfig;

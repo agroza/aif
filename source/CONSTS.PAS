@@ -17,7 +17,7 @@ const
   sEmpty                    = '';
 
   { program stringtable }
-  sProgramTitle             = 'AUDIO INTERFACE  VER. 2.6 REV. C';
+  sProgramTitle             = 'AUDIO INTERFACE  VER. 2.6 REV. D';
   sProgramCopyright         = 'Copyright (C) 1998-2021 Microprogramming TECHNIQUES';
   sProgramAuthor            = 'Programming/PC Code: Alexandru Groza';
   sProgramRights            = 'All rights reserved.';
@@ -203,11 +203,11 @@ const
   clNormal                  = clLightGray;
   clHighlight               = clWhite;
 
-  { Program color theme }
+  { program color theme }
   clInterfaceFore           = clBlack;
   clInterfaceBack           = clLightGray;
 
-  { Program constants }
+  { program constants }
   kHardwareInitError        = 1;
 
   kOKFailedXPosition        = 60;
@@ -219,11 +219,13 @@ const
   kKeyDown                  = #80;
   kKeyLeft                  = #75;
   kKeyRight                 = #77;
+  kKeyF6                    = #64;
+  kKeyF7                    = #65;
   kKeyF8                    = #66;
   kKeyF9                    = #67;
   kKeyF10                   = #68;
 
-  { Setup stringtable }
+  { Setup program stringtable }
   sSetupTitle               = 'AUDIO INTERFACE SETUP';
 
   sSetupAIFMode             = 'Audio Interface Mode';
@@ -270,7 +272,7 @@ const
   sSetupSoundController     = 'SOUND CONTROLLER';
   sSetupOPTi82c924          = 'OPTi 82c924 REV. ';
 
-  { Setup color theme }
+  { Setup program color theme }
   clSetupFore               = clLightGray;
   clSetupBack               = clBlue;
 
@@ -279,7 +281,7 @@ const
   clSetupCmdFore            = clLightGray;
   clSetupCmdBack            = clDarkGray;
 
-  { Setup constants }
+  { Setup program constants }
   kSetupStartupDelay        = 500;
 
   kSetupNameX               = 2;
@@ -304,7 +306,7 @@ const
   kSetupOptionEditWidth     = 26;
   kSetupOptionEditHeight    = 1;
 
-  { Setup default initialization values }
+  { Setup program default initialization values }
   kSetupBitMODDefault       = bsNotSet;
   kSetupBitPDNDefault       = bsNotSet;
   kSetupBitGPENDefault      = bsSet;
@@ -357,24 +359,65 @@ const
   kSetupSBBitDepthDefault   = bd8bit;
   kSetupSBSndOutDefault     = soStereo;
 
-  { PnP Setup stringtable }
-  sPnPSetupTitle            = 'AUDIO INTERFACE PnP SETUP (EXPERIMENTAL)';
+  { PnP Setup program stringtable }
+  sPnPSetupTitle            = 'AUDIO INTERFACE EEPROM PnP SETUP';
+
+  sPnPSetupDefaultFilename  = 'eeprom.bin';
+
+  sPnPSetupFilename         = 'Filename';
+  sPnPSetupOperation        = 'Operation';
+  sPnPSetupOperationRead    = 'read';
+  sPnPSetupOperationWrite   = 'write';
+  sPnPSetupEEPROM           = 'EEPROM';
+  sPnPSetup93C56A           = '93C56A';
+  sPnPSetupProgress         = 'Progress';
 
   sPnPSetupCmdProgramCmds   = 'PROGRAM COMMANDS';
+  sPnPSetupCmdF6            = 'F6';
+  sPnPSetupCmdEditFilename  = 'Edit Filename';
+  sPnPSetupCmdF7            = 'F7';
+  sPnPSetupCmdReadEEPROM    = 'Read EEPROM';
+  sPnPSetupCmdF8            = 'F8';
+  sPnPSetupCmdWriteEEPROM   = 'Write EEPROM';
   sPnPSetupCmdESC           = 'ESC';
   sPnPSetupCmdExit          = 'Exit';
 
-  { PnP Setup color theme }
+  { TODO -oagroza -cMove : Constants away from this section. }
+  cProgressBarTopLeft       = 'Ú';
+  cProgressBarLeft          = '³';
+  cProgressBarBottomLeft    = 'À';
+  cProgressBarTopBottom     = 'Ä';
+  cProgressBarTopRight      = '¿';
+  cProgressBarRight         = '³';
+  cProgressBarBottomRight   = 'Ù';
+  cProgressBarEmpty         = '°';
+  cProgressBarFill          = 'Û';
+
+  { PnP Setup program color theme }
   clPnPSetupFore            = clLightGray;
   clPnPSetupBack            = clBlue;
+
+  clPnPSetupProgressTitle   = clWhite;
+  clPnPSetupProgressFore    = clLightGray;
+  clPnPSetupProgressBack    = clBlue;
+  clPnPSetupProgressColor   = clGreen;
 
   clPnPSetupCmdHigh         = clLightCyan;
   clPnPSetupCmdHeader       = clWhite;
   clPnPSetupCmdFore         = clLightGray;
   clPnPSetupCmdBack         = clDarkGray;
 
-  { PnP Setup constants }
+  { PnP Setup program constants }
   kPnPSetupStartupDelay     = 500;
+  kPnPSetupOperationDelay   = 500;
+
+  kPnPSetupProgressBarX     = 2;
+  kPnPSetupProgressBarY     = 7;
+  kPnPSetupProgressBarWidth = 47;
+  kPnPSetupProgressBarMin   = 47;
+
+  kPnPSetupNameX            = 2;
+  kPnPSetupValueX           = 15;
 
   kPnPSetupCommandsLeft     = 50;
   kPnPSetupCommandsTop      = 2;
@@ -388,7 +431,7 @@ const
   kPnPSetupOptionsWidth     = 49;
   kPnPSetupOptionsHeight    = 25;
 
-  { Mixer stringtable }
+  { Mixer program stringtable }
   sMixerTitle               = 'AUDIO INTERFACE MIXER';
 
   sMixerVolumeDAC           = 'DAC Output Volume';
@@ -438,7 +481,7 @@ const
   cMixerSliderLeftBar       = 'ß';
   cMixerSliderRightBar      = 'Ü';
 
-  { Mixer color theme }
+  { Mixer program color theme }
   clMixerFore               = clLightGray;
   clMixerBack               = clBlue;
 
@@ -462,7 +505,7 @@ const
   clDynCmdFore              = clLightGray;
   clDynCmdBack              = clBlue;
 
-  { Mixer constants }
+  { Mixer program constants }
   kMixerStartupDelay        = 500;
 
   kMixerSlidersLeft         = 1;
@@ -501,7 +544,7 @@ const
   kMixerOptionWidth         = 21;
   kMixerOptionHeight        = 1;
 
-  { Mixer default initialization values }
+  { Mixer program default initialization values }
   kMixerDACDefault          = 14;
   kMixerAUX1Default         = 30;
   kMixerAUX2Default         = 0;
@@ -512,7 +555,7 @@ const
   kMixerDMEDefault          = 0;
   kMixerOutputsEnDefault    = True;
 
-  { Status stringtable }
+  { Status program stringtable }
   sStatusAIFModel           = 'ISA Audio Interface model 2486-AIF-401';
   sStatusAIFMode            = 'Audio Interface Mode';
   sStatusBASE               = 'Address';
@@ -525,7 +568,7 @@ const
   sStatusOutputFormat       = 'Audio Output Format';
   sStatusLineOutRelay       = 'Line Out Relay';
 
-  { Status constants }
+  { Status program constants }
   kStatusValueX             = 22;
 
   kSBDSPVersions: array[TCodecSBDSPVersion] of Byte = (
