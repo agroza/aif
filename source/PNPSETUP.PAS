@@ -28,11 +28,13 @@ var
   IGProgressBar: TProgressBarData;
 
 const
-  kUICommands: array[0..3] of TUICommand = (
-    ( Y: 4; Accelerator: sPnPSetupCmdF6; Name: sPnPSetupCmdEditFilename ),
-    ( Y: 5; Accelerator: sPnPSetupCmdF7; Name: sPnPSetupCmdReadEEPROM ),
-    ( Y: 6; Accelerator: sPnPSetupCmdF8; Name: sPnPSetupCmdWriteEEPROM ),
-    ( Y: 7; Accelerator: sPnPSetupCmdESC; Name: sPnPSetupCmdExit )
+  kUICommands: array[0..5] of TUICommand = (
+    ( Y: 4; Accelerator: sPnPSetupCmdF4; Name: sPnPSetupCmdEditFilename ),
+    ( Y: 6; Accelerator: sPnPSetupCmdF5; Name: sPnPSetupCmdEraseEEPROMF ),
+    ( Y: 7; Accelerator: sPnPSetupCmdF6; Name: sPnPSetupCmdEraseEEPROMS ),
+    ( Y: 8; Accelerator: sPnPSetupCmdF7; Name: sPnPSetupCmdReadEEPROM ),
+    ( Y: 9; Accelerator: sPnPSetupCmdF8; Name: sPnPSetupCmdWriteEEPROM ),
+    ( Y: 11; Accelerator: sPnPSetupCmdESC; Name: sPnPSetupCmdExit )
   );
 
 { private declarations }
@@ -50,20 +52,50 @@ begin
   ScreenResetProgressBar(IGProgressBar);
 end;
 
-procedure ReadEEPROM;
+procedure ResetStatus(const AOperation: TEEPROMOperation);
 begin
-  { TODO -oagroza -cImplement : EEPROM read success detection. }
+  VideoWriteRegion(
+    kPnPSetupValueX,
+    4,
+    20,
+    2,
+    cSpace,
+    VideoAttribute(
+      clPnPSetupFore,
+      clPnPSetupBack
+    )
+  );
 
-  ControllerReadEEPROM(IGFileName, UpdateProgressBar);
-
-  ResetProgressBar;
+  VideoWriteStringAt(
+    kPnPSetupValueX,
+    4,
+    sEEPROMOperation[AOperation],
+    clPnPSetupFore,
+    clPnPSetupBack
+  );
 end;
 
-procedure WriteEEPROM;
+procedure DrawResult(const AValue: Boolean);
 begin
-  { TODO -oagroza -cImplement : EEPROM write success detection. }
+  VideoWriteRegion(
+    kPnPSetupValueX,
+    5,
+    Length(sFAILEDOK[False]),
+    1,
+    cSpace,
+    VideoAttribute(
+      clPnPSetupFore,
+      clPnPSetupBack
+    )
+  );
 
-  ControllerWriteEEPROM(IGFileName, UpdateProgressBar);
+  VideoWriteStringAt(
+    kPnPSetupValueX,
+    5,
+    sFAILEDOK[AValue],
+    clFAILEDOK[AValue],
+    clPnPSetupBack
+  );
 
   ResetProgressBar;
 end;
@@ -99,8 +131,9 @@ begin
   );
 
   DrawOption(3, sPnPSetupFilename, IGFileName);
-  DrawOption(4, sPnPSetupOperation, sPnPSetupOperationRead);
-  DrawOption(5, sPnPSetupEEPROM, sPnPSetup93C56A);
+  DrawOption(4, sPnPSetupOperation, cMinus);
+  DrawOption(5, sPnPSetupStatus, cMinus);
+  DrawOption(6, sPnPSetupEEPROM, sPnPSetup93C56A);
 end;
 
 procedure InitProgressBar;
@@ -185,19 +218,33 @@ begin
       kKeyExtended:
         begin
           case ReadKey of
-            kKeyF6:
+            kKeyF4:
               begin
                 { TODO -oagroza -cImplement : Filename editor. }
               end;
 
+            kKeyF5:
+              begin
+                ResetStatus(eoEraseFast);
+                DrawResult(ControllerEraseEEPROM(cemFast, UpdateProgressBar));
+              end;
+
+            kKeyF6:
+              begin
+                ResetStatus(eoEraseSlow);
+                DrawResult(ControllerEraseEEPROM(cemSlow, UpdateProgressBar));
+              end;
+
             kKeyF7:
               begin
-                ReadEEPROM;
+                ResetStatus(eoRead);
+                DrawResult(ControllerReadEEPROM(IGFileName, UpdateProgressBar));
               end;
 
             kKeyF8:
               begin
-                WriteEEPROM;
+                ResetStatus(eoWrite);
+                DrawResult(ControllerWriteEEPROM(IGFileName, UpdateProgressBar));
               end;
 
           end;

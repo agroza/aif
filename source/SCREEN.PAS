@@ -121,6 +121,22 @@ const
   kVVLightRed: TPaletteColor = ( RIntensity: 50; GIntensity: 30; BIntensity: 0 );
   kVVYellow: TPaletteColor = ( RIntensity: 50; GIntensity: 50; BIntensity: 0 );
 
+  { UI objects constants. }
+  sSliderGrid               = 'цдедедедедедедедедедедедедедед╢';
+  cSliderTip                = 'ш';
+  cSliderLeftBar            = 'ъ';
+  cSliderRightBar           = 'э';
+
+  cProgressBarTopLeft       = 'з';
+  cProgressBarLeft          = 'Ё';
+  cProgressBarBottomLeft    = 'ю';
+  cProgressBarTopBottom     = 'д';
+  cProgressBarTopRight      = '©';
+  cProgressBarRight         = 'Ё';
+  cProgressBarBottomRight   = 'ы';
+  cProgressBarEmpty         = '╟';
+  cProgressBarFill          = 'ш';
+
 var
   IGHaltOnErrors: Boolean;
 
@@ -170,7 +186,7 @@ begin
   VideoWriteCharAttrAt(
     ASliderData.PositionX + LPosition + kMixerSlidersTipX,
     ASliderData.PositionY + LPositionY,
-    cMixerSliderTip,
+    cSliderTip,
     VideoAttribute(
       ASliderData.Colors.Tip,
       ASliderData.Colors.Background
@@ -302,26 +318,36 @@ begin
     LPosition := kOKFailedXPosition;
     LPositionY := Pred(WhereY);
 
-    VideoWriteCharAt(LPosition, LPositionY, cOpenSquareBracket);
+    VideoWriteCharAt(
+      LPosition,
+      LPositionY,
+      cOpenSquareBracket
+    );
+
     Inc(LPosition, 2);
 
-    if AAction then
-    begin
-      VideoWriteStringAt(LPosition, LPositionY, sOK, clSuccess, clBlack);
-      Inc(LPosition, 3);
-    end else
-    begin
-      VideoWriteStringAt(LPosition, LPositionY, sFAILED, clError, clBlack);
-      Inc(LPosition, 7);
-    end;
+    VideoWriteStringAt(
+      LPosition,
+      LPositionY,
+      sFAILEDOK[AAction],
+      clFAILEDOK[AAction],
+      clBlack
+    );
 
-    VideoWriteCharAt(LPosition, LPositionY, cClosedSquareBracket);
+    Inc(LPosition, Succ(Length(sFAILEDOK[AAction])));
+
+    VideoWriteCharAt(
+      LPosition,
+      LPositionY,
+      cClosedSquareBracket
+    );
   end;
 
   if IGHaltOnErrors and not AAction then
   begin
     Writeln;
     Writeln(sHardwareInitError);
+
     Halt(kHardwareInitError);
   end;
 end;
@@ -415,13 +441,13 @@ begin
   VideoWriteStringAt(
     ASliderData.PositionX + kMixerSlidersTipX,
     ASliderData.PositionY + 2,
-    sMixerSliderGrid,
+    sSliderGrid,
     ASliderData.Colors.Grid,
     ASliderData.Colors.Background
   );
 
-  ScreenDrawSliderBar(ASliderData, ASliderData.LeftPosition, kMixerSlidersLeftY, sMixerSliderLeft, cMixerSliderLeftBar);
-  ScreenDrawSliderBar(ASliderData, ASliderData.RightPosition, kMixerSlidersRightY, sMixerSliderRight, cMixerSliderRightBar);
+  ScreenDrawSliderBar(ASliderData, ASliderData.LeftPosition, kMixerSlidersLeftY, sMixerSliderLeft, cSliderLeftBar);
+  ScreenDrawSliderBar(ASliderData, ASliderData.RightPosition, kMixerSlidersRightY, sMixerSliderRight, cSliderRightBar);
 
   ScreenUpdateStereoSlider(ASliderData, scLeft);
   ScreenUpdateStereoSlider(ASliderData, scRight);
@@ -499,19 +525,19 @@ procedure ScreenMoveStereoSlider(var ASliderData: TStereoSliderData;
 begin
   if ASliderData.Locked then
   begin
-    ScreenActStereoSlider(ASliderData, ASliderData.LeftPosition, ADirection, kMixerSlidersLeftY, cMixerSliderLeftBar);
+    ScreenActStereoSlider(ASliderData, ASliderData.LeftPosition, ADirection, kMixerSlidersLeftY, cSliderLeftBar);
     ScreenUpdateStereoSlider(ASliderData, scLeft);
 
-    ScreenActStereoSlider(ASliderData, ASliderData.RightPosition, ADirection, kMixerSlidersRightY, cMixerSliderRightBar);
+    ScreenActStereoSlider(ASliderData, ASliderData.RightPosition, ADirection, kMixerSlidersRightY, cSliderRightBar);
     ScreenUpdateStereoSlider(ASliderData, scRight);
   end else
   begin
     case AChannel of
       scLeft:
-        ScreenActStereoSlider(ASliderData, ASliderData.LeftPosition, ADirection, kMixerSlidersLeftY, cMixerSliderLeftBar);
+        ScreenActStereoSlider(ASliderData, ASliderData.LeftPosition, ADirection, kMixerSlidersLeftY, cSliderLeftBar);
 
       scRight:
-        ScreenActStereoSlider(ASliderData, ASliderData.RightPosition, ADirection, kMixerSlidersRightY, cMixerSliderRightBar);
+        ScreenActStereoSlider(ASliderData, ASliderData.RightPosition, ADirection, kMixerSlidersRightY, cSliderRightBar);
 
     end;
 

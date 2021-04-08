@@ -127,14 +127,14 @@ begin
 
   WriteItem(sStatusAIFMode, sAIFMode[LStatusItems.BitMOD]);
   WriteItem(sStatusBASE, IntToHex(LStatusItems.Address));
-  WriteItem(sStatusIRQ, IfThenElse(LStatusItems.IRQ < $FF, IntToStr(LStatusItems.IRQ), sEnabledDisabled[False]));
-  WriteItem(sStatusDRQ, IfThenElse(LStatusItems.DRQ < $FF, IntToStr(LStatusItems.DRQ), sEnabledDisabled[False]));
+  WriteItem(sStatusIRQ, IfThenElse(LStatusItems.IRQ < $FF, IntToStr(LStatusItems.IRQ), sDisabledEnabled[False]));
+  WriteItem(sStatusDRQ, IfThenElse(LStatusItems.DRQ < $FF, IntToStr(LStatusItems.DRQ), sDisabledEnabled[False]));
   WriteItem(sStatusDSP, IfThenElse(LStatusItems.DSP, sSBDSPVersions[GControllerConfig.SBDSPVersion], sNA));
   WriteItem(sStatusFM, IfThenElse(LStatusItems.FM, sOPL3, sNA));
-  WriteItem(sStatusMPU401, IfThenElse(LStatusItems.MPU401, IntToHex(GControllerConfig.MPUBASE), sEnabledDisabled[False]));
-  WriteItem(sStatusGamePort, IfThenElse(LStatusItems.GamePort, sEnabledDisabled[True], sEnabledDisabled[False]));
+  WriteItem(sStatusMPU401, IfThenElse(LStatusItems.MPU401, IntToHex(GControllerConfig.MPUBASE), sDisabledEnabled[False]));
+  WriteItem(sStatusGamePort, IfThenElse(LStatusItems.GamePort, sDisabledEnabled[True], sDisabledEnabled[False]));
   WriteItem(sStatusOutputFormat, LStatusItems.OutputFormat);
-  WriteItem(sStatusLineOutRelay, sEnabledDisabled[LStatusItems.LineOutRelay]);
+  WriteItem(sStatusLineOutRelay, sDisabledEnabled[LStatusItems.LineOutRelay]);
 end;
 
 end.

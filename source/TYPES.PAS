@@ -109,12 +109,25 @@ type
     cmSB
   );
 
+  TControllerEraseMethod = (
+    cemFast,
+    cemSlow
+  );
+
   { UI types }
   TUICommand = record
     Y: Byte;
     Accelerator: PChar;
     Name: PChar;
   end;
+
+  { PnP Setup types }
+  TEEPROMOperation = (
+    eoEraseFast,
+    eoEraseSlow,
+    eoRead,
+    eoWrite
+  );
 
 implementation
 

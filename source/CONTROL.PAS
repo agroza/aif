@@ -87,6 +87,7 @@ procedure ControllerSilence(const AEnable: Boolean);
 procedure ControllerPowerDown(const AEnable: Boolean);
 procedure ControllerChipTest(const AEnable: Boolean);
 
+function ControllerEraseEEPROM(AEraseMethod: TControllerEraseMethod; const AUpdateProgress: TUpdateProgress): Boolean;
 function ControllerReadEEPROM(const AFileName: String; const AUpdateProgress: TUpdateProgress): Boolean;
 function ControllerWriteEEPROM(const AFileName: String; const AUpdateProgress: TUpdateProgress): Boolean;
 
@@ -983,11 +984,11 @@ var
   LRetries: Word;
 
 begin
-  EEPROMSetCS(False);
+  EEPROMSetCS(True);
 
   EEPROMDelay;
 
-  EEPROMSetCS(True);
+  EEPROMSetCS(False);
 
   LRetries := kEEPROMReadyRetries;
 
@@ -1044,72 +1045,72 @@ end;
 
 procedure EEPROMWriteDisable;
 begin
-  EEPROMSetCS(True);
+  EEPROMSetCS(False);
 
   EEPROMSendCommand(kEEPROMCommandEWDS);
 
-  EEPROMSetCS(False);
+  EEPROMSetCS(True);
 end;
 
 procedure EEPROMWriteEnable;
 begin
-  EEPROMSetCS(True);
+  EEPROMSetCS(False);
 
   EEPROMSendCommand(kEEPROMCommandEWEN);
 
-  EEPROMSetCS(False);
+  EEPROMSetCS(True);
 end;
 
 function EEPROMEraseAll: Boolean;
 begin
-  EEPROMSetCS(True);
+  EEPROMSetCS(False);
 
   EEPROMSendCommand(kEEPROMCommandERAL);
   EEPROMEraseAll := EEPROMWaitReady;
 
-  EEPROMSetCS(False);
+  EEPROMSetCS(True);
 end;
 
 function EEPROMWriteAll(const AByte: Byte): Boolean;
 begin
-  EEPROMSetCS(True);
+  EEPROMSetCS(False);
 
   EEPROMSendCommand(kEEPROMCommandWRAL);
   EEPROMSendData(AByte);
   EEPROMWriteAll := EEPROMWaitReady;
 
-  EEPROMSetCS(False);
+  EEPROMSetCS(True);
 end;
 
 function EEPROMErase(const AAddress: Word): Boolean;
 begin
-  EEPROMSetCS(True);
+  EEPROMSetCS(False);
 
   EEPROMSendCommand(kEEPROMCommandERASE + AAddress);
   EEPROMErase := EEPROMWaitReady;
 
-  EEPROMSetCS(False);
+  EEPROMSetCS(True);
 end;
 
 function EEPROMRead(const AAddress: Word): Byte;
 begin
-  EEPROMSetCS(True);
+  EEPROMSetCS(False);
 
   EEPROMSendCommand(kEEPROMCommandREAD + AAddress);
   EEPROMRead := EEPROMGetData;
 
-  EEPROMSetCS(False);
+  EEPROMSetCS(True);
 end;
 
 function EEPROMWrite(const AAddress: Word; const AByte: Byte): Boolean;
 begin
-  EEPROMSetCS(True);
+  EEPROMSetCS(False);
 
   EEPROMSendCommand(kEEPROMCommandWRITE + AAddress);
   EEPROMSendData(AByte);
   EEPROMWrite := EEPROMWaitReady;
 
-  EEPROMSetCS(False);
+  EEPROMSetCS(True);
 end;
 
 { public declarations }
@@ -1205,6 +1206,52 @@ begin
   ControllerWrite(kREGISTER_MC1, LValue);
 end;
 
+function ControllerEraseEEPROM(AEraseMethod: TControllerEraseMethod; const AUpdateProgress: TUpdateProgress): Boolean;
+var
+  I: Word;
+  LSucceeded: Boolean;
+
+begin
+  ControllerEraseEEPROM := False;
+
+  LSucceeded := False;
+
+  SetRegisterBit(kREGISTER_MC3, kBitWRSROM, True);
+
+  case AEraseMethod of
+    cemFast:
+      begin
+        LSucceeded := EEPROMEraseAll;
+        if LSucceeded then
+        begin
+          for I := 0 to Pred(kEEPROMSize) do
+          begin
+            AUpdateProgress(I);
+          end;
+        end;
+      end;
+
+    cemSlow:
+      begin
+        for I := 0 to Pred(kEEPROMSize) do
+        begin
+          LSucceeded := EEPROMErase(I);
+          if not LSucceeded then
+          begin
+            Break;
+          end;
+
+          AUpdateProgress(I);
+        end;
+      end;
+
+  end;
+
+  SetRegisterBit(kREGISTER_MC3, kBitWRSROM, False);
+
+  ControllerEraseEEPROM := LSucceeded;
+end;
+
 function ControllerReadEEPROM(const AFileName: String; const AUpdateProgress: TUpdateProgress): Boolean;
 var
   I: Word;
@@ -1223,19 +1270,13 @@ begin
 {$I+}
   for I := 0 to Pred(kEEPROMSize) do
   begin
-    { TODO -oagroza -cImplement : Fail detection. }
     LByte := EEPROMRead(I);
 {$I-}
     Write(LFile, LByte);
 {$I+}
     if IOResult <> 0 then
     begin
-{$I-}
-      Close(LFile);
-{$I+}
-      SetRegisterBit(kREGISTER_MC3, kBitWRSROM, False);
-
-      Exit;
+      Break;
     end;
 
     AUpdateProgress(I);
@@ -1254,9 +1295,12 @@ var
   I: Word;
   LByte: Byte;
   LFile: File of Byte;
+  LSucceeded: Boolean;
 
 begin
   ControllerWriteEEPROM := False;
+
+  LSucceeded := False;
 
   SetRegisterBit(kREGISTER_MC3, kBitWRSROM, True);
 
@@ -1272,16 +1316,14 @@ begin
 {$I+}
     if IOResult <> 0 then
     begin
-{$I-}
-      Close(LFile);
-{$I+}
-      SetRegisterBit(kREGISTER_MC3, kBitWRSROM, False);
-
-      Exit;
+      Break;
     end;
 
-    { TODO -oagroza -cImplement : Fail detection. }
-    EEPROMWrite(I, LByte);
+    LSucceeded := EEPROMWrite(I, LByte);
+    if not LSucceeded then
+    begin
+      Break;
+    end;
 
     AUpdateProgress(I);
   end;
@@ -1291,7 +1333,7 @@ begin
 
   SetRegisterBit(kREGISTER_MC3, kBitWRSROM, False);
 
-  ControllerWriteEEPROM := IOResult = 0;
+  ControllerWriteEEPROM := (IOResult = 0) and LSucceeded;
 end;
 
 end.

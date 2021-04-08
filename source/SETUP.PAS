@@ -130,7 +130,7 @@ const
     ( Y: 4; Accelerator: sSetupCmdF8; Name: sSetupCmdDefaultConfig ),
     ( Y: 5; Accelerator: sSetupCmdF9; Name: sSetupCmdReloadConfig ),
     ( Y: 6; Accelerator: sSetupCmdF10; Name: sSetupCmdSaveExit ),
-    ( Y: 7; Accelerator: sSetupCmdESC; Name: sSetupCmdExit ),
+    ( Y: 8; Accelerator: sSetupCmdESC; Name: sSetupCmdExit ),
     ( Y: 12; Accelerator: sSetupCmdUpDown; Name: sSetupCmdSelectOption ),
     ( Y: 13; Accelerator: sSetupCmdLeftRight; Name: sSetupCmdModifyOption )
   );
@@ -231,7 +231,7 @@ begin
     IGSetupConfig.WSSIRQ := LWSSIRQ;
   end;
 
-  GSVWSSIRQ := IfThenElse(LWSSIRQ = $FF, sEnabledDisabled[False], IntToStr(kWSSIRQs[AIndex]));
+  GSVWSSIRQ := IfThenElse(LWSSIRQ = $FF, sDisabledEnabled[False], IntToStr(kWSSIRQs[AIndex]));
 end;
 
 function GSVWSSDRQ(const AIndex: Byte; const ASetValue: Boolean): String;
@@ -246,7 +246,7 @@ begin
     IGSetupConfig.WSSDRQ := LWSSDRQ;
   end;
 
-  GSVWSSDRQ := IfThenElse(LWSSDRQ = $FF, sEnabledDisabled[False], IntToStr(kWSSDRQs[AIndex]));
+  GSVWSSDRQ := IfThenElse(LWSSDRQ = $FF, sDisabledEnabled[False], IntToStr(kWSSDRQs[AIndex]));
 end;
 
 function GSVSBBASE(const AIndex: Byte; const ASetValue: Boolean): String;
@@ -271,7 +271,7 @@ begin
     IGSetupConfig.SBIRQ := LSBIRQ;
   end;
 
-  GSVSBIRQ := IfThenElse(LSBIRQ = $FF, sEnabledDisabled[False], IntToStr(kSBIRQs[AIndex]));
+  GSVSBIRQ := IfThenElse(LSBIRQ = $FF, sDisabledEnabled[False], IntToStr(kSBIRQs[AIndex]));
 end;
 
 function GSVSBDRQ(const AIndex: Byte; const ASetValue: Boolean): String;
@@ -286,7 +286,7 @@ begin
     IGSetupConfig.SBDRQ := LSBDRQ;
   end;
 
-  GSVSBDRQ := IfThenElse(LSBDRQ = $FF, sEnabledDisabled[False], IntToStr(kSBDRQs[AIndex]));
+  GSVSBDRQ := IfThenElse(LSBDRQ = $FF, sDisabledEnabled[False], IntToStr(kSBDRQs[AIndex]));
 end;
 
 function GSVMPU401(const AIndex: Byte; const ASetValue: Boolean): String;
@@ -296,7 +296,7 @@ begin
     IGSetupConfig.MPU401 := TBitStatus(AIndex);
   end;
 
-  GSVMPU401 := sBSEnabledDisabled[TBitStatus(AIndex)];
+  GSVMPU401 := sBSDisabledEnabled[TBitStatus(AIndex)];
 end;
 
 function GSVMPUBASE(const AIndex: Byte; const ASetValue: Boolean): String;
@@ -326,7 +326,7 @@ begin
     IGSetupConfig.GamePort := TBitStatus(AIndex);
   end;
 
-  GSVGamePort := sBSEnabledDisabled[TBitStatus(AIndex)];
+  GSVGamePort := sBSDisabledEnabled[TBitStatus(AIndex)];
 end;
 
 function GSVIDECDROM(const AIndex: Byte; const ASetValue: Boolean): String;
@@ -336,7 +336,7 @@ begin
     IGSetupConfig.IDECDROM := TBitStatus(AIndex);
   end;
 
-  GSVIDECDROM := sBSEnabledDisabled[TBitStatus(AIndex)];
+  GSVIDECDROM := sBSDisabledEnabled[TBitStatus(AIndex)];
 end;
 
 function GSVCFIX(const AIndex: Byte; const ASetValue: Boolean): String;
@@ -436,7 +436,7 @@ begin
     IGSetupConfig.SBADPCM := TBitStatus(AIndex);
   end;
 
-  GSVSBADPCM := sBSEnabledDisabled[TBitStatus(AIndex)];
+  GSVSBADPCM := sBSDisabledEnabled[TBitStatus(AIndex)];
 end;
 
 function GSVCFIFO(const AIndex: Byte; const ASetValue: Boolean): String;
@@ -446,7 +446,7 @@ begin
     IGSetupConfig.CFIFO := TBitStatus(AIndex);
   end;
 
-  GSVCFIFO := sBSEnabledDisabled[TBitStatus(AIndex)];
+  GSVCFIFO := sBSDisabledEnabled[TBitStatus(AIndex)];
 end;
 
 function GSVAVC(const AIndex: Byte; const ASetValue: Boolean): String;
@@ -540,7 +540,7 @@ begin
   InitOption(
     soMPU401,
     sSetupMPU401,
-    Byte(High(sBSEnabledDisabled)),
+    Byte(High(sBSDisabledEnabled)),
     Byte(IGSetupConfig.MPU401),
     GSVMPU401
   );
@@ -564,7 +564,7 @@ begin
   InitOption(
     soGamePort,
     sSetupGamePort,
-    Byte(High(sBSEnabledDisabled)),
+    Byte(High(sBSDisabledEnabled)),
     Byte(IGSetupConfig.GamePort),
     GSVGamePort
   );
@@ -572,7 +572,7 @@ begin
   InitOption(
     soIDECDROM,
     sSetupIDECDROM,
-    Byte(High(sBSEnabledDisabled)),
+    Byte(High(sBSDisabledEnabled)),
     Byte(IGSetupConfig.IDECDROM),
     GSVIDECDROM
   );
@@ -588,7 +588,7 @@ begin
   InitOption(
     soFMAP,
     sSetupFMAP,
-    Byte(High(sBSEnabledDisabled)),
+    Byte(High(sBSDisabledEnabled)),
     Byte(IGSetupConfig.FMAP),
     GSVFMAP
   );
@@ -652,7 +652,7 @@ begin
   InitOption(
     soSBADPCM,
     sSetupSBADPCM,
-    Byte(High(sBSEnabledDisabled)),
+    Byte(High(sBSDisabledEnabled)),
     Byte(IGSetupConfig.SBADPCM),
     GSVSBADPCM
   );
@@ -660,7 +660,7 @@ begin
   InitOption(
     soCFIFO,
     sSetupCFIFO,
-    Byte(High(sBSEnabledDisabled)),
+    Byte(High(sBSDisabledEnabled)),
     Byte(IGSetupConfig.CFIFO),
     GSVCFIFO
   );
@@ -668,7 +668,7 @@ begin
   InitOption(
     soAVC,
     sSetupAVC,
-    Byte(High(sBSEnabledDisabled)),
+    Byte(High(sBSDisabledEnabled)),
     Byte(IGSetupConfig.AVC),
     GSVAVC
   );

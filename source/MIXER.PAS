@@ -64,7 +64,7 @@ const
     ( Y: 4; Accelerator: sMixerCmdF8; Name: sMixerCmdDefaultConfig ),
     ( Y: 5; Accelerator: sMixerCmdF9; Name: sMixerCmdReloadConfig ),
     ( Y: 6; Accelerator: sMixerCmdF10; Name: sMixerCmdSaveExit ),
-    ( Y: 7; Accelerator: sMixerCmdESC; Name: sMixerCmdExit ),
+    ( Y: 8; Accelerator: sMixerCmdESC; Name: sMixerCmdExit ),
     ( Y: 11; Accelerator: sMixerCmdUpDown; Name: sMixerCmdSelectDevice ),
     ( Y: 12; Accelerator: sMixerCmdLeftRight; Name: sMixerCmdModifyVolume )
   );

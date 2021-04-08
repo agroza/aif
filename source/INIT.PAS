@@ -221,7 +221,7 @@ begin
   InitAIFComplete;
 
   Writeln;
-  Writeln(sLineOutRelay + LowerCase(sEnabledDisabled[GCodecMixerConfig.OutputsEnabled]) + cFullStop);
+  Writeln(sLineOutRelay + LowerCase(sDisabledEnabled[GCodecMixerConfig.OutputsEnabled]) + cFullStop);
 end;
 
 procedure InitAIFBasic;

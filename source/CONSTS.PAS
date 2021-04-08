@@ -17,7 +17,7 @@ const
   sEmpty                    = '';
 
   { program stringtable }
-  sProgramTitle             = 'AUDIO INTERFACE  VER. 2.6 REV. D';
+  sProgramTitle             = 'AUDIO INTERFACE  VER. 2.7 REV. A';
   sProgramCopyright         = 'Copyright (C) 1998-2021 Microprogramming TECHNIQUES';
   sProgramAuthor            = 'Programming/PC Code: Alexandru Groza';
   sProgramRights            = 'All rights reserved.';
@@ -79,8 +79,11 @@ const
   s16bitPCM                 = '16-bit PCM';
 
   sNA                       = 'N/A';
-  sOK                       = 'OK';
-  sFAILED                   = 'FAILED';
+
+  sFAILEDOK: array[Boolean] of String[6] = (
+    'FAILED',
+    'OK'
+  );
 
   sAIFDetectionMode: array[TAIFDetectionMode] of String[7] = (
     'PnP',
@@ -92,12 +95,12 @@ const
     'Windows Sound System'
   );
 
-  sEnabledDisabled: array[Boolean] of String[8] = (
+  sDisabledEnabled: array[Boolean] of String[8] = (
     'Disabled',
     'Enabled'
   );
 
-  sBSEnabledDisabled: array[TBitStatus] of String[8] = (
+  sBSDisabledEnabled: array[TBitStatus] of String[8] = (
     'Disabled',
     'Enabled'
   );
@@ -140,6 +143,7 @@ const
   cSemicolon                = ':';
   cSlash                    = '/';
   cEqual                    = '=';
+  cMinus                    = '-';
   cOpenBracket              = '(';
   cClosedBracket            = ')';
   cOpenSquareBracket        = '[';
@@ -198,10 +202,15 @@ const
   clYellow                  = 14;
   clWhite                   = 15;
 
-  clSuccess                 = clGreen;
   clError                   = clRed;
+  clSuccess                 = clGreen;
   clNormal                  = clLightGray;
   clHighlight               = clWhite;
+
+  clFAILEDOK: array[Boolean] of Byte = (
+    clError,
+    clSuccess
+  );
 
   { program color theme }
   clInterfaceFore           = clBlack;
@@ -219,6 +228,8 @@ const
   kKeyDown                  = #80;
   kKeyLeft                  = #75;
   kKeyRight                 = #77;
+  kKeyF4                    = #62;
+  kKeyF5                    = #63;
   kKeyF6                    = #64;
   kKeyF7                    = #65;
   kKeyF8                    = #66;
@@ -366,32 +377,31 @@ const
 
   sPnPSetupFilename         = 'Filename';
   sPnPSetupOperation        = 'Operation';
-  sPnPSetupOperationRead    = 'read';
-  sPnPSetupOperationWrite   = 'write';
+  sPnPSetupStatus           = 'Status';
   sPnPSetupEEPROM           = 'EEPROM';
   sPnPSetup93C56A           = '93C56A';
   sPnPSetupProgress         = 'Progress';
 
+  sEEPROMOperation: array[TEEPROMOperation] of String[12] = (
+    'erase (slow)',
+    'erase (fast)',
+    'read',
+    'write'
+  );
+
   sPnPSetupCmdProgramCmds   = 'PROGRAM COMMANDS';
-  sPnPSetupCmdF6            = 'F6';
+  sPnPSetupCmdF4            = 'F4';
   sPnPSetupCmdEditFilename  = 'Edit Filename';
+  sPnPSetupCmdF5            = 'F5';
+  sPnPSetupCmdEraseEEPROMF  = 'Erase EEPROM (Fast)';
+  sPnPSetupCmdF6            = 'F6';
+  sPnPSetupCmdEraseEEPROMS  = 'Erase EEPROM (Slow)';
   sPnPSetupCmdF7            = 'F7';
   sPnPSetupCmdReadEEPROM    = 'Read EEPROM';
   sPnPSetupCmdF8            = 'F8';
   sPnPSetupCmdWriteEEPROM   = 'Write EEPROM';
   sPnPSetupCmdESC           = 'ESC';
   sPnPSetupCmdExit          = 'Exit';
-
-  { TODO -oagroza -cMove : Constants away from this section. }
-  cProgressBarTopLeft       = 'з';
-  cProgressBarLeft          = 'Ё';
-  cProgressBarBottomLeft    = 'ю';
-  cProgressBarTopBottom     = 'д';
-  cProgressBarTopRight      = '©';
-  cProgressBarRight         = 'Ё';
-  cProgressBarBottomRight   = 'ы';
-  cProgressBarEmpty         = '╟';
-  cProgressBarFill          = 'ш';
 
   { PnP Setup program color theme }
   clPnPSetupFore            = clLightGray;
@@ -412,7 +422,7 @@ const
   kPnPSetupOperationDelay   = 500;
 
   kPnPSetupProgressBarX     = 2;
-  kPnPSetupProgressBarY     = 7;
+  kPnPSetupProgressBarY     = 8;
   kPnPSetupProgressBarWidth = 47;
   kPnPSetupProgressBarMin   = 47;
 
@@ -476,10 +486,6 @@ const
 
   sMixerSliderLeft          = 'LEFT';
   sMixerSliderRight         = 'RIGHT';
-  sMixerSliderGrid          = 'цдедедедедедедедедедедедедедед╢';
-  cMixerSliderTip           = 'ш';
-  cMixerSliderLeftBar       = 'ъ';
-  cMixerSliderRightBar      = 'э';
 
   { Mixer program color theme }
   clMixerFore               = clLightGray;
