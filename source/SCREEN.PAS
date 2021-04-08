@@ -62,6 +62,21 @@ type
     sdDown
   );
 
+  TEditColors = record
+    Foreground: Byte;
+    Background: Byte;
+    HighForeground: Byte;
+    HighBackground: Byte;
+  end;
+
+  TEditData = record
+    PositionX: Byte;
+    PositionY: Byte;
+    Width: Byte;
+    Colors: TEditColors;
+    Text: String;
+  end;
+
   TProgressBarColors = record
     Foreground: Byte;
     Background: Byte;
@@ -94,15 +109,18 @@ procedure ScreenDrawCommand(const ALeft, ATop, AHighlight, AColor, ABackground: 
 
 procedure ScreenDrawKeyValue(const AKeyValueData: TKeyValueData);
 
-procedure ScreenDrawStereoSlider(const ASliderData: TStereoSliderData);
-procedure ScreenHighlightStereoSlider(const ASliderData: TStereoSliderData;
+procedure ScreenStereoSliderDraw(const ASliderData: TStereoSliderData);
+procedure ScreenStereoSliderHighlight(const ASliderData: TStereoSliderData;
   const AChannel: TCodecSoundChannel; const AValue: Boolean);
-procedure ScreenMoveStereoSlider(var ASliderData: TStereoSliderData;
+procedure ScreenStereoSliderMove(var ASliderData: TStereoSliderData;
   const AChannel: TCodecSoundChannel; const ADirection: TSliderDirection);
 
-procedure ScreenUpdateProgressBar(const AProgressBarData: TProgressBarData);
-procedure ScreenDrawProgressBar(const AProgressBarData: TProgressBarData);
-procedure ScreenResetProgressBar(const AProgressBarData: TProgressBarData);
+procedure ScreenEditDraw(const AEditData: TEditData);
+procedure ScreenEditChange(var AEditData: TEditData);
+
+procedure ScreenProgressBarDraw(const AProgressBarData: TProgressBarData);
+procedure ScreenProgressBarUpdate(const AProgressBarData: TProgressBarData);
+procedure ScreenProgressBarReset(const AProgressBarData: TProgressBarData);
 
 implementation
 
@@ -142,160 +160,7 @@ var
 
   IGVGAPalette: array[kVGAPaletteStart..kVGAPaletteEnd] of TPaletteColor;
 
-{ private declarations }
-
-function ScreenGetSliderBarColor(const APosition: Byte; const AColors: TStereoSliderColors): Byte;
-begin
-  case APosition of
-    0..10:
-      ScreenGetSliderBarColor := AColors.Low;
-
-    11..20:
-      ScreenGetSliderBarColor := AColors.Medium;
-
-    21..25:
-      ScreenGetSliderBarColor := AColors.High;
-
-    26..30:
-      ScreenGetSliderBarColor := AColors.VeryHigh;
-
-  end;
-end;
-
-procedure ScreenUpdateStereoSlider(const ASliderData: TStereoSliderData; const AChannel: TCodecSoundChannel);
-var
-  LPosition: Byte;
-  LPositionY: Byte;
-
-begin
-  case AChannel of
-    scLeft:
-      begin
-        LPosition := ASliderData.LeftPosition;
-        LPositionY := kMixerSlidersLeftY;
-      end;
-
-    scRight:
-      begin
-        LPosition := ASliderData.RightPosition;
-        LPositionY := kMixerSlidersRightY;
-      end;
-
-  end;
-
-  VideoWriteCharAttrAt(
-    ASliderData.PositionX + LPosition + kMixerSlidersTipX,
-    ASliderData.PositionY + LPositionY,
-    cSliderTip,
-    VideoAttribute(
-      ASliderData.Colors.Tip,
-      ASliderData.Colors.Background
-    )
-  );
-
-  VideoWriteStringAt(
-    ASliderData.PositionX + kMixerSlidersValueX,
-    ASliderData.PositionY + LPositionY,
-    PadPercent(Round((LPosition / ASliderData.Max) * 100)),
-    ASliderData.Colors.Text,
-    ASliderData.Colors.Background
-  );
-end;
-
-procedure ScreenDrawSliderBar(const ASliderData: TStereoSliderData; const APosition, APositionY: Byte;
-  const AChannelText: String; const AChar: Char);
-var
-  I: Byte;
-  LAttribute: Byte;
-
-begin
-  VideoWriteStringAt(
-    ASliderData.PositionX,
-    ASliderData.PositionY + APositionY,
-    AChannelText,
-    ASliderData.Colors.Text,
-    ASliderData.Colors.Background
-  );
-
-  for I := 0 to APosition do
-  begin
-    VideoWriteCharAttrAt(
-      ASliderData.PositionX + I + kMixerSlidersTipX,
-      ASliderData.PositionY + APositionY,
-      AChar,
-      VideoAttribute(
-        ScreenGetSliderBarColor(I, ASliderData.Colors),
-        ASliderData.Colors.Background
-      )
-    );
-  end;
-
-  LAttribute := VideoAttribute(
-    ASliderData.Colors.Normal,
-    ASliderData.Colors.Background
-  );
-
-  if APosition < ASliderData.Max then
-  begin
-    for I := Succ(APosition) to ASliderData.Max do
-    begin
-      VideoWriteCharAttrAt(
-        ASliderData.PositionX + I + kMixerSlidersTipX,
-        ASliderData.PositionY + APositionY,
-        AChar,
-        LAttribute
-      );
-    end;
-  end;
-end;
-
-procedure ScreenActStereoSlider(const ASliderData: TStereoSliderData; var APosition: Byte;
-  const ADirection: TSliderDirection; const APositionY: Byte; const AChar: Char);
-var
-  LDeletePosition: Byte;
-  LAttribute: Byte;
-
-begin
-  LDeletePosition := APosition;
-
-  case ADirection of
-    sdUp:
-      begin
-        if APosition < ASliderData.Max then
-        begin
-          Inc(APosition);
-        end;
-
-        LAttribute := VideoAttribute(
-          ScreenGetSliderBarColor(LDeletePosition, ASliderData.Colors),
-          ASliderData.Colors.Background
-        );
-      end;
-
-    sdDown:
-      begin
-        if APosition > ASliderData.Min then
-        begin
-          Dec(APosition);
-        end;
-
-        LAttribute := VideoAttribute(
-          ASliderData.Colors.Normal,
-          ASliderData.Colors.Background
-        );
-      end;
-
-  end;
-
-  VideoWriteCharAttrAt(
-    ASliderData.PositionX + LDeletePosition + kMixerSlidersTipX,
-    ASliderData.PositionY + APositionY,
-    AChar,
-    LAttribute
-  );
-end;
-
-{ public declarations }
+{ private and public declarations }
 
 procedure SetHaltOnErrors(const AValue: Boolean);
 begin
@@ -428,7 +293,158 @@ begin
   );
 end;
 
-procedure ScreenDrawStereoSlider(const ASliderData: TStereoSliderData);
+function StereoSliderGetBarColor(const APosition: Byte; const AColors: TStereoSliderColors): Byte;
+begin
+  case APosition of
+    0..10:
+      StereoSliderGetBarColor := AColors.Low;
+
+    11..20:
+      StereoSliderGetBarColor := AColors.Medium;
+
+    21..25:
+      StereoSliderGetBarColor := AColors.High;
+
+    26..30:
+      StereoSliderGetBarColor := AColors.VeryHigh;
+
+  end;
+end;
+
+procedure StereoSliderUpdate(const ASliderData: TStereoSliderData; const AChannel: TCodecSoundChannel);
+var
+  LPosition: Byte;
+  LPositionY: Byte;
+
+begin
+  case AChannel of
+    scLeft:
+      begin
+        LPosition := ASliderData.LeftPosition;
+        LPositionY := kMixerSlidersLeftY;
+      end;
+
+    scRight:
+      begin
+        LPosition := ASliderData.RightPosition;
+        LPositionY := kMixerSlidersRightY;
+      end;
+
+  end;
+
+  VideoWriteCharAttrAt(
+    ASliderData.PositionX + LPosition + kMixerSlidersTipX,
+    ASliderData.PositionY + LPositionY,
+    cSliderTip,
+    VideoAttribute(
+      ASliderData.Colors.Tip,
+      ASliderData.Colors.Background
+    )
+  );
+
+  VideoWriteStringAt(
+    ASliderData.PositionX + kMixerSlidersValueX,
+    ASliderData.PositionY + LPositionY,
+    PadPercent(Round((LPosition / ASliderData.Max) * 100)),
+    ASliderData.Colors.Text,
+    ASliderData.Colors.Background
+  );
+end;
+
+procedure StereoSliderDrawBar(const ASliderData: TStereoSliderData; const APosition, APositionY: Byte;
+  const AChannelText: String; const AChar: Char);
+var
+  I: Byte;
+  LAttribute: Byte;
+
+begin
+  VideoWriteStringAt(
+    ASliderData.PositionX,
+    ASliderData.PositionY + APositionY,
+    AChannelText,
+    ASliderData.Colors.Text,
+    ASliderData.Colors.Background
+  );
+
+  for I := 0 to APosition do
+  begin
+    VideoWriteCharAttrAt(
+      ASliderData.PositionX + I + kMixerSlidersTipX,
+      ASliderData.PositionY + APositionY,
+      AChar,
+      VideoAttribute(
+        StereoSliderGetBarColor(I, ASliderData.Colors),
+        ASliderData.Colors.Background
+      )
+    );
+  end;
+
+  LAttribute := VideoAttribute(
+    ASliderData.Colors.Normal,
+    ASliderData.Colors.Background
+  );
+
+  if APosition < ASliderData.Max then
+  begin
+    for I := Succ(APosition) to ASliderData.Max do
+    begin
+      VideoWriteCharAttrAt(
+        ASliderData.PositionX + I + kMixerSlidersTipX,
+        ASliderData.PositionY + APositionY,
+        AChar,
+        LAttribute
+      );
+    end;
+  end;
+end;
+
+procedure StereoSliderAct(const ASliderData: TStereoSliderData; var APosition: Byte;
+  const ADirection: TSliderDirection; const APositionY: Byte; const AChar: Char);
+var
+  LDeletePosition: Byte;
+  LAttribute: Byte;
+
+begin
+  LDeletePosition := APosition;
+
+  case ADirection of
+    sdUp:
+      begin
+        if APosition < ASliderData.Max then
+        begin
+          Inc(APosition);
+        end;
+
+        LAttribute := VideoAttribute(
+          StereoSliderGetBarColor(LDeletePosition, ASliderData.Colors),
+          ASliderData.Colors.Background
+        );
+      end;
+
+    sdDown:
+      begin
+        if APosition > ASliderData.Min then
+        begin
+          Dec(APosition);
+        end;
+
+        LAttribute := VideoAttribute(
+          ASliderData.Colors.Normal,
+          ASliderData.Colors.Background
+        );
+      end;
+
+  end;
+
+  VideoWriteCharAttrAt(
+    ASliderData.PositionX + LDeletePosition + kMixerSlidersTipX,
+    ASliderData.PositionY + APositionY,
+    AChar,
+    LAttribute
+  );
+end;
+
+procedure ScreenStereoSliderDraw(const ASliderData: TStereoSliderData);
 begin
   VideoWriteStringAt(
     ASliderData.PositionX + kMixerSlidersTipX,
@@ -446,14 +462,14 @@ begin
     ASliderData.Colors.Background
   );
 
-  ScreenDrawSliderBar(ASliderData, ASliderData.LeftPosition, kMixerSlidersLeftY, sMixerSliderLeft, cSliderLeftBar);
-  ScreenDrawSliderBar(ASliderData, ASliderData.RightPosition, kMixerSlidersRightY, sMixerSliderRight, cSliderRightBar);
+  StereoSliderDrawBar(ASliderData, ASliderData.LeftPosition, kMixerSlidersLeftY, sMixerSliderLeft, cSliderLeftBar);
+  StereoSliderDrawBar(ASliderData, ASliderData.RightPosition, kMixerSlidersRightY, sMixerSliderRight, cSliderRightBar);
 
-  ScreenUpdateStereoSlider(ASliderData, scLeft);
-  ScreenUpdateStereoSlider(ASliderData, scRight);
+  StereoSliderUpdate(ASliderData, scLeft);
+  StereoSliderUpdate(ASliderData, scRight);
 end;
 
-procedure ScreenHighlightStereoSlider(const ASliderData: TStereoSliderData;
+procedure ScreenStereoSliderHighlight(const ASliderData: TStereoSliderData;
   const AChannel: TCodecSoundChannel; const AValue: Boolean);
 var
   LLeftAttribute: Byte;
@@ -520,61 +536,169 @@ begin
   );
 end;
 
-procedure ScreenMoveStereoSlider(var ASliderData: TStereoSliderData;
+procedure ScreenStereoSliderMove(var ASliderData: TStereoSliderData;
   const AChannel: TCodecSoundChannel; const ADirection: TSliderDirection);
 begin
   if ASliderData.Locked then
   begin
-    ScreenActStereoSlider(ASliderData, ASliderData.LeftPosition, ADirection, kMixerSlidersLeftY, cSliderLeftBar);
-    ScreenUpdateStereoSlider(ASliderData, scLeft);
+    StereoSliderAct(ASliderData, ASliderData.LeftPosition, ADirection, kMixerSlidersLeftY, cSliderLeftBar);
+    StereoSliderUpdate(ASliderData, scLeft);
 
-    ScreenActStereoSlider(ASliderData, ASliderData.RightPosition, ADirection, kMixerSlidersRightY, cSliderRightBar);
-    ScreenUpdateStereoSlider(ASliderData, scRight);
+    StereoSliderAct(ASliderData, ASliderData.RightPosition, ADirection, kMixerSlidersRightY, cSliderRightBar);
+    StereoSliderUpdate(ASliderData, scRight);
   end else
   begin
     case AChannel of
       scLeft:
-        ScreenActStereoSlider(ASliderData, ASliderData.LeftPosition, ADirection, kMixerSlidersLeftY, cSliderLeftBar);
+        begin
+          StereoSliderAct(ASliderData, ASliderData.LeftPosition, ADirection, kMixerSlidersLeftY, cSliderLeftBar);
+        end;
 
       scRight:
-        ScreenActStereoSlider(ASliderData, ASliderData.RightPosition, ADirection, kMixerSlidersRightY, cSliderRightBar);
+        begin
+          StereoSliderAct(ASliderData, ASliderData.RightPosition, ADirection, kMixerSlidersRightY, cSliderRightBar);
+        end;
 
     end;
 
-    ScreenUpdateStereoSlider(ASliderData, AChannel);
+    StereoSliderUpdate(ASliderData, AChannel);
   end;
 end;
 
-procedure ScreenUpdateProgressBar(const AProgressBarData: TProgressBarData);
-var
-  LProgress: Real;
-
+procedure EditUpdate(const AEditData: TEditData);
 begin
-  LProgress := AProgressBarData.Progress / AProgressBarData.Max;
-
-  if AProgressBarData.Progress > 0 then
-  begin
-    VideoWriteCharAttrAt(
-      Succ(AProgressBarData.PositionX) + Round(LProgress * (AProgressBarData.Width - 3)),
-      AProgressBarData.PositionY + 2,
-      cProgressBarFill,
-      VideoAttribute(
-        AProgressBarData.Colors.Progress,
-        AProgressBarData.Colors.Background
-      )
-    );
-  end;
+  VideoWriteRegion(
+    AEditData.PositionX,
+    AEditData.PositionY,
+    AEditData.Width,
+    1,
+    cSpace,
+    VideoAttribute(
+      AEditData.Colors.Foreground,
+      AEditData.Colors.Background
+    )
+  );
 
   VideoWriteStringAt(
-    AProgressBarData.PositionX + AProgressBarData.Width - 5,
-    AProgressBarData.PositionY,
-    PadPercent(Round(LProgress * 100)),
-    AProgressBarData.Colors.Foreground,
-    AProgressBarData.Colors.Background
+    AEditData.PositionX,
+    AEditData.PositionY,
+    AEditData.Text,
+    AEditData.Colors.Foreground,
+    AEditData.Colors.Background
   );
 end;
 
-procedure ScreenDrawProgressBar(const AProgressBarData: TProgressBarData);
+procedure EditNormal(const AEditData: TEditData);
+begin
+  VideoHighlightRegion(
+    AEditData.PositionX,
+    AEditData.PositionY,
+    AEditData.Width,
+    1,
+    VideoAttribute(
+      AEditData.Colors.Foreground,
+      AEditData.Colors.Background
+    )
+  );
+end;
+
+procedure EditHighlight(const AEditData: TEditData);
+begin
+  VideoHighlightRegion(
+    AEditData.PositionX,
+    AEditData.PositionY,
+    AEditData.Width,
+    1,
+    VideoAttribute(
+      AEditData.Colors.HighForeground,
+      AEditData.Colors.HighBackground
+    )
+  );
+end;
+
+procedure ScreenEditDraw(const AEditData: TEditData);
+begin
+  EditNormal(AEditData);
+  EditUpdate(AEditData);
+end;
+
+procedure ScreenEditChange(var AEditData: TEditData);
+var
+  LKey: Char;
+  LInput: String;
+  LAttribute: Byte;
+
+begin
+  EditHighlight(AEditData);
+
+  GotoXY(AEditData.PositionX + Length(AEditData.Text), AEditData.PositionY);
+  VideoEnableCursor;
+
+  LInput := AEditData.Text;
+  LAttribute := VideoAttribute(
+    AEditData.Colors.HighForeground,
+    AEditData.Colors.HighBackground
+  );
+
+  while True do
+  begin
+    LKey := ReadKey;
+
+    case LKey of
+      kKeyBackspace:
+        begin
+          if LInput <> sEmpty then
+          begin
+            Delete(LInput, Length(LInput), 1);
+
+            VideoWriteCharAttrAt(
+              Pred(WhereX),
+              AEditData.PositionY,
+              cSpace,
+              LAttribute
+            );
+
+            GotoXY(Pred(WhereX), WhereY);
+          end;
+        end;
+
+      kKeyEnter:
+        begin
+          AEditData.Text := LInput;
+
+          Break;
+        end;
+
+      kKeyEscape:
+        Break;
+
+      cFullStop, cSemicolon, cBackslash, '0'..'9', 'a'..'z', 'A'..'Z':
+        begin
+          if Length(LInput) < AEditData.Width then
+          begin
+            LInput := LInput + LKey;
+
+            VideoWriteCharAttrAt(
+              WhereX,
+              AEditData.PositionY,
+              LKey,
+              LAttribute
+            );
+
+            GotoXY(Succ(WhereX), AEditData.PositionY);
+          end;
+        end;
+
+    end;
+  end;
+
+  VideoDisableCursor;
+
+  EditNormal(AEditData);
+  EditUpdate(AEditData);
+end;
+
+procedure ScreenProgressBarDraw(const AProgressBarData: TProgressBarData);
 var
   LGeneralAttribute: Byte;
   LProgressAttribute: Byte;
@@ -667,10 +791,39 @@ begin
     LGeneralAttribute
   );
 
-  ScreenUpdateProgressBar(AProgressBarData);
+  ScreenProgressBarUpdate(AProgressBarData);
 end;
 
-procedure ScreenResetProgressBar(const AProgressBarData: TProgressBarData);
+procedure ScreenProgressBarUpdate(const AProgressBarData: TProgressBarData);
+var
+  LProgress: Real;
+
+begin
+  LProgress := AProgressBarData.Progress / AProgressBarData.Max;
+
+  if AProgressBarData.Progress > 0 then
+  begin
+    VideoWriteCharAttrAt(
+      Succ(AProgressBarData.PositionX) + Round(LProgress * (AProgressBarData.Width - 3)),
+      AProgressBarData.PositionY + 2,
+      cProgressBarFill,
+      VideoAttribute(
+        AProgressBarData.Colors.Progress,
+        AProgressBarData.Colors.Background
+      )
+    );
+  end;
+
+  VideoWriteStringAt(
+    AProgressBarData.PositionX + AProgressBarData.Width - 5,
+    AProgressBarData.PositionY,
+    PadPercent(Round(LProgress * 100)),
+    AProgressBarData.Colors.Foreground,
+    AProgressBarData.Colors.Background
+  );
+end;
+
+procedure ScreenProgressBarReset(const AProgressBarData: TProgressBarData);
 begin
   VideoWriteRegion(
     Succ(AProgressBarData.PositionX),
@@ -684,7 +837,7 @@ begin
     )
   );
 
-  ScreenUpdateProgressBar(AProgressBarData);
+  ScreenProgressBarUpdate(AProgressBarData);
 end;
 
 end.

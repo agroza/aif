@@ -120,7 +120,7 @@ begin
   IGStereoSliders[AStereoSlider].RightPosition := ARightPosition;
 end;
 
-procedure InitSliders;
+procedure CreateComponents;
 begin
   InitSlider(
     ssDACStereoSlider,
@@ -168,7 +168,7 @@ begin
   );
 end;
 
-procedure DrawSliders;
+procedure DrawComponents;
 begin
   VideoWriteRegion(
     kMixerSlidersLeft,
@@ -182,11 +182,11 @@ begin
     )
   );
 
-  ScreenDrawStereoSlider(IGStereoSliders[ssDACStereoSlider]);
-  ScreenDrawStereoSlider(IGStereoSliders[ssAUX1StereoSlider]);
-  ScreenDrawStereoSlider(IGStereoSliders[ssAUX2StereoSlider]);
-  ScreenDrawStereoSlider(IGStereoSliders[ssInputGainStereoSlider]);
-  ScreenDrawStereoSlider(IGStereoSliders[ssDMEStereoSlider]);
+  ScreenStereoSliderDraw(IGStereoSliders[ssDACStereoSlider]);
+  ScreenStereoSliderDraw(IGStereoSliders[ssAUX1StereoSlider]);
+  ScreenStereoSliderDraw(IGStereoSliders[ssAUX2StereoSlider]);
+  ScreenStereoSliderDraw(IGStereoSliders[ssInputGainStereoSlider]);
+  ScreenStereoSliderDraw(IGStereoSliders[ssDMEStereoSlider]);
 end;
 
 procedure DrawCommands;
@@ -387,8 +387,8 @@ end;
 
 procedure DrawConfig;
 begin
-  InitSliders;
-  DrawSliders;
+  CreateComponents;
+  DrawComponents;
 
   InitOptions;
   DrawOptions;
@@ -411,7 +411,7 @@ var
 begin
   LStereoSlider := ssDACStereoSlider;
   LSoundChannel := scLeft;
-  ScreenHighlightStereoSlider(IGStereoSliders[LStereoSlider], LSoundChannel, True);
+  ScreenStereoSliderHighlight(IGStereoSliders[LStereoSlider], LSoundChannel, True);
 
   while True do
   begin
@@ -424,7 +424,7 @@ begin
                 MixerDefaultConfig;
                 DrawConfig;
 
-                ScreenHighlightStereoSlider(IGStereoSliders[LStereoSlider], LSoundChannel, True);
+                ScreenStereoSliderHighlight(IGStereoSliders[LStereoSlider], LSoundChannel, True);
               end;
 
             kKeyF9:
@@ -434,7 +434,7 @@ begin
                   DrawConfig;
                 end;
 
-                ScreenHighlightStereoSlider(IGStereoSliders[LStereoSlider], LSoundChannel, True);
+                ScreenStereoSliderHighlight(IGStereoSliders[LStereoSlider], LSoundChannel, True);
               end;
 
             kKeyF10:
@@ -448,7 +448,7 @@ begin
 
             kKeyUp:
               begin
-                ScreenHighlightStereoSlider(IGStereoSliders[LStereoSlider], LSoundChannel, False);
+                ScreenStereoSliderHighlight(IGStereoSliders[LStereoSlider], LSoundChannel, False);
 
                 case LSoundChannel of
                   scLeft:
@@ -471,12 +471,12 @@ begin
 
                 end;
 
-                ScreenHighlightStereoSlider(IGStereoSliders[LStereoSlider], LSoundChannel, True);
+                ScreenStereoSliderHighlight(IGStereoSliders[LStereoSlider], LSoundChannel, True);
               end;
 
             kKeyDown:
               begin
-                ScreenHighlightStereoSlider(IGStereoSliders[LStereoSlider], LSoundChannel, False);
+                ScreenStereoSliderHighlight(IGStereoSliders[LStereoSlider], LSoundChannel, False);
 
                 case LSoundChannel of
                   scLeft:
@@ -499,14 +499,14 @@ begin
 
                 end;
 
-                ScreenHighlightStereoSlider(IGStereoSliders[LStereoSlider], LSoundChannel, True);
+                ScreenStereoSliderHighlight(IGStereoSliders[LStereoSlider], LSoundChannel, True);
               end;
 
             kKeyLeft:
-              ScreenMoveStereoSlider(IGStereoSliders[LStereoSlider], LSoundChannel, sdDown);
+              ScreenStereoSliderMove(IGStereoSliders[LStereoSlider], LSoundChannel, sdDown);
 
             kKeyRight:
-              ScreenMoveStereoSlider(IGStereoSliders[LStereoSlider], LSoundChannel, sdUp);
+              ScreenStereoSliderMove(IGStereoSliders[LStereoSlider], LSoundChannel, sdUp);
 
           end;
 

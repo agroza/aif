@@ -17,7 +17,7 @@ const
   sEmpty                    = '';
 
   { program stringtable }
-  sProgramTitle             = 'AUDIO INTERFACE  VER. 2.7 REV. A';
+  sProgramTitle             = 'AUDIO INTERFACE  VER. 2.7 REV. B';
   sProgramCopyright         = 'Copyright (C) 1998-2021 Microprogramming TECHNIQUES';
   sProgramAuthor            = 'Programming/PC Code: Alexandru Groza';
   sProgramRights            = 'All rights reserved.';
@@ -141,6 +141,7 @@ const
   cSpace                    = ' ';
   cFullStop                 = '.';
   cSemicolon                = ':';
+  cBackslash                = '\';
   cSlash                    = '/';
   cEqual                    = '=';
   cMinus                    = '-';
@@ -222,6 +223,8 @@ const
   kOKFailedXPosition        = 60;
 
   { keyboard codes }
+  kKeyBackspace             = #08;
+  kKeyEnter                 = #13;
   kKeyEscape                = #27;
   kKeyExtended              = #00;
   kKeyUp                    = #72;
@@ -383,8 +386,8 @@ const
   sPnPSetupProgress         = 'Progress';
 
   sEEPROMOperation: array[TEEPROMOperation] of String[12] = (
-    'erase (slow)',
     'erase (fast)',
+    'erase (slow)',
     'read',
     'write'
   );
@@ -407,6 +410,11 @@ const
   clPnPSetupFore            = clLightGray;
   clPnPSetupBack            = clBlue;
 
+  clPnPSetupEditFore        = clLightGray;
+  clPnPSetupEditBack        = clBlue;
+  clPnPSetupEditHighFore    = clWhite;
+  clPnPSetupEditHighBack    = clRed;
+
   clPnPSetupProgressTitle   = clWhite;
   clPnPSetupProgressFore    = clLightGray;
   clPnPSetupProgressBack    = clBlue;
@@ -420,6 +428,10 @@ const
   { PnP Setup program constants }
   kPnPSetupStartupDelay     = 500;
   kPnPSetupOperationDelay   = 500;
+
+  kPnPSetupEditX            = 15;
+  kPnPSetupEditY            = 3;
+  kPnPSetupEditWidth        = 34;
 
   kPnPSetupProgressBarX     = 2;
   kPnPSetupProgressBarY     = 8;

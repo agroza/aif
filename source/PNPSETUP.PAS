@@ -24,7 +24,7 @@ uses
   Video;
 
 var
-  IGFileName: String;
+  IGEdit: TEditData;
   IGProgressBar: TProgressBarData;
 
 const
@@ -42,14 +42,14 @@ const
 procedure UpdateProgressBar(const ABytes: Word); far;
 begin
   IGProgressBar.Progress := ABytes;
-  ScreenUpdateProgressBar(IGProgressBar);
+  ScreenProgressBarUpdate(IGProgressBar);
 end;
 
 procedure ResetProgressBar;
 begin
   Routines.Delay(kPnPSetupOperationDelay);
   IGProgressBar.Progress := 0;
-  ScreenResetProgressBar(IGProgressBar);
+  ScreenProgressBarReset(IGProgressBar);
 end;
 
 procedure ResetStatus(const AOperation: TEEPROMOperation);
@@ -130,14 +130,23 @@ begin
     )
   );
 
-  DrawOption(3, sPnPSetupFilename, IGFileName);
+  DrawOption(3, sPnPSetupFilename, IGEdit.Text);
   DrawOption(4, sPnPSetupOperation, cMinus);
   DrawOption(5, sPnPSetupStatus, cMinus);
   DrawOption(6, sPnPSetupEEPROM, sPnPSetup93C56A);
 end;
 
-procedure InitProgressBar;
+procedure CreateComponents;
 begin
+  IGEdit.PositionX := kPnPSetupEditX;
+  IGEdit.PositionY := kPnPSetupEditY;
+  IGEdit.Width := kPnPSetupEditWidth;
+  IGEdit.Colors.Foreground := clPnPSetupEditFore;
+  IGEdit.Colors.Background := clPnPSetupEditBack;
+  IGEdit.Colors.HighForeground := clPnPSetupEditHighFore;
+  IGEdit.Colors.HighBackground := clPnPSetupEditHighBack;
+  IGEdit.Text := sPnPSetupDefaultFilename;
+
   IGProgressBar.PositionX := kPnPSetupProgressBarX;
   IGProgressBar.PositionY := kPnPSetupProgressBarY;
   IGProgressBar.Width := kPnPSetupProgressBarWidth;
@@ -150,9 +159,11 @@ begin
   IGProgressBar.Title := sPnPSetupProgress;
 end;
 
-procedure DrawProgressBar;
+procedure DrawComponents;
 begin
-  ScreenDrawProgressBar(IGProgressBar);
+  ScreenEditDraw(IGEdit);
+
+  ScreenProgressBarDraw(IGProgressBar);
 end;
 
 procedure DrawCommands;
@@ -194,19 +205,15 @@ begin
   end;
 end;
 
-procedure DrawConfig;
-begin
-  DrawOptions;
-
-  InitProgressBar;
-  DrawProgressBar;
-end;
-
 procedure UIDraw;
 begin
   ScreenDrawTitleBar(clInterfaceFore, clInterfaceBack, clInterfaceFore, sPnPSetupTitle);
 
-  DrawConfig;
+  DrawOptions;
+
+  CreateComponents;
+  DrawComponents;
+
   DrawCommands;
 end;
 
@@ -220,7 +227,7 @@ begin
           case ReadKey of
             kKeyF4:
               begin
-                { TODO -oagroza -cImplement : Filename editor. }
+                ScreenEditChange(IGEdit);
               end;
 
             kKeyF5:
@@ -238,13 +245,13 @@ begin
             kKeyF7:
               begin
                 ResetStatus(eoRead);
-                DrawResult(ControllerReadEEPROM(IGFileName, UpdateProgressBar));
+                DrawResult(ControllerReadEEPROM(IGEdit.Text, UpdateProgressBar));
               end;
 
             kKeyF8:
               begin
                 ResetStatus(eoWrite);
-                DrawResult(ControllerWriteEEPROM(IGFileName, UpdateProgressBar));
+                DrawResult(ControllerWriteEEPROM(IGEdit.Text, UpdateProgressBar));
               end;
 
           end;
@@ -276,8 +283,6 @@ begin
   VideoDisableCursor;
 
   ScreenSetVVColors;
-
-  IGFileName := sPnPSetupDefaultFilename;
 
   UIDraw;
   UILoop;
