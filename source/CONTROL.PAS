@@ -182,7 +182,6 @@ const
   kEEPROMCommandREAD         = $0C00;
   kEEPROMCommandWRITE        = $0A00;
 
-  kEEPROMTimeDelay           = 1;
   kEEPROMReadyRetries        = $FFFF;
   kEEPROMSize                = 256;
 
@@ -974,7 +973,7 @@ end;
 
 procedure EEPROMDataOut(const AValue: Boolean);
 begin
-  SetRegisterBit(kREGISTER_MC7, kBitROMDOUT, AValue);
+  { TODO -oagroza -cImplement : Send data to indirect kREGISTER_MC9 / kBitROMIN. }
 
   EEPROMDelay;
 end;
@@ -984,11 +983,11 @@ var
   LRetries: Word;
 
 begin
-  EEPROMSetCS(True);
+  EEPROMSetCS(False);
 
   EEPROMDelay;
 
-  EEPROMSetCS(False);
+  EEPROMSetCS(True);
 
   LRetries := kEEPROMReadyRetries;
 
@@ -1010,6 +1009,9 @@ begin
     EEPROMDataOut(Boolean((ACommand shr I) and $01));
     EEPROMClockPulse;
   end;
+
+  { TODO -oagroza -cDecide : Is this instruction really needed? }
+  EEPROMDataOut(False);
 end;
 
 function EEPROMGetData: Byte;
@@ -1024,8 +1026,7 @@ begin
   begin
     EEPROMClockPulse;
 
-    { TODO -oagroza -cReplace : Random(2) with kREGISTER_MC9 / kBitROMIN. }
-    LData := LData or (Random(2) shl I);
+    LData := LData or (Byte(GetBit(ControllerRead(kREGISTER_MC7), kBitROMDOUT)) shl I);
   end;
 
   EEPROMGetData := LData;
@@ -1045,72 +1046,72 @@ end;
 
 procedure EEPROMWriteDisable;
 begin
-  EEPROMSetCS(False);
+  EEPROMSetCS(True);
 
   EEPROMSendCommand(kEEPROMCommandEWDS);
 
-  EEPROMSetCS(True);
+  EEPROMSetCS(False);
 end;
 
 procedure EEPROMWriteEnable;
 begin
-  EEPROMSetCS(False);
+  EEPROMSetCS(True);
 
   EEPROMSendCommand(kEEPROMCommandEWEN);
 
-  EEPROMSetCS(True);
+  EEPROMSetCS(False);
 end;
 
 function EEPROMEraseAll: Boolean;
 begin
-  EEPROMSetCS(False);
+  EEPROMSetCS(True);
 
   EEPROMSendCommand(kEEPROMCommandERAL);
   EEPROMEraseAll := EEPROMWaitReady;
 
-  EEPROMSetCS(True);
+  EEPROMSetCS(False);
 end;
 
 function EEPROMWriteAll(const AByte: Byte): Boolean;
 begin
-  EEPROMSetCS(False);
+  EEPROMSetCS(True);
 
   EEPROMSendCommand(kEEPROMCommandWRAL);
   EEPROMSendData(AByte);
   EEPROMWriteAll := EEPROMWaitReady;
 
-  EEPROMSetCS(True);
+  EEPROMSetCS(False);
 end;
 
 function EEPROMErase(const AAddress: Word): Boolean;
 begin
-  EEPROMSetCS(False);
+  EEPROMSetCS(True);
 
   EEPROMSendCommand(kEEPROMCommandERASE + AAddress);
   EEPROMErase := EEPROMWaitReady;
 
-  EEPROMSetCS(True);
+  EEPROMSetCS(False);
 end;
 
 function EEPROMRead(const AAddress: Word): Byte;
 begin
-  EEPROMSetCS(False);
+  EEPROMSetCS(True);
 
   EEPROMSendCommand(kEEPROMCommandREAD + AAddress);
   EEPROMRead := EEPROMGetData;
 
-  EEPROMSetCS(True);
+  EEPROMSetCS(False);
 end;
 
 function EEPROMWrite(const AAddress: Word; const AByte: Byte): Boolean;
 begin
-  EEPROMSetCS(False);
+  EEPROMSetCS(True);
 
   EEPROMSendCommand(kEEPROMCommandWRITE + AAddress);
   EEPROMSendData(AByte);
   EEPROMWrite := EEPROMWaitReady;
 
-  EEPROMSetCS(True);
+  EEPROMSetCS(False);
 end;
 
 { public declarations }
@@ -1218,6 +1219,8 @@ begin
 
   SetRegisterBit(kREGISTER_MC3, kBitWRSROM, True);
 
+  EEPROMWriteEnable;
+
   case AEraseMethod of
     cemFast:
       begin
@@ -1226,7 +1229,7 @@ begin
         begin
           for I := 0 to Pred(kEEPROMSize) do
           begin
-            AUpdateProgress(I);
+            AUpdateProgress(I, $FF);
           end;
         end;
       end;
@@ -1241,11 +1244,13 @@ begin
             Break;
           end;
 
-          AUpdateProgress(I);
+          AUpdateProgress(I, $FF);
         end;
       end;
 
   end;
+
+  EEPROMWriteDisable;
 
   SetRegisterBit(kREGISTER_MC3, kBitWRSROM, False);
 
@@ -1279,7 +1284,7 @@ begin
       Break;
     end;
 
-    AUpdateProgress(I);
+    AUpdateProgress(I, LByte);
   end;
 {$I-}
   Close(LFile);
@@ -1304,6 +1309,8 @@ begin
 
   SetRegisterBit(kREGISTER_MC3, kBitWRSROM, True);
 
+  EEPROMWriteEnable;
+
 {$I-}
   Assign(LFile, AFileName);
   FileMode := fmReadOnly;
@@ -1325,11 +1332,13 @@ begin
       Break;
     end;
 
-    AUpdateProgress(I);
+    AUpdateProgress(I, LByte);
   end;
 {$I-}
   Close(LFile);
 {$I+}
+
+  EEPROMWriteDisable;
 
   SetRegisterBit(kREGISTER_MC3, kBitWRSROM, False);
 

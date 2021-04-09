@@ -77,6 +77,21 @@ type
     Text: String;
   end;
 
+  TFrameColors = record
+    Foreground: Byte;
+    Background: Byte;
+    Title: Byte;
+  end;
+
+  TFrameData = record
+    PositionX: Byte;
+    PositionY: Byte;
+    Width: Byte;
+    Height: Byte;
+    Colors: TFrameColors;
+    Title: String;
+  end;
+
   TProgressBarColors = record
     Foreground: Byte;
     Background: Byte;
@@ -118,6 +133,8 @@ procedure ScreenStereoSliderMove(var ASliderData: TStereoSliderData;
 procedure ScreenEditDraw(const AEditData: TEditData);
 procedure ScreenEditChange(var AEditData: TEditData);
 
+procedure ScreenSingleFrameDraw(const AFrameData: TFrameData);
+
 procedure ScreenProgressBarDraw(const AProgressBarData: TProgressBarData);
 procedure ScreenProgressBarUpdate(const AProgressBarData: TProgressBarData);
 procedure ScreenProgressBarReset(const AProgressBarData: TProgressBarData);
@@ -145,15 +162,18 @@ const
   cSliderLeftBar            = 'ß';
   cSliderRightBar           = 'Ü';
 
-  cProgressBarTopLeft       = 'Ú';
-  cProgressBarLeft          = '³';
-  cProgressBarBottomLeft    = 'À';
-  cProgressBarTopBottom     = 'Ä';
-  cProgressBarTopRight      = '¿';
-  cProgressBarRight         = '³';
-  cProgressBarBottomRight   = 'Ù';
+  cSingleFrameTopLeft       = 'Ú';
+  cSingleFrameLeft          = '³';
+  cSingleFrameBottomLeft    = 'À';
+  cSingleFrameTopBottom     = 'Ä';
+  cSingleFrameTopRight      = '¿';
+  cSingleFrameRight         = '³';
+  cSingleFrameBottomRight   = 'Ù';
+
   cProgressBarEmpty         = '°';
   cProgressBarFill          = 'Û';
+
+  kProgressBarHeight        = 3;
 
 var
   IGHaltOnErrors: Boolean;
@@ -698,80 +718,104 @@ begin
   EditUpdate(AEditData);
 end;
 
-procedure ScreenProgressBarDraw(const AProgressBarData: TProgressBarData);
+procedure ScreenSingleFrameDraw(const AFrameData: TFrameData);
 var
+  I: Byte;
   LGeneralAttribute: Byte;
-  LProgressAttribute: Byte;
 
 begin
   VideoWriteStringAt(
-    AProgressBarData.PositionX,
-    AProgressBarData.PositionY,
-    AProgressBarData.Title,
-    AProgressBarData.Colors.Title,
-    AProgressBarData.Colors.Background
+    AFrameData.PositionX,
+    AFrameData.PositionY,
+    AFrameData.Title,
+    AFrameData.Colors.Title,
+    AFrameData.Colors.Background
   );
 
   LGeneralAttribute := VideoAttribute(
-    AProgressBarData.Colors.Foreground,
-    AProgressBarData.Colors.Background
-  );
-
-  LProgressAttribute := VideoAttribute(
-    AProgressBarData.Colors.Progress,
-    AProgressBarData.Colors.Background
+    AFrameData.Colors.Foreground,
+    AFrameData.Colors.Background
   );
 
   VideoWriteCharAttrAt(
-    AProgressBarData.PositionX,
-    AProgressBarData.PositionY + 1,
-    cProgressBarTopLeft,
+    AFrameData.PositionX,
+    AFrameData.PositionY + 1,
+    cSingleFrameTopLeft,
     LGeneralAttribute
   );
 
   VideoWriteCharAttrAt(
-    AProgressBarData.PositionX,
-    AProgressBarData.PositionY + 2,
-    cProgressBarLeft,
+    AFrameData.PositionX,
+    AFrameData.PositionY + AFrameData.Height,
+    cSingleFrameBottomLeft,
     LGeneralAttribute
   );
 
   VideoWriteCharAttrAt(
-    AProgressBarData.PositionX,
-    AProgressBarData.PositionY + 3,
-    cProgressBarBottomLeft,
+    Pred(AFrameData.PositionX + AFrameData.Width),
+    AFrameData.PositionY + 1,
+    cSingleFrameTopRight,
     LGeneralAttribute
   );
 
   VideoWriteCharAttrAt(
-    Pred(AProgressBarData.PositionX + AProgressBarData.Width),
-    AProgressBarData.PositionY + 1,
-    cProgressBarTopRight,
-    LGeneralAttribute
-  );
-
-  VideoWriteCharAttrAt(
-    Pred(AProgressBarData.PositionX + AProgressBarData.Width),
-    AProgressBarData.PositionY + 2,
-    cProgressBarRight,
-    LGeneralAttribute
-  );
-
-  VideoWriteCharAttrAt(
-    Pred(AProgressBarData.PositionX + AProgressBarData.Width),
-    AProgressBarData.PositionY + 3,
-    cProgressBarBottomRight,
+    Pred(AFrameData.PositionX + AFrameData.Width),
+    AFrameData.PositionY + AFrameData.Height,
+    cSingleFrameBottomRight,
     LGeneralAttribute
   );
 
   VideoWriteRegion(
-    Succ(AProgressBarData.PositionX),
-    AProgressBarData.PositionY + 1,
-    AProgressBarData.Width - 2,
+    Succ(AFrameData.PositionX),
+    AFrameData.PositionY + 1,
+    AFrameData.Width - 2,
     1,
-    cProgressBarTopBottom,
+    cSingleFrameTopBottom,
     LGeneralAttribute
   );
+
+  VideoWriteRegion(
+    Succ(AFrameData.PositionX),
+    AFrameData.PositionY + AFrameData.Height,
+    AFrameData.Width - 2,
+    1,
+    cSingleFrameTopBottom,
+    LGeneralAttribute
+  );
+
+  for I := 2 to Pred(AFrameData.Height) do
+  begin
+    VideoWriteCharAttrAt(
+      AFrameData.PositionX,
+      AFrameData.PositionY + I,
+      cSingleFrameLeft,
+      LGeneralAttribute
+    );
+
+    VideoWriteCharAttrAt(
+      Pred(AFrameData.PositionX + AFrameData.Width),
+      AFrameData.PositionY + I,
+      cSingleFrameRight,
+      LGeneralAttribute
+    );
+  end;
+end;
+
+procedure ScreenProgressBarDraw(const AProgressBarData: TProgressBarData);
+var
+  LFrameData: TFrameData;
+
+begin
+  LFrameData.PositionX := AProgressBarData.PositionX;
+  LFrameData.PositionY := AProgressBarData.PositionY;
+  LFrameData.Width := AProgressBarData.Width;
+  LFrameData.Height := kProgressBarHeight;
+  LFrameData.Colors.Foreground := AProgressBarData.Colors.Foreground;
+  LFrameData.Colors.Background := AProgressBarData.Colors.Background;
+  LFrameData.Colors.Title := AProgressBarData.Colors.Title;
+  LFrameData.Title := AProgressBarData.Title;
+
+  ScreenSingleFrameDraw(LFrameData);
 
   VideoWriteRegion(
     Succ(AProgressBarData.PositionX),
@@ -779,16 +823,10 @@ begin
     AProgressBarData.Width - 2,
     1,
     cProgressBarEmpty,
-    LProgressAttribute
-  );
-
-  VideoWriteRegion(
-    Succ(AProgressBarData.PositionX),
-    AProgressBarData.PositionY + 3,
-    AProgressBarData.Width - 2,
-    1,
-    cProgressBarTopBottom,
-    LGeneralAttribute
+    VideoAttribute(
+      AProgressBarData.Colors.Progress,
+      AProgressBarData.Colors.Background
+    )
   );
 
   ScreenProgressBarUpdate(AProgressBarData);

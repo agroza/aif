@@ -40,7 +40,7 @@ type
     bsSet
   );
 
-  TUpdateProgress = procedure(const ABytes: Word);
+  TUpdateProgress = procedure(const ABytes: Word; const AByte: Byte);
 
   { codec types }
   TCodecSampleRate = (

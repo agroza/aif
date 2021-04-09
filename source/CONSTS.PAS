@@ -17,7 +17,7 @@ const
   sEmpty                    = '';
 
   { program stringtable }
-  sProgramTitle             = 'AUDIO INTERFACE  VER. 2.7 REV. B';
+  sProgramTitle             = 'AUDIO INTERFACE  VER. 2.7 REV. C';
   sProgramCopyright         = 'Copyright (C) 1998-2021 Microprogramming TECHNIQUES';
   sProgramAuthor            = 'Programming/PC Code: Alexandru Groza';
   sProgramRights            = 'All rights reserved.';
@@ -384,6 +384,7 @@ const
   sPnPSetupEEPROM           = 'EEPROM';
   sPnPSetup93C56A           = '93C56A';
   sPnPSetupProgress         = 'Progress';
+  sPnPSetupRawData          = 'Raw Data';
 
   sEEPROMOperation: array[TEEPROMOperation] of String[12] = (
     'erase (fast)',
@@ -410,15 +411,19 @@ const
   clPnPSetupFore            = clLightGray;
   clPnPSetupBack            = clBlue;
 
-  clPnPSetupEditFore        = clLightGray;
-  clPnPSetupEditBack        = clBlue;
+  clPnPSetupEditFore        = clPnPSetupFore;
+  clPnPSetupEditBack        = clPnPSetupBack;
   clPnPSetupEditHighFore    = clWhite;
   clPnPSetupEditHighBack    = clRed;
 
+  clPnPSetupProgressFore    = clPnPSetupFore;
+  clPnPSetupProgressBack    = clPnPSetupBack;
   clPnPSetupProgressTitle   = clWhite;
-  clPnPSetupProgressFore    = clLightGray;
-  clPnPSetupProgressBack    = clBlue;
   clPnPSetupProgressColor   = clGreen;
+
+  clPnPSetupRawDataFore     = clPnPSetupFore;
+  clPnPSetupRawDataBack     = clPnPSetupBack;
+  clPnPSetupRawDataTitle    = clWhite;
 
   clPnPSetupCmdHigh         = clLightCyan;
   clPnPSetupCmdHeader       = clWhite;
@@ -429,17 +434,30 @@ const
   kPnPSetupStartupDelay     = 500;
   kPnPSetupOperationDelay   = 500;
 
-  kPnPSetupEditX            = 15;
+  kPnPSetupNameX            = 2;
+  kPnPSetupValueX           = 15;
+
+  kPnPSetupEditX            = kPnPSetupValueX;
   kPnPSetupEditY            = 3;
   kPnPSetupEditWidth        = 34;
 
-  kPnPSetupProgressBarX     = 2;
+  kPnPSetupProgressBarX     = kPnPSetupNameX;
   kPnPSetupProgressBarY     = 8;
   kPnPSetupProgressBarWidth = 47;
   kPnPSetupProgressBarMin   = 47;
 
-  kPnPSetupNameX            = 2;
-  kPnPSetupValueX           = 15;
+  kPnPSetupRawDataX         = kPnPSetupNameX;
+  kPnPSetupRawDataY         = 12;
+  kPnPSetupRawDataWidth     = 47;
+  kPnPSetupRawDataHeight    = 13;
+  kPnPSetupRawDataLength    = 43;
+
+  kPnPSetupOperationX       = kPnPSetupValueX;
+  kPnPSetupOperationY       = 4;
+  kPnPSetupStatusX          = kPnPSetupValueX;
+  kPnPSetupStatusY          = 5;
+  kPnPSetupOpStatusWidth    = 20;
+  kPnPSetupOpStatusHeight   = 2;
 
   kPnPSetupCommandsLeft     = 50;
   kPnPSetupCommandsTop      = 2;

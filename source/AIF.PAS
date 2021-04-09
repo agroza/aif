@@ -135,16 +135,16 @@ begin
         Exit;
       end;
 
+      SetHaltOnErrors(True);
+
+      InitAIFBasic;
+
       if GParameters.PnPSetup then
       begin
         PnPSetupStart;
 
         Exit;
       end;
-
-      SetHaltOnErrors(True);
-
-      InitAIFBasic;
 
       if (GParameters.InitMode = imSetup) or GParameters.LineOut then
       begin

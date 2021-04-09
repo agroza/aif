@@ -26,6 +26,7 @@ uses
 var
   IGEdit: TEditData;
   IGProgressBar: TProgressBarData;
+  IGRawData: TFrameData;
 
 const
   kUICommands: array[0..5] of TUICommand = (
@@ -39,10 +40,20 @@ const
 
 { private declarations }
 
-procedure UpdateProgressBar(const ABytes: Word); far;
+procedure UpdateProgressBar(const ABytes: Word; const AByte: Byte); far;
 begin
   IGProgressBar.Progress := ABytes;
   ScreenProgressBarUpdate(IGProgressBar);
+
+  VideoWriteCharAttrAt(
+    kPnPSetupRawDataX + 2 + (ABytes mod kPnPSetupRawDataLength),
+    kPnPSetupRawDataY + 2 + (ABytes div kPnPSetupRawDataLength) mod kPnPSetupRawDataLength,
+    Chr(AByte),
+    VideoAttribute(
+      clPnPSetupFore,
+      clPnPSetupBack
+    )
+  );
 end;
 
 procedure ResetProgressBar;
@@ -52,13 +63,13 @@ begin
   ScreenProgressBarReset(IGProgressBar);
 end;
 
-procedure ResetStatus(const AOperation: TEEPROMOperation);
+procedure ResetOperationStatus(const AOperation: TEEPROMOperation);
 begin
   VideoWriteRegion(
-    kPnPSetupValueX,
-    4,
-    20,
-    2,
+    kPnPSetupOperationX,
+    kPnPSetupOperationY,
+    kPnPSetupOpStatusWidth,
+    kPnPSetupOpStatusHeight,
     cSpace,
     VideoAttribute(
       clPnPSetupFore,
@@ -67,8 +78,8 @@ begin
   );
 
   VideoWriteStringAt(
-    kPnPSetupValueX,
-    4,
+    kPnPSetupOperationX,
+    kPnPSetupOperationY,
     sEEPROMOperation[AOperation],
     clPnPSetupFore,
     clPnPSetupBack
@@ -78,8 +89,8 @@ end;
 procedure DrawResult(const AValue: Boolean);
 begin
   VideoWriteRegion(
-    kPnPSetupValueX,
-    5,
+    kPnPSetupStatusX,
+    kPnPSetupStatusY,
     Length(sFAILEDOK[False]),
     1,
     cSpace,
@@ -90,8 +101,8 @@ begin
   );
 
   VideoWriteStringAt(
-    kPnPSetupValueX,
-    5,
+    kPnPSetupStatusX,
+    kPnPSetupStatusY,
     sFAILEDOK[AValue],
     clFAILEDOK[AValue],
     clPnPSetupBack
@@ -157,6 +168,15 @@ begin
   IGProgressBar.Min := kPnPSetupProgressBarMin;
   IGProgressBar.Max := 256;
   IGProgressBar.Title := sPnPSetupProgress;
+
+  IGRawData.PositionX := kPnPSetupRawDataX;
+  IGRawData.PositionY := kPnPSetupRawDataY;
+  IGRawData.Width := kPnPSetupRawDataWidth;
+  IGRawData.Height := kPnPSetupRawDataHeight;
+  IGRawData.Colors.Foreground := clPnPSetupRawDataFore;
+  IGRawData.Colors.Background := clPnPSetupRawDataBack;
+  IGRawData.Colors.Title := clPnPSetupRawDataTitle;
+  IGRawData.Title := sPnPSetupRawData;
 end;
 
 procedure DrawComponents;
@@ -164,6 +184,8 @@ begin
   ScreenEditDraw(IGEdit);
 
   ScreenProgressBarDraw(IGProgressBar);
+
+  ScreenSingleFrameDraw(IGRawData);
 end;
 
 procedure DrawCommands;
@@ -232,25 +254,25 @@ begin
 
             kKeyF5:
               begin
-                ResetStatus(eoEraseFast);
+                ResetOperationStatus(eoEraseFast);
                 DrawResult(ControllerEraseEEPROM(cemFast, UpdateProgressBar));
               end;
 
             kKeyF6:
               begin
-                ResetStatus(eoEraseSlow);
+                ResetOperationStatus(eoEraseSlow);
                 DrawResult(ControllerEraseEEPROM(cemSlow, UpdateProgressBar));
               end;
 
             kKeyF7:
               begin
-                ResetStatus(eoRead);
+                ResetOperationStatus(eoRead);
                 DrawResult(ControllerReadEEPROM(IGEdit.Text, UpdateProgressBar));
               end;
 
             kKeyF8:
               begin
-                ResetStatus(eoWrite);
+                ResetOperationStatus(eoWrite);
                 DrawResult(ControllerWriteEEPROM(IGEdit.Text, UpdateProgressBar));
               end;
 
