@@ -26,7 +26,8 @@ uses
 var
   IGEdit: TEditData;
   IGProgressBar: TProgressBarData;
-  IGRawData: TFrameData;
+  IGRawData: TFramedAreaData;
+  IGMessageBox: TMessageBoxData;
 
 const
   kUICommands: array[0..5] of TUICommand = (
@@ -177,6 +178,13 @@ begin
   IGRawData.Colors.Background := clPnPSetupRawDataBack;
   IGRawData.Colors.Title := clPnPSetupRawDataTitle;
   IGRawData.Title := sPnPSetupRawData;
+
+  IGMessageBox.Colors.Foreground := clMessageBoxFore;
+  IGMessageBox.Colors.Background := clMessageBoxBack;
+  IGMessageBox.Colors.Accelerator := clMessageBoxAccelerator;
+  IGMessageBox.Title := sMessageBoxError;
+  IGMessageBox.Text := sPnPSetupFilenameError;
+  IGMessageBox.Button := sMessageBoxButtonClose;
 end;
 
 procedure DrawComponents;
@@ -185,7 +193,7 @@ begin
 
   ScreenProgressBarDraw(IGProgressBar);
 
-  ScreenSingleFrameDraw(IGRawData);
+  ScreenFramedAreaDraw(IGRawData);
 end;
 
 procedure DrawCommands;
@@ -272,8 +280,14 @@ begin
 
             kKeyF8:
               begin
-                ResetOperationStatus(eoWrite);
-                DrawResult(ControllerWriteEEPROM(IGEdit.Text, UpdateProgressBar));
+                if FileExists(IGEdit.Text) then
+                begin
+                  ResetOperationStatus(eoWrite);
+                  DrawResult(ControllerWriteEEPROM(IGEdit.Text, UpdateProgressBar));
+                end else
+                begin
+                  ScreenMessageBoxDraw(IGMessageBox);
+                end;
               end;
 
           end;
@@ -299,7 +313,7 @@ begin
   LSaveY := WhereY;
 
   GetMem(LVideoRAMData, kVGARAMSize);
-  VideoSaveScreen(LVideoRAMData);
+  VideoStoreScreen(LVideoRAMData);
   VideoClearScreen;
   VideoEnableHighColors;
   VideoDisableCursor;

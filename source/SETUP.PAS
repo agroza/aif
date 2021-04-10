@@ -1137,7 +1137,7 @@ begin
   LSaveY := WhereY;
 
   GetMem(LVideoRAMData, kVGARAMSize);
-  VideoSaveScreen(LVideoRAMData);
+  VideoStoreScreen(LVideoRAMData);
   VideoClearScreen;
   VideoEnableHighColors;
   VideoDisableCursor;

@@ -77,10 +77,14 @@ type
     Text: String;
   end;
 
+  TFrameType = (
+    ftSingle,
+    ftWindow
+  );
+
   TFrameColors = record
     Foreground: Byte;
     Background: Byte;
-    Title: Byte;
   end;
 
   TFrameData = record
@@ -89,6 +93,21 @@ type
     Width: Byte;
     Height: Byte;
     Colors: TFrameColors;
+    FrameType: TFrameType;
+  end;
+
+  TFramedAreaColors = record
+    Foreground: Byte;
+    Background: Byte;
+    Title: Byte;
+  end;
+
+  TFramedAreaData = record
+    PositionX: Byte;
+    PositionY: Byte;
+    Width: Byte;
+    Height: Byte;
+    Colors: TFramedAreaColors;
     Title: String;
   end;
 
@@ -108,6 +127,19 @@ type
     Max: Word;
     Progress: Word;
     Title: String;
+  end;
+
+  TMessageBoxColors = record
+    Foreground: Byte;
+    Background: Byte;
+    Accelerator: Byte;
+  end;
+
+  TMessageBoxData = record
+    Colors: TMessageBoxColors;
+    Title: String;
+    Text: String;
+    Button: String;
   end;
 
 procedure SetHaltOnErrors(const AValue: Boolean);
@@ -133,11 +165,15 @@ procedure ScreenStereoSliderMove(var ASliderData: TStereoSliderData;
 procedure ScreenEditDraw(const AEditData: TEditData);
 procedure ScreenEditChange(var AEditData: TEditData);
 
-procedure ScreenSingleFrameDraw(const AFrameData: TFrameData);
+procedure ScreenFrameDraw(const AFrameData: TFrameData);
+
+procedure ScreenFramedAreaDraw(const AFramedAreaData: TFramedAreaData);
 
 procedure ScreenProgressBarDraw(const AProgressBarData: TProgressBarData);
 procedure ScreenProgressBarUpdate(const AProgressBarData: TProgressBarData);
 procedure ScreenProgressBarReset(const AProgressBarData: TProgressBarData);
+
+procedure ScreenMessageBoxDraw(const AMessageBoxData: TMessageBoxData);
 
 implementation
 
@@ -146,6 +182,18 @@ uses
   Crt,
   Routines,
   Video;
+
+type
+  TFrameGlyphs = (
+    fgTopLeft,
+    fgLeft,
+    fgBottomLeft,
+    fgTop,
+    fgTopRight,
+    fgRight,
+    fgBottomRight,
+    fgBottom
+  );
 
 const
   kVVBlue: TPaletteColor = ( RIntensity: 0; GIntensity: 0; BIntensity: 16 );
@@ -162,18 +210,17 @@ const
   cSliderLeftBar            = 'ß';
   cSliderRightBar           = 'Ü';
 
-  cSingleFrameTopLeft       = 'Ú';
-  cSingleFrameLeft          = '³';
-  cSingleFrameBottomLeft    = 'À';
-  cSingleFrameTopBottom     = 'Ä';
-  cSingleFrameTopRight      = '¿';
-  cSingleFrameRight         = '³';
-  cSingleFrameBottomRight   = 'Ù';
+  kFrameGlyphs: array[TFrameType] of array[TFrameGlyphs] of Char = (
+    ( 'Ú', '³', 'À', 'Ä', '¿', '³', 'Ù', 'Ä' ),
+    ( 'Û', 'Ý', 'Ý', 'Û', 'Û', 'Þ', 'Þ', 'Ü' )
+  );
 
   cProgressBarEmpty         = '°';
   cProgressBarFill          = 'Û';
 
   kProgressBarHeight        = 3;
+
+  kMessageBoxUIPadding      = 1;
 
 var
   IGHaltOnErrors: Boolean;
@@ -274,14 +321,44 @@ end;
 
 procedure ScreenDrawTitleBar(const AForeColor, ABackColor, ATextColor: Byte; const ACaption: String);
 begin
-  VideoWriteRegion(k80x25Left, k80x25Top, k80x25Width, 1, cSpace, VideoAttribute(AForeColor, ABackColor));
-  VideoWriteStringAt((k80x25Width div 2) - (Length(ACaption) div 2), k80x25Top, ACaption, ATextColor, ABackColor);
+  VideoWriteRegion(
+    k80x25Left,
+    k80x25Top,
+    k80x25Width,
+    1,
+    cSpace,
+    VideoAttribute(
+      AForeColor,
+      ABackColor
+    )
+  );
+
+  VideoWriteStringAt(
+    (k80x25Width div 2) - (Length(ACaption) div 2),
+    k80x25Top,
+    ACaption,
+    ATextColor,
+    ABackColor
+  );
 end;
 
 procedure ScreenDrawCommand(const ALeft, ATop, AHighlight, AColor, ABackground: Byte; const AShortcut, ADescription: String);
 begin
-  VideoWriteStringAt(ALeft, ATop, AShortcut, AHighlight, ABackground);
-  VideoWriteStringAt(ALeft + 5, ATop, ADescription, AColor, ABackground);
+  VideoWriteStringAt(
+    ALeft,
+    ATop,
+    AShortcut,
+    AHighlight,
+    ABackground
+  );
+
+  VideoWriteStringAt(
+    ALeft + 5,
+    ATop,
+    ADescription,
+    AColor,
+    ABackground
+  );
 end;
 
 procedure ScreenDrawKeyValue(const AKeyValueData: TKeyValueData);
@@ -718,20 +795,12 @@ begin
   EditUpdate(AEditData);
 end;
 
-procedure ScreenSingleFrameDraw(const AFrameData: TFrameData);
+procedure ScreenFrameDraw(const AFrameData: TFrameData);
 var
   I: Byte;
   LGeneralAttribute: Byte;
 
 begin
-  VideoWriteStringAt(
-    AFrameData.PositionX,
-    AFrameData.PositionY,
-    AFrameData.Title,
-    AFrameData.Colors.Title,
-    AFrameData.Colors.Background
-  );
-
   LGeneralAttribute := VideoAttribute(
     AFrameData.Colors.Foreground,
     AFrameData.Colors.Background
@@ -739,38 +808,38 @@ begin
 
   VideoWriteCharAttrAt(
     AFrameData.PositionX,
-    AFrameData.PositionY + 1,
-    cSingleFrameTopLeft,
+    Succ(AFrameData.PositionY),
+    kFrameGlyphs[AFrameData.FrameType][fgTopLeft],
     LGeneralAttribute
   );
 
   VideoWriteCharAttrAt(
     AFrameData.PositionX,
     AFrameData.PositionY + AFrameData.Height,
-    cSingleFrameBottomLeft,
+    kFrameGlyphs[AFrameData.FrameType][fgBottomLeft],
     LGeneralAttribute
   );
 
   VideoWriteCharAttrAt(
     Pred(AFrameData.PositionX + AFrameData.Width),
-    AFrameData.PositionY + 1,
-    cSingleFrameTopRight,
+    Succ(AFrameData.PositionY),
+    kFrameGlyphs[AFrameData.FrameType][fgTopRight],
     LGeneralAttribute
   );
 
   VideoWriteCharAttrAt(
     Pred(AFrameData.PositionX + AFrameData.Width),
     AFrameData.PositionY + AFrameData.Height,
-    cSingleFrameBottomRight,
+    kFrameGlyphs[AFrameData.FrameType][fgBottomRight],
     LGeneralAttribute
   );
 
   VideoWriteRegion(
     Succ(AFrameData.PositionX),
-    AFrameData.PositionY + 1,
+    Succ(AFrameData.PositionY),
     AFrameData.Width - 2,
     1,
-    cSingleFrameTopBottom,
+    kFrameGlyphs[AFrameData.FrameType][fgTop],
     LGeneralAttribute
   );
 
@@ -779,7 +848,7 @@ begin
     AFrameData.PositionY + AFrameData.Height,
     AFrameData.Width - 2,
     1,
-    cSingleFrameTopBottom,
+    kFrameGlyphs[AFrameData.FrameType][fgBottom],
     LGeneralAttribute
   );
 
@@ -788,34 +857,58 @@ begin
     VideoWriteCharAttrAt(
       AFrameData.PositionX,
       AFrameData.PositionY + I,
-      cSingleFrameLeft,
+      kFrameGlyphs[AFrameData.FrameType][fgLeft],
       LGeneralAttribute
     );
 
     VideoWriteCharAttrAt(
       Pred(AFrameData.PositionX + AFrameData.Width),
       AFrameData.PositionY + I,
-      cSingleFrameRight,
+      kFrameGlyphs[AFrameData.FrameType][fgRight],
       LGeneralAttribute
     );
   end;
 end;
 
-procedure ScreenProgressBarDraw(const AProgressBarData: TProgressBarData);
+procedure ScreenFramedAreaDraw(const AFramedAreaData: TFramedAreaData);
 var
   LFrameData: TFrameData;
 
 begin
-  LFrameData.PositionX := AProgressBarData.PositionX;
-  LFrameData.PositionY := AProgressBarData.PositionY;
-  LFrameData.Width := AProgressBarData.Width;
-  LFrameData.Height := kProgressBarHeight;
-  LFrameData.Colors.Foreground := AProgressBarData.Colors.Foreground;
-  LFrameData.Colors.Background := AProgressBarData.Colors.Background;
-  LFrameData.Colors.Title := AProgressBarData.Colors.Title;
-  LFrameData.Title := AProgressBarData.Title;
+  VideoWriteStringAt(
+    AFramedAreaData.PositionX,
+    AFramedAreaData.PositionY,
+    AFramedAreaData.Title,
+    AFramedAreaData.Colors.Title,
+    AFramedAreaData.Colors.Background
+  );
 
-  ScreenSingleFrameDraw(LFrameData);
+  LFrameData.PositionX := AFramedAreaData.PositionX;
+  LFrameData.PositionY := AFramedAreaData.PositionY;
+  LFrameData.Width := AFramedAreaData.Width;
+  LFrameData.Height := AFramedAreaData.Height;
+  LFrameData.Colors.Foreground := AFramedAreaData.Colors.Foreground;
+  LFrameData.Colors.Background := AFramedAreaData.Colors.Background;
+  LFrameData.FrameType := ftSingle;
+
+  ScreenFrameDraw(LFrameData);
+end;
+
+procedure ScreenProgressBarDraw(const AProgressBarData: TProgressBarData);
+var
+  LFramedAreaData: TFramedAreaData;
+
+begin
+  LFramedAreaData.PositionX := AProgressBarData.PositionX;
+  LFramedAreaData.PositionY := AProgressBarData.PositionY;
+  LFramedAreaData.Width := AProgressBarData.Width;
+  LFramedAreaData.Height := kProgressBarHeight;
+  LFramedAreaData.Colors.Foreground := AProgressBarData.Colors.Foreground;
+  LFramedAreaData.Colors.Background := AProgressBarData.Colors.Background;
+  LFramedAreaData.Colors.Title := AProgressBarData.Colors.Title;
+  LFramedAreaData.Title := AProgressBarData.Title;
+
+  ScreenFramedAreaDraw(LFramedAreaData);
 
   VideoWriteRegion(
     Succ(AProgressBarData.PositionX),
@@ -876,6 +969,109 @@ begin
   );
 
   ScreenProgressBarUpdate(AProgressBarData);
+end;
+
+procedure ScreenMessageBoxDraw(const AMessageBoxData: TMessageBoxData);
+var
+  LVideoArea: TVideoArea;
+  LVideoSection: PVideoSection;
+  LTextLength: Integer;
+  LFrameData: TFrameData;
+  LButtonX: Byte;
+  LButtonY: Byte;
+  LPaddedButton: String;
+  LAccelerator: Char;
+
+begin
+  LTextLength := Length(AMessageBoxData.Text);
+
+  LVideoArea.PositionX := (k80x25Width div 2) - ((LTextLength + 4) div 2);
+  LVideoArea.PositionY := (k80x25Height div 2) - 3;
+  LVideoArea.Width := LTextLength + 4;
+  LVideoArea.Height := 7;
+
+  VideoStoreSection(LVideoSection, LVideoArea);
+
+  LFrameData.PositionX := LVideoArea.PositionX;
+  LFrameData.PositionY := LVideoArea.PositionY;
+  LFrameData.Width := LVideoArea.Width;
+  LFrameData.Height := Pred(LVideoArea.Height);
+  LFrameData.Colors.Foreground := AMessageBoxData.Colors.Foreground;
+  LFrameData.Colors.Background := AMessageBoxData.Colors.Background;
+  LFrameData.FrameType := ftWindow;
+
+  ScreenFrameDraw(LFrameData);
+
+  VideoWriteStringAt(
+    LVideoArea.PositionX,
+    Succ(LVideoArea.PositionY),
+    PadCenter(AMessageBoxData.Title, kMessageBoxUIPadding),
+    AMessageBoxData.Colors.Background,
+    AMessageBoxData.Colors.Foreground
+  );
+
+  VideoWriteRegion(
+    Succ(LVideoArea.PositionX),
+    LVideoArea.PositionY + 2,
+    LTextLength + 2,
+    LFrameData.Height - 2,
+    cSpace,
+    VideoAttribute(
+      AMessageBoxData.Colors.Foreground,
+      AMessageBoxData.Colors.Background
+    )
+  );
+
+  VideoWriteStringAt(
+    LVideoArea.PositionX + 2,
+    LVideoArea.PositionY + 3,
+    AMessageBoxData.Text,
+    AMessageBoxData.Colors.Foreground,
+    AMessageBoxData.Colors.Background
+  );
+
+  LPaddedButton := PadCenter(AMessageBoxData.Button, kMessageBoxUIPadding);
+
+  LButtonX := LVideoArea.PositionX + LFrameData.Width - Length(LPaddedButton) - 2;
+  LButtonY := Pred(LVideoArea.PositionY + LFrameData.Height);
+
+  VideoWriteStringAt(
+    LButtonX,
+    LButtonY,
+    LPaddedButton,
+    AMessageBoxData.Colors.Background,
+    AMessageBoxData.Colors.Foreground
+  );
+
+  VideoHighlightRegion(
+    Succ(LButtonX),
+    LButtonY,
+    1,
+    1,
+    VideoAttribute(
+      AMessageBoxData.Colors.Accelerator,
+      AMessageBoxData.Colors.Foreground
+    )
+  );
+
+  while True do
+  begin
+    LAccelerator := UpCase(ReadKey);
+
+    case LAccelerator of
+      kKeyEnter, kKeyEscape:
+        Break;
+
+    else
+      if AMessageBoxData.Button[1] = LAccelerator then
+      begin
+        Break;
+      end;
+
+    end;
+  end;
+
+  VideoRestoreSection(LVideoSection, LVideoArea);
 end;
 
 end.

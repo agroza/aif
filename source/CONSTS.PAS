@@ -17,7 +17,7 @@ const
   sEmpty                    = '';
 
   { program stringtable }
-  sProgramTitle             = 'AUDIO INTERFACE  VER. 2.7 REV. C';
+  sProgramTitle             = 'AUDIO INTERFACE  VER. 2.7 REV. D';
   sProgramCopyright         = 'Copyright (C) 1998-2021 Microprogramming TECHNIQUES';
   sProgramAuthor            = 'Programming/PC Code: Alexandru Groza';
   sProgramRights            = 'All rights reserved.';
@@ -177,6 +177,11 @@ const
     sHelpParamLineOut
   );
 
+  { VersaVision UI support messages }
+  sMessageBoxError          = 'Error';
+
+  sMessageBoxButtonClose    = 'Close';
+
   { file masks }
   fmBINFiles                = 'bin';
 
@@ -216,6 +221,10 @@ const
   { program color theme }
   clInterfaceFore           = clBlack;
   clInterfaceBack           = clLightGray;
+
+  clMessageBoxFore          = clWhite;
+  clMessageBoxBack          = clRed;
+  clMessageBoxAccelerator   = clBlue;
 
   { program constants }
   kHardwareInitError        = 1;
@@ -393,6 +402,8 @@ const
     'write'
   );
 
+  sPnPSetupFilenameError    = 'Filename does not exist.';
+
   sPnPSetupCmdProgramCmds   = 'PROGRAM COMMANDS';
   sPnPSetupCmdF4            = 'F4';
   sPnPSetupCmdEditFilename  = 'Edit Filename';
@@ -521,6 +532,8 @@ const
   clMixerFore               = clLightGray;
   clMixerBack               = clBlue;
 
+  clMixerSliderFore         = clMixerFore;
+  clMixerSliderBack         = clMixerBack;
   clMixerSliderTitle        = clWhite;
   clMixerSliderText         = clLightGray;
   clMixerSliderHighFore     = clWhite;

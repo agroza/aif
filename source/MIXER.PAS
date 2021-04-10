@@ -100,8 +100,8 @@ begin
   IGStereoSliders[AStereoSlider].PositionX := kMixerSliderX;
   IGStereoSliders[AStereoSlider].PositionY := APositionY;
   IGStereoSliders[AStereoSlider].Title := ATitle;
-  IGStereoSliders[AStereoSlider].Colors.Foreground := clMixerFore;
-  IGStereoSliders[AStereoSlider].Colors.Background := clMixerBack;
+  IGStereoSliders[AStereoSlider].Colors.Foreground := clMixerSliderFore;
+  IGStereoSliders[AStereoSlider].Colors.Background := clMixerSliderBack;
   IGStereoSliders[AStereoSlider].Colors.Title := clMixerSliderTitle;
   IGStereoSliders[AStereoSlider].Colors.Text := clMixerSliderText;
   IGStereoSliders[AStereoSlider].Colors.HighForeground := clMixerSliderHighFore;
@@ -614,7 +614,7 @@ begin
   LSaveY := WhereY;
 
   GetMem(LVideoRAMData, kVGARAMSize);
-  VideoSaveScreen(LVideoRAMData);
+  VideoStoreScreen(LVideoRAMData);
   VideoClearScreen;
   VideoEnableHighColors;
   VideoDisableCursor;

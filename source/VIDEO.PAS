@@ -68,6 +68,16 @@ type
   PVideoRAMData = ^TVideoRAMData;
   TVideoRAMData = array[1..kVGARAMSize] of Byte;
 
+  TVideoArea = record
+    PositionX: Byte;
+    PositionY: Byte;
+    Width: Byte;
+    Height: Byte;
+  end;
+
+  PVideoSection = ^TVideoSection;
+  TVideoSection = array[1..1] of Byte;
+
   TPaletteColor = record
     RIntensity: Byte;
     GIntensity: Byte;
@@ -84,8 +94,11 @@ procedure VideoEnableCursor;
 procedure VideoDisableCursor;
 
 procedure VideoClearScreen;
-procedure VideoSaveScreen(const AVideoRAMData: PVideoRAMData);
+procedure VideoStoreScreen(const AVideoRAMData: PVideoRAMData);
 procedure VideoRestoreScreen(const AVideoRAMData: PVideoRAMData);
+
+procedure VideoStoreSection(var AVideoSection: PVideoSection; const AVideoArea: TVideoArea);
+procedure VideoRestoreSection(var AVideoSection: PVideoSection; const AVideoArea: TVideoArea);
 
 function VideoAttribute(const AForeColor, ABackColor: Byte): Byte;
 
@@ -203,12 +216,12 @@ asm
   pop es
 end;
 
-procedure VideoSaveScreen(const AVideoRAMData: PVideoRAMData);
+procedure VideoStoreScreen(const AVideoRAMData: PVideoRAMData);
 begin
   if Assigned(AVideoRAMData) then
   begin
     Move(
-      Mem[kVGARAMAddress:kVGARAMStartOffset],
+      Mem[kVGARAMAddress : kVGARAMStartOffset],
       AVideoRAMData^,
       kVGARAMSize
     );
@@ -221,10 +234,62 @@ begin
   begin
     Move(
       AVideoRAMData^,
-      Mem[kVGARAMAddress:kVGARAMStartOffset],
+      Mem[kVGARAMAddress : kVGARAMStartOffset],
       kVGARAMSize
     );
   end;
+end;
+
+procedure VideoStoreSection(var AVideoSection: PVideoSection; const AVideoArea: TVideoArea);
+var
+  I: Integer;
+  LVideoSectionSize: Integer;
+  LVideoAreaWidthSize: Byte;
+
+begin
+  LVideoSectionSize := AVideoArea.Width * AVideoArea.Height * 2;
+  LVideoAreaWidthSize := AVideoArea.Width * 2;
+
+  GetMem(AVideoSection, LVideoSectionSize);
+
+  for I := 0 to Pred(AVideoArea.Height) do
+  begin
+    Move(
+      Mem[kVGARAMAddress : ((AVideoArea.PositionY + I) * 80 + Pred(AVideoArea.PositionX)) * 2],
+      AVideoSection^,
+      LVideoAreaWidthSize
+    );
+
+    Inc(AVideoSection, LVideoAreaWidthSize);
+  end;
+
+  Dec(AVideoSection, LVideoSectionSize);
+end;
+
+procedure VideoRestoreSection(var AVideoSection: PVideoSection; const AVideoArea: TVideoArea);
+var
+  I: Integer;
+  LVideoSectionSize: Integer;
+  LVideoAreaWidthSize: Byte;
+
+begin
+  LVideoSectionSize := AVideoArea.Width * AVideoArea.Height * 2;
+  LVideoAreaWidthSize := AVideoArea.Width * 2;
+
+  for I := 0 to Pred(AVideoArea.Height) do
+  begin
+    Move(
+      AVideoSection^,
+      Mem[kVGARAMAddress : ((AVideoArea.PositionY + I) * 80 + Pred(AVideoArea.PositionX)) * 2],
+      LVideoAreaWidthSize
+    );
+
+    Inc(AVideoSection, LVideoAreaWidthSize);
+  end;
+
+  Dec(AVideoSection, LVideoSectionSize);
+
+  FreeMem(AVideoSection, LVideoSectionSize);
 end;
 
 function VideoAttribute(const AForeColor, ABackColor: Byte): Byte; assembler;

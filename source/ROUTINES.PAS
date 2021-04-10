@@ -28,6 +28,7 @@ function LowerCase(const AString: String): String;
 function StrPas(const APChar: PChar): String;
 function IntToStr(const AInteger: Longint): String;
 function PadPercent(const AInteger: Longint): String;
+function PadCenter(const AString: String; const APads: Byte): String;
 function IfThenElse(const ACondition: Boolean; const AThen, AElse: String): String;
 
 function FileExists(const AFileName: String): Boolean;
@@ -282,6 +283,22 @@ begin
   end;
 
   PadPercent := LSpaces + IntToStr(AInteger) + ' %';
+end;
+
+function PadCenter(const AString: String; const APads: Byte): String;
+var
+  I: Byte;
+  LSpaces: String;
+
+begin
+  LSpaces := sEmpty;
+
+  for I := 0 to Pred(APads) do
+  begin
+    LSpaces := LSpaces + cSpace;
+  end;
+
+  PadCenter := LSpaces + AString + LSpaces;
 end;
 
 function IfThenElse(const ACondition: Boolean; const AThen, AElse: String): String;
