@@ -211,6 +211,9 @@ const
     $00  { Lower Base Count Register }
   );
 
+  { Codec Communication }
+  kCodecCommunicationDelay            = 1;
+
   kDeviceTypes: array[TCodecDeviceType] of Byte = (
     kREGISTER_LEFT_AUX1_INPUT_CONTROL,
     kREGISTER_LEFT_AUX2_INPUT_CONTROL,
@@ -260,13 +263,13 @@ begin
     LOldRegister := Port[GICodecConfig.Address];
     Port[GICodecConfig.Address] := (LOldRegister and $F0) or (ARegister and $1F);
 
-    Delay(1);
+    Routines.Delay(kCodecCommunicationDelay);
 
     CodecRead := Port[GICodecConfig.Data];
 
     Port[GICodecConfig.Address] := LOldRegister;
 
-    Delay(1);
+    Routines.Delay(kCodecCommunicationDelay);
   end;
 
   asm
@@ -288,17 +291,17 @@ begin
     LOldRegister := Port[GICodecConfig.Address];
     Port[GICodecConfig.Address] := (LOldRegister and $F0) or (ARegister and $1F);
 
-    Delay(1);
+    Routines.Delay(kCodecCommunicationDelay);
 
     Port[GICodecConfig.Data] := AData;
 
-    Delay(1);
+    Routines.Delay(kCodecCommunicationDelay);
 
     AData := Port[GICodecConfig.Data];
 
     Port[GICodecConfig.Address] := LOldRegister;
 
-    Delay(1);
+    Routines.Delay(kCodecCommunicationDelay);
   end;
 
   asm

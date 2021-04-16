@@ -75,14 +75,14 @@ type
     Height: Byte;
   end;
 
-  PVideoSection = ^TVideoSection;
-  TVideoSection = array[1..1] of Byte;
-
   TPaletteColor = record
     RIntensity: Byte;
     GIntensity: Byte;
     BIntensity: Byte;
   end;
+
+  PVideoSection = ^TVideoSection;
+  TVideoSection = array[1..1] of Byte;
 
 procedure VideoGetPaletteColor(const AIndex: Byte; var APaletteColor: TPaletteColor);
 procedure VideoSetPaletteColor(const AIndex: Byte; const APaletteColor: TPaletteColor);

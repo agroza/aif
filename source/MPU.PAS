@@ -28,15 +28,16 @@ uses
 
 const
   { Status Port Bits }
-  DRR             = $40; { MPU-401 'Ready to receive' mask }
-  DSR             = $80; { MPU-401 'Ready to send' mask }
+  DRR                     = $40; { MPU-401 'Ready to receive' mask }
+  DSR                     = $80; { MPU-401 'Ready to send' mask }
 
   { MPU Commands }
-  CMD_UART        = $3F; { Become a dumb uart }
-  CMD_RESET       = $FF; { Reset to default state }
-  CMD_ACK         = $FE; { MPU's acknowledement of a command }
+  CMD_UART                = $3F; { Become a dumb UART }
+  CMD_RESET               = $FF; { Reset to default state }
+  CMD_ACK                 = $FE; { MPU's acknowledement of a command }
 
-  kShortDelay     = 10;
+  { Data Communication }
+  kDataCommunicationDelay = 10;
 
 var
   IGCommandPort: Word;
@@ -52,7 +53,7 @@ begin
 
   Port[IGDataPort] := AData;
 
-  Delay(kShortDelay);
+  Routines.Delay(kDataCommunicationDelay);
 end;
 
 { public declarations }
@@ -73,7 +74,7 @@ begin
 
   if AMPUResetMode = mrmDumbUART then
   begin
-    Delay(kShortDelay);
+    Routines.Delay(kDataCommunicationDelay);
 
     LRetries := $FF;
 
@@ -88,7 +89,7 @@ begin
       Exit;
     end;
 
-    Delay(kShortDelay);
+    Routines.Delay(kDataCommunicationDelay);
 
     if (Port[IGStatusPort] and DRR) <> 0 then
     begin
@@ -98,7 +99,7 @@ begin
 
     Port[IGCommandPort] := CMD_UART;
 
-    Delay(kShortDelay);
+    Routines.Delay(kDataCommunicationDelay);
 
     LRetries := $FF;
 

@@ -184,6 +184,7 @@ const
 
   kEEPROMReadyRetries        = $FFFF;
   kEEPROMSize                = 256;
+  kEEPROMCommunicationDelay  = 1;
 
 { private declarations }
 
@@ -947,14 +948,6 @@ begin
   end;
 end;
 
-procedure EEPROMDelay; assembler;
-asm
-  mov cx,0FFFFh
-@@decrement:
-  dec cx
-  jnz @@decrement
-end;
-
 procedure EEPROMSetCS(const AValue: Boolean);
 begin
   SetRegisterBit(kREGISTER_MC7, kBitSROMCS, AValue);
@@ -964,18 +957,18 @@ procedure EEPROMClockPulse;
 begin
   SetRegisterBit(kREGISTER_MC7, kBitSROMCLK, True);
 
-  EEPROMDelay;
+  Routines.Delay(kEEPROMCommunicationDelay);
 
   SetRegisterBit(kREGISTER_MC7, kBitSROMCLK, False);
 
-  EEPROMDelay;
+  Routines.Delay(kEEPROMCommunicationDelay);
 end;
 
 procedure EEPROMDataOut(const AValue: Boolean);
 begin
   { TODO -oagroza -cImplement : Send data to indirect kREGISTER_MC9 / kBitROMIN. }
 
-  EEPROMDelay;
+  Routines.Delay(kEEPROMCommunicationDelay);
 end;
 
 function EEPROMWaitReady: Boolean;
@@ -985,7 +978,7 @@ var
 begin
   EEPROMSetCS(False);
 
-  EEPROMDelay;
+  Routines.Delay(kEEPROMCommunicationDelay);
 
   EEPROMSetCS(True);
 

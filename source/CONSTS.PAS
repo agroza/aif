@@ -17,7 +17,7 @@ const
   sEmpty                    = '';
 
   { program stringtable }
-  sProgramTitle             = 'AUDIO INTERFACE  VER. 2.7 REV. D';
+  sProgramTitle             = 'AUDIO INTERFACE  VER. 2.8 REV. A';
   sProgramCopyright         = 'Copyright (C) 1998-2021 Microprogramming TECHNIQUES';
   sProgramAuthor            = 'Programming/PC Code: Alexandru Groza';
   sProgramRights            = 'All rights reserved.';
@@ -35,6 +35,7 @@ const
 
   sHelpParamHelp            = '  -help     shows this screen; all other parameters are ignored';
   sHelpParamSetup           = '  -setup    starts the setup program; all other parameters are ignored';
+  sHelpParamPnPSetup        = '  -pnpsetup starts the PnP setup program; some parameters are ignored';
   sHelpParamMixer           = '  -mixer    starts the volume mixer program';
   sHelpParamInit            = '  -init     initializes the audio interface to preset mode';
   sHelpParamWSS             = '  -wss      initializes the audio interface to Windows Sound System mode';
@@ -165,9 +166,10 @@ const
   pOn                       = 'on';
 
   { program commandline parameters help }
-  kHelpParameters: array[0..8] of PChar = (
+  kHelpParameters: array[0..9] of PChar = (
     sHelpParamHelp,
     sHelpParamSetup,
+    sHelpParamPnPSetup,
     sHelpParamMixer,
     sHelpParamInit,
     sHelpParamWSS,

@@ -60,6 +60,7 @@ end;
 procedure ResetProgressBar;
 begin
   Routines.Delay(kPnPSetupOperationDelay);
+
   IGProgressBar.Progress := 0;
   ScreenProgressBarReset(IGProgressBar);
 end;
@@ -280,13 +281,16 @@ begin
 
             kKeyF8:
               begin
+                ResetOperationStatus(eoWrite);
+
                 if FileExists(IGEdit.Text) then
                 begin
-                  ResetOperationStatus(eoWrite);
                   DrawResult(ControllerWriteEEPROM(IGEdit.Text, UpdateProgressBar));
                 end else
                 begin
                   ScreenMessageBoxDraw(IGMessageBox);
+
+                  DrawResult(False);
                 end;
               end;
 

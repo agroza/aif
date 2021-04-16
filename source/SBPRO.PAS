@@ -72,6 +72,10 @@ const
     kMIXER_REGISTER_FM_VOLUME
   );
 
+  { Data Communication }
+  kMixerCommunicationDelay            = 1;
+  kDSPCommunicationDelay              = 10;
+
 var
   IGSBPort: Word;
 
@@ -120,22 +124,22 @@ function MixerRead(const AIndex: Byte): Byte;
 begin
   Port[IGSBPort + kPORT_MIXER_ADDRESS_OFFSET] := AIndex;
 
-  Delay(1);
+  Routines.Delay(kMixerCommunicationDelay);
 
   MixerRead := Port[IGSBPort + kPORT_MIXER_DATA_OFFSET];
 
-  Delay(1);
+  Routines.Delay(kMixerCommunicationDelay);
 end;
 
 procedure MixerWrite(const AIndex, AValue: Byte);
 begin
   Port[IGSBPort + kPORT_MIXER_ADDRESS_OFFSET] := AIndex;
 
-  Delay(1);
+  Routines.Delay(kMixerCommunicationDelay);
 
   Port[IGSBPort + kPORT_MIXER_DATA_OFFSET] := AValue;
 
-  Delay(1);
+  Routines.Delay(kMixerCommunicationDelay);
 end;
 
 { public declarations }
@@ -144,11 +148,11 @@ function SBDSPReset(const APort: Word): Boolean;
 begin
   Port[APort + kPORT_DSP_RESET_OFFSET] := 1;
 
-  Delay(10);
+  Routines.Delay(kDSPCommunicationDelay);
 
   Port[APort + kPORT_DSP_RESET_OFFSET] := 0;
 
-  Delay(10);
+  Routines.Delay(kDSPCommunicationDelay);
 
   if (Port[APort + kPORT_DSP_READ_BUFFER_STATUS_OFFSET] and $80 = $80) and
     (Port[APort + kPORT_DSP_READ_DATA_OFFSET] = $AA) then
