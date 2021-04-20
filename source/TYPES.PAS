@@ -42,6 +42,9 @@ type
 
   TUpdateProgress = procedure(const ABytes: Word; const AByte: Byte);
 
+  PStrings = ^TStrings;
+  TStrings = array[0..0] of String;
+
   { codec types }
   TCodecSampleRate = (
     sr5512,

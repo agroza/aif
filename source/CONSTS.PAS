@@ -15,9 +15,10 @@ uses
 
 const
   sEmpty                    = '';
+  sCRLF                     = #13#10;
 
   { program stringtable }
-  sProgramTitle             = 'AUDIO INTERFACE  VER. 2.8 REV. A';
+  sProgramTitle             = 'AUDIO INTERFACE  VER. 2.8 REV. B';
   sProgramCopyright         = 'Copyright (C) 1998-2021 Microprogramming TECHNIQUES';
   sProgramAuthor            = 'Programming/PC Code: Alexandru Groza';
   sProgramRights            = 'All rights reserved.';
@@ -181,8 +182,7 @@ const
 
   { VersaVision UI support messages }
   sMessageBoxError          = 'Error';
-
-  sMessageBoxButtonClose    = 'Close';
+  sMessageBoxQuestion       = 'Question';
 
   { file masks }
   fmBINFiles                = 'bin';
@@ -191,6 +191,9 @@ const
   fmReadOnly                = 0;
   fmWriteOnly               = 1;
   fmReadWrite               = 2;
+
+  { general constants }
+  kMaxByte                  = 255;
 
   { color constants }
   clBlack                   = 0;
@@ -226,7 +229,12 @@ const
 
   clMessageBoxFore          = clWhite;
   clMessageBoxBack          = clRed;
-  clMessageBoxAccelerator   = clBlue;
+  clMessageBoxBtnFore       = clBlue;
+  clMessageBoxBtnBack       = clLightGray;
+  clMessageBoxBtnAccel      = clRed;
+  clMessageBoxBtnHighFore   = clWhite;
+  clMessageBoxBtnHighBack   = clRed;
+  clMessageBoxBtnHighAccel  = clBlack;
 
   { program constants }
   kHardwareInitError        = 1;
@@ -296,6 +304,9 @@ const
 
   sSetupSoundController     = 'SOUND CONTROLLER';
   sSetupOPTi82c924          = 'OPTi 82c924 REV. ';
+
+  sSetupConfigChanged       = 'Audio Interface configuration has changed.' + #13#10 +
+                              'Save changes?';
 
   { Setup program color theme }
   clSetupFore               = clLightGray;
@@ -529,6 +540,9 @@ const
 
   sMixerSliderLeft          = 'LEFT';
   sMixerSliderRight         = 'RIGHT';
+
+  sMixerConfigChanged       = 'Mixer configuration has changed.' + #13#10 +
+                              'Save changes?';
 
   { Mixer program color theme }
   clMixerFore               = clLightGray;

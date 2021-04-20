@@ -56,8 +56,10 @@ type
   end;
 
 var
+  IGMixerConfigChanged: Boolean;
   IGStereoSliders: array[TStereoSlider] of TStereoSliderData;
   IGMixerOptions: array[TMixerOption] of TMixerOptionData;
+  IGMessageBox: TMessageBoxData;
 
 const
   kUIStatCommands: array[0..5] of TUICommand = (
@@ -166,6 +168,19 @@ begin
     GCodecMixerConfig.DMELeftRight,
     GCodecMixerConfig.DMELeftRight
   );
+
+  IGMessageBox.Colors.Foreground := clMessageBoxFore;
+  IGMessageBox.Colors.Background := clMessageBoxBack;
+  IGMessageBox.Colors.BtnForeground := clMessageBoxBtnFore;
+  IGMessageBox.Colors.BtnBackground := clMessageBoxBtnBack;
+  IGMessageBox.Colors.BtnAccelerator := clMessageBoxBtnAccel;
+  IGMessageBox.Colors.BtnHighForeground := clMessageBoxBtnHighFore;
+  IGMessageBox.Colors.BtnHighBackground := clMessageBoxBtnHighBack;
+  IGMessageBox.Colors.BtnHighAccelerator := clMessageBoxBtnHighAccel;
+  IGMessageBox.Title := sMessageBoxQuestion;
+  IGMessageBox.Text := sMixerConfigChanged;
+  IGMessageBox.Buttons := [mbYes, mbNo];
+  IGMessageBox.DefaultButton := mbNo;
 end;
 
 procedure DrawComponents;
@@ -366,6 +381,8 @@ end;
 
 procedure ToggleHighlightOption(const AOption: TMixerOption);
 begin
+  IGMixerConfigChanged := True;
+
   IGMixerOptions[AOption].Enabled := not IGMixerOptions[AOption].Enabled;
   HighlightOption(AOption);
 end;
@@ -375,6 +392,8 @@ var
   LOption: TMixerOption;
 
 begin
+  IGMixerConfigChanged := True;
+
   for LOption := moLineIn to moPostMixedDAC do
   begin
     IGMixerOptions[LOption].Enabled := False;
@@ -403,12 +422,21 @@ begin
   DrawConfig;
 end;
 
+procedure ExitAndSave;
+begin
+  SetVolumes;
+  SetInputConfigOptions;
+  SetupSaveConfig;
+end;
+
 procedure UILoop;
 var
   LStereoSlider: TStereoSlider;
   LSoundChannel: TCodecSoundChannel;
 
 begin
+  IGMixerConfigChanged := False;
+
   LStereoSlider := ssDACStereoSlider;
   LSoundChannel := scLeft;
   ScreenStereoSliderHighlight(IGStereoSliders[LStereoSlider], LSoundChannel, True);
@@ -439,9 +467,7 @@ begin
 
             kKeyF10:
               begin
-                SetVolumes;
-                SetInputConfigOptions;
-                SetupSaveConfig;
+                ExitAndSave;
 
                 Break;
               end;
@@ -503,17 +529,45 @@ begin
               end;
 
             kKeyLeft:
-              ScreenStereoSliderMove(IGStereoSliders[LStereoSlider], LSoundChannel, sdDown);
+              begin
+                IGMixerConfigChanged := True;
+                ScreenStereoSliderMove(IGStereoSliders[LStereoSlider], LSoundChannel, sdDown);
+              end;
 
             kKeyRight:
-              ScreenStereoSliderMove(IGStereoSliders[LStereoSlider], LSoundChannel, sdUp);
+              begin
+                IGMixerConfigChanged := True;
+                ScreenStereoSliderMove(IGStereoSliders[LStereoSlider], LSoundChannel, sdUp);
+              end;
 
           end;
 
         end;
 
       kKeyEscape:
-        Break;
+        begin
+          if IGMixerConfigChanged then
+          begin
+            case ScreenMessageBoxDraw(IGMessageBox) of
+              mrCancel:
+                Continue;
+
+              mrNo:
+                Break;
+
+              mrYes:
+                begin
+                  ExitAndSave;
+
+                  Break;
+                end;
+
+            end;
+          end else
+          begin
+            Break;
+          end;
+        end;
 
       sMixerCmd1:
         HighlightInputDevice(moLineIn);

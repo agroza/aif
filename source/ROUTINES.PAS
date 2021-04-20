@@ -10,6 +10,9 @@ unit Routines;
 
 interface
 
+uses
+  Types;
+
 procedure Delay(const ADuration: Word);
 
 function GetBit(const AByte, ABit: Byte): Boolean;
@@ -26,6 +29,9 @@ function StrToIntDef(const AString: String; const ADefault: Longint): Longint;
 function AddSizeSeparator(const AString: String; const AUnitPresent: Boolean): String;
 function LowerCase(const AString: String): String;
 function StrPas(const APChar: PChar): String;
+function FindOccurences(const AString, ASubString: String): Byte;
+procedure Split(const AString, ASubString: String; var AStrings: PStrings);
+function MaxLength(const AStrings: PStrings; const AStringsCount: Byte): Byte;
 function IntToStr(const AInteger: Longint): String;
 function PadPercent(const AInteger: Longint): String;
 function PadCenter(const AString: String; const APads: Byte): String;
@@ -151,7 +157,7 @@ begin
 
   for I := kHexLength downto 1 do
   begin
-    IntToHex[I] := kHexDigits[LInteger and $F];
+    IntToHex[I] := kHexDigits[LInteger and $0F];
     LInteger := LInteger shr 4;
   end;
 end;
@@ -180,7 +186,7 @@ var
 begin
   LString := AString;
 
-  if AString <> '' then
+  if AString <> sEmpty then
   begin
     I := Length(LString);
 
@@ -257,6 +263,72 @@ asm
   pop ds
 end;
 
+function FindOccurences(const AString, ASubString: String): Byte;
+var
+  LString: String;
+  LOccurences: Byte;
+  LPosition: Byte;
+
+begin
+  LString := AString;
+  LOccurences := 0;
+
+  repeat
+    LPosition := Pos(ASubString, LString);
+
+    if LPosition > 0 then
+    begin
+      Inc(LOccurences);
+      Delete(LString, LPosition, Length(ASubString));
+    end;
+  until LPosition = 0;
+
+  FindOccurences := LOccurences;
+end;
+
+procedure Split(const AString, ASubString: String; var AStrings: PStrings);
+var
+  LString: String;
+  LStringIndex: Byte;
+  LPosition: Byte;
+
+begin
+  LString := AString;
+  LStringIndex := 0;
+
+  repeat
+    LPosition := Pos(ASubString, LString);
+
+    if LPosition > 0 then
+    begin
+      AStrings^[LStringIndex] := Copy(LString, 1, Pred(LPosition));
+      Delete(LString, 1, Pred(LPosition + Length(ASubString)));
+      Inc(LStringIndex);
+    end;
+  until LPosition = 0;
+
+  AStrings^[LStringIndex] := Copy(LString, 1, kMaxByte);
+end;
+
+function MaxLength(const AStrings: PStrings; const AStringsCount: Byte): Byte;
+var
+  I: Byte;
+  LMaxLength: Byte;
+
+begin
+  LMaxLength := Length(AStrings^[0]);
+
+  for I := 0 to AStringsCount do
+  begin
+    if Length(AStrings^[I]) > LMaxLength then
+    begin
+      LMaxLength := Length(AStrings^[I]);
+    end;
+  end;
+
+  MaxLength := LMaxLength;
+end;
+
 function IntToStr(const AInteger: Longint): String;
 var
   S: String;
@@ -279,7 +351,7 @@ begin
       LSpaces := ' ';
 
   else
-    LSpaces := '';
+    LSpaces := sEmpty;
   end;
 
   PadPercent := LSpaces + IntToStr(AInteger) + ' %';

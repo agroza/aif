@@ -136,8 +136,10 @@ const
   );
 
 var
+  IGAIConfigChanged: Boolean;
   IGSetupOptions: array[TSetupOption] of TSetupOptionData;
   IGSetupConfig: TSetupConfig;
+  IGMessageBox: TMessageBoxData;
 
 { private declarations }
 
@@ -759,6 +761,8 @@ var
   LIndex: Byte;
 
 begin
+  IGAIConfigChanged := True;
+
   LSetupOptionData := IGSetupOptions[ASetupOption];
   LIndex := LSetupOptionData.Index;
 
@@ -808,6 +812,22 @@ begin
   );
 
   IGSetupOptions[ASetupOption].Index := LIndex;
+end;
+
+procedure CreateComponents;
+begin
+  IGMessageBox.Colors.Foreground := clMessageBoxFore;
+  IGMessageBox.Colors.Background := clMessageBoxBack;
+  IGMessageBox.Colors.BtnForeground := clMessageBoxBtnFore;
+  IGMessageBox.Colors.BtnBackground := clMessageBoxBtnBack;
+  IGMessageBox.Colors.BtnAccelerator := clMessageBoxBtnAccel;
+  IGMessageBox.Colors.BtnHighForeground := clMessageBoxBtnHighFore;
+  IGMessageBox.Colors.BtnHighBackground := clMessageBoxBtnHighBack;
+  IGMessageBox.Colors.BtnHighAccelerator := clMessageBoxBtnHighAccel;
+  IGMessageBox.Title := sMessageBoxQuestion;
+  IGMessageBox.Text := sSetupConfigChanged;
+  IGMessageBox.Buttons := [mbYes, mbNo];
+  IGMessageBox.DefaultButton := mbNo;
 end;
 
 procedure DrawCommands;
@@ -894,9 +914,17 @@ procedure UIDraw;
 begin
   ScreenDrawTitleBar(clInterfaceFore, clInterfaceBack, clInterfaceFore, sSetupTitle);
 
+  CreateComponents;
+
   DrawConfig;
   DrawCommands;
   DrawRevision;
+end;
+
+procedure ExitAndSave;
+begin
+  ApplyConfig;
+  SetupSaveConfig;
 end;
 
 procedure UILoop;
@@ -904,6 +932,8 @@ var
   LSetupOption: TSetupOption;
 
 begin
+  IGAIConfigChanged := False;
+
   LSetupOption := Low(TSetupOption);
   HighlightOption(LSetupOption, True);
 
@@ -933,8 +963,7 @@ begin
 
             kKeyF10:
               begin
-                ApplyConfig;
-                SetupSaveConfig;
+                ExitAndSave;
 
                 Break;
               end;
@@ -979,7 +1008,29 @@ begin
         end;
 
       kKeyEscape:
-        Break;
+        begin
+          if IGAIConfigChanged then
+          begin
+            case ScreenMessageBoxDraw(IGMessageBox) of
+              mrCancel:
+                Continue;
+
+              mrNo:
+                Break;
+
+              mrYes:
+                begin
+                  ExitAndSave;
+
+                  Break;
+                end;
+
+            end;
+          end else
+          begin
+            Break;
+          end;
+        end;
 
     end;
   end;

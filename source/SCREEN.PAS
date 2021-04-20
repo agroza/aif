@@ -129,17 +129,60 @@ type
     Title: String;
   end;
 
-  TMessageBoxColors = record
+  TButtonColors = record
     Foreground: Byte;
     Background: Byte;
     Accelerator: Byte;
+    HighForeground: Byte;
+    HighBackground: Byte;
+    HighAccelerator: Byte;
   end;
+
+  TButtonData = record
+    PositionX: Byte;
+    PositionY: Byte;
+    Width: Byte;
+    Colors: TButtonColors;
+    Text: String;
+    Tag: Byte;
+  end;
+
+  TMessageBoxResult = (
+    mrCancel,
+    mrClose,
+    mrYes,
+    mrNo
+  );
+
+  TMessageBoxColors = record
+    Foreground: Byte;
+    Background: Byte;
+    BtnForeground: Byte;
+    BtnBackground: Byte;
+    BtnAccelerator: Byte;
+    BtnHighForeground: Byte;
+    BtnHighBackground: Byte;
+    BtnHighAccelerator: Byte;
+  end;
+
+  TMessageBoxButton = (
+    mbCancel,
+    mbClose,
+    mbYes,
+    mbNo
+  );
+
+  TMessageBoxButtons = set of TMessageBoxButton;
+
+  PMessageBoxButtonsData = ^TMessageBoxButtonsData;
+  TMessageBoxButtonsData = array[0..0] of TButtonData;
 
   TMessageBoxData = record
     Colors: TMessageBoxColors;
     Title: String;
     Text: String;
-    Button: String;
+    Buttons: TMessageBoxButtons;
+    DefaultButton: TMessageBoxButton;
   end;
 
 procedure SetHaltOnErrors(const AValue: Boolean);
@@ -173,7 +216,7 @@ procedure ScreenProgressBarDraw(const AProgressBarData: TProgressBarData);
 procedure ScreenProgressBarUpdate(const AProgressBarData: TProgressBarData);
 procedure ScreenProgressBarReset(const AProgressBarData: TProgressBarData);
 
-procedure ScreenMessageBoxDraw(const AMessageBoxData: TMessageBoxData);
+function ScreenMessageBoxDraw(const AMessageBoxData: TMessageBoxData): TMessageBoxResult;
 
 implementation
 
@@ -212,7 +255,7 @@ const
 
   kFrameGlyphs: array[TFrameType] of array[TFrameGlyphs] of Char = (
     ( 'Ú', '³', 'À', 'Ä', '¿', '³', 'Ù', 'Ä' ),
-    ( 'Û', 'Ý', 'Ý', 'Û', 'Û', 'Þ', 'Þ', 'Ü' )
+    ( 'Û', 'Ý', 'Û', 'Û', 'Û', 'Þ', 'Û', 'Ü' )
   );
 
   cProgressBarEmpty         = '°';
@@ -220,7 +263,15 @@ const
 
   kProgressBarHeight        = 3;
 
-  kMessageBoxUIPadding      = 1;
+  kMessageBoxTitlePadding   = 1;
+  kMessageBoxButtonPadding  = 2;
+
+  sMessageBoxButtons: array[TMessageBoxButton] of PChar = (
+    'Cancel',
+    'Close',
+    'Yes',
+    'No'
+  );
 
 var
   IGHaltOnErrors: Boolean;
@@ -971,24 +1022,322 @@ begin
   ScreenProgressBarUpdate(AProgressBarData);
 end;
 
-procedure ScreenMessageBoxDraw(const AMessageBoxData: TMessageBoxData);
+procedure ScreenButtonDraw(const AButtonData: TButtonData);
+begin
+  VideoWriteStringAt(
+    AButtonData.PositionX,
+    AButtonData.PositionY,
+    AButtonData.Text,
+    AButtonData.Colors.Foreground,
+    AButtonData.Colors.Background
+  );
+
+  VideoHighlightRegion(
+    AButtonData.PositionX + kMessageBoxButtonPadding,
+    AButtonData.PositionY,
+    1,
+    1,
+    VideoAttribute(
+      AButtonData.Colors.Accelerator,
+      AButtonData.Colors.Background
+    )
+  );
+end;
+
+procedure ScreenButtonNormal(const AButtonData: TButtonData);
+begin
+  VideoHighlightRegion(
+    AButtonData.PositionX,
+    AButtonData.PositionY,
+    Length(AButtonData.Text),
+    1,
+    VideoAttribute(
+      AButtonData.Colors.Foreground,
+      AButtonData.Colors.Background
+    )
+  );
+
+  VideoHighlightRegion(
+    AButtonData.PositionX + kMessageBoxButtonPadding,
+    AButtonData.PositionY,
+    1,
+    1,
+    VideoAttribute(
+      AButtonData.Colors.Accelerator,
+      AButtonData.Colors.Background
+    )
+  );
+end;
+
+procedure ScreenButtonHighlight(const AButtonData: TButtonData);
+begin
+  VideoHighlightRegion(
+    AButtonData.PositionX,
+    AButtonData.PositionY,
+    Length(AButtonData.Text),
+    1,
+    VideoAttribute(
+      AButtonData.Colors.HighBackground,
+      AButtonData.Colors.HighForeground
+    )
+  );
+
+  VideoHighlightRegion(
+    AButtonData.PositionX + kMessageBoxButtonPadding,
+    AButtonData.PositionY,
+    1,
+    1,
+    VideoAttribute(
+      AButtonData.Colors.HighAccelerator,
+      AButtonData.Colors.HighForeground
+    )
+  );
+end;
+
+function MessageBoxButtonCount(const AButtons: TMessageBoxButtons): Byte;
 var
-  LVideoArea: TVideoArea;
-  LVideoSection: PVideoSection;
-  LTextLength: Integer;
-  LFrameData: TFrameData;
-  LButtonX: Byte;
-  LButtonY: Byte;
-  LPaddedButton: String;
-  LAccelerator: Char;
+  LButton: TMessageBoxButton;
+  LButtonCount: Byte;
 
 begin
-  LTextLength := Length(AMessageBoxData.Text);
+  LButtonCount := 0;
 
-  LVideoArea.PositionX := (k80x25Width div 2) - ((LTextLength + 4) div 2);
+  for LButton := Low(TMessageBoxButton) to High(TMessageBoxButton) do
+  begin
+    if LButton in AButtons then
+    begin
+      Inc(LButtonCount);
+    end;
+  end;
+
+  MessageBoxButtonCount := Pred(LButtonCount);
+end;
+
+procedure MessageBoxCreateButton(var AButtonsData: PMessageBoxButtonsData;
+  const AButtonIndex, ALeft, ATop: Byte; var ALeftOffset: Byte;
+  const AButton: TMessageBoxButton; const AMessageBoxColors: TMessageBoxColors);
+var
+  LButtonText: String;
+  LPaddedText: String;
+  LPaddedTextLength: Byte;
+  LLeft: Byte;
+
+begin
+  LButtonText := StrPas(sMessageBoxButtons[AButton]);
+  LPaddedText := PadCenter(LButtonText, kMessageBoxButtonPadding);
+  LPaddedTextLength := Length(LPaddedText);
+
+  LLeft := ALeft - LPaddedTextLength - ALeftOffset;
+  ALeftOffset := Succ(LPaddedTextLength);
+
+  AButtonsData^[AButtonIndex].PositionX := LLeft;
+  AButtonsData^[AButtonIndex].PositionY := ATop;
+  AButtonsData^[AButtonIndex].Width := LPaddedTextLength;
+  AButtonsData^[AButtonIndex].Colors.Foreground := AMessageBoxColors.BtnForeground;
+  AButtonsData^[AButtonIndex].Colors.Background := AMessageBoxColors.BtnBackground;
+  AButtonsData^[AButtonIndex].Colors.Accelerator := AMessageBoxColors.BtnAccelerator;
+  AButtonsData^[AButtonIndex].Colors.HighForeground := AMessageBoxColors.BtnHighForeground;
+  AButtonsData^[AButtonIndex].Colors.HighBackground := AMessageBoxColors.BtnHighBackground;
+  AButtonsData^[AButtonIndex].Colors.HighAccelerator := AMessageBoxColors.BtnHighAccelerator;
+  AButtonsData^[AButtonIndex].Text := LPaddedText;
+  AButtonsData^[AButtonIndex].Tag := Byte(AButton);
+end;
+
+procedure MessageBoxCreateButtons(const AButtonsX, AButtonsY: Byte;
+  const AMessageBoxData: TMessageBoxData; var AButtonsData: PMessageBoxButtonsData);
+var
+  LButton: TMessageBoxButton;
+  LLeftOffset: Byte;
+  LButtonIndex: Byte;
+
+begin
+  LLeftOffset := 0;
+  LButtonIndex := 0;
+
+  for LButton := Low(TMessageBoxButton) to High(TMessageBoxButton) do
+  begin
+    if LButton in AMessageBoxData.Buttons then
+    begin
+      MessageBoxCreateButton(
+        AButtonsData,
+        LButtonIndex,
+        AButtonsX,
+        AButtonsY,
+        LLeftOffset,
+        LButton,
+        AMessageBoxData.Colors
+      );
+
+      Inc(LButtonIndex);
+    end;
+  end;
+end;
+
+procedure MessageBoxDrawButtons(var AButtonsData: PMessageBoxButtonsData;
+  const AButtonCount: Byte);
+var
+  LButtonIndex: Byte;
+
+begin
+  for LButtonIndex := 0 to AButtonCount do
+  begin
+    ScreenButtonDraw(AButtonsData^[LButtonIndex]);
+  end;
+end;
+
+function MessageBoxDefaultIndex(var AButtonsData: PMessageBoxButtonsData;
+  const AButtonCount: Byte; const ADefaultButton: TMessageBoxButton): Byte;
+var
+  LButtonIndex: Byte;
+
+begin
+  for LButtonIndex := 0 to AButtonCount do
+  begin
+    if AButtonsData^[LButtonIndex].Tag = Byte(ADefaultButton) then
+    begin
+      MessageBoxDefaultIndex := LButtonIndex;
+
+      Break;
+    end;
+  end;
+end;
+
+function MessageBoxResult(const AButton: TMessageBoxButton): TMessageBoxResult;
+begin
+  case AButton of
+    mbCancel:
+      MessageBoxResult := mrCancel;
+
+    mbClose:
+      MessageBoxResult := mrClose;
+
+    mbYes:
+      MessageBoxResult := mrYes;
+
+    mbNo:
+      MessageBoxResult := mrNo;
+
+  end;
+end;
+
+function MessageBoxAccelerator(const AAccelerator: Char; const AMessageBoxButtons: TMessageBoxButtons): TMessageBoxResult;
+var
+  LButton: TMessageBoxButton;
+
+begin
+  for LButton := Low(TMessageBoxButton) to High(TMessageBoxButton) do
+  begin
+    if LButton in AMessageBoxButtons then
+    begin
+      if UpCase(sMessageBoxButtons[LButton][0]) = AAccelerator then
+      begin
+        MessageBoxAccelerator := MessageBoxResult(LButton);
+        Exit;
+      end;
+    end;
+  end;
+end;
+
+function MessageBoxEventHandler(var AButtonsData: PMessageBoxButtonsData;
+  const AMessageBoxData: TMessageBoxData): TMessageBoxResult;
+var
+  LKey: Char;
+  LButtonCount: Byte;
+  LButtonIndex: Byte;
+
+begin
+  LButtonCount := MessageBoxButtonCount(AMessageBoxData.Buttons);
+  LButtonIndex := MessageBoxDefaultIndex(AButtonsData, LButtonCount, AMessageBoxData.DefaultButton);
+  ScreenButtonHighlight(AButtonsData^[LButtonIndex]);
+
+  while True do
+  begin
+    LKey := UpCase(ReadKey);
+
+    case LKey of
+      kKeyExtended:
+        begin
+          case ReadKey of
+            kKeyLeft:
+              begin
+                ScreenButtonNormal(AButtonsData^[LButtonIndex]);
+
+                if LButtonIndex < LButtonCount then
+                begin
+                  Inc(LButtonIndex);
+                end else
+                begin
+                  LButtonIndex := 0;
+                end;
+
+                ScreenButtonHighlight(AButtonsData^[LButtonIndex]);
+              end;
+
+            kKeyRight:
+              begin
+                ScreenButtonNormal(AButtonsData^[LButtonIndex]);
+
+                if LButtonIndex > 0 then
+                begin
+                  Dec(LButtonIndex);
+                end else
+                begin
+                  LButtonIndex := LButtonCount;
+                end;
+
+                ScreenButtonHighlight(AButtonsData^[LButtonIndex]);
+              end;
+
+          end;
+        end;
+
+      kKeyEnter:
+        begin
+          MessageBoxEventHandler := MessageBoxResult(TMessageBoxButton(AButtonsData^[LButtonIndex].Tag));
+          Break;
+        end;
+
+      kKeyEscape:
+        begin
+          MessageBoxEventHandler := mrCancel;
+          Break;
+        end;
+
+    else
+      MessageBoxEventHandler := MessageBoxAccelerator(LKey, AMessageBoxData.Buttons);
+      Break;
+    end;
+  end;
+end;
+
+function ScreenMessageBoxDraw(const AMessageBoxData: TMessageBoxData): TMessageBoxResult;
+var
+  I: Byte;
+  LStringsCount: Byte;
+  LStringsSize: Word;
+  LStrings: PStrings;
+  LMaxLength: Integer;
+  LVideoArea: TVideoArea;
+  LVideoSection: PVideoSection;
+  LFrameData: TFrameData;
+  LButtonCount: Byte;
+  LButtonsDataSize: Word;
+  LButtonsData: PMessageBoxButtonsData;
+
+begin
+  LStringsCount := FindOccurences(AMessageBoxData.Text, sCRLF);
+  LStringsSize := Succ(LStringsCount) * kMaxByte;
+
+  GetMem(LStrings, LStringsSize);
+
+  Split(AMessageBoxData.Text, sCRLF, LStrings);
+
+  LMaxLength := MaxLength(LStrings, LStringsCount);
+
+  LVideoArea.PositionX := (k80x25Width div 2) - ((LMaxLength + 4) div 2);
   LVideoArea.PositionY := (k80x25Height div 2) - 3;
-  LVideoArea.Width := LTextLength + 4;
-  LVideoArea.Height := 7;
+  LVideoArea.Width := LMaxLength + 4;
+  LVideoArea.Height := LStringsCount + 7;
 
   VideoStoreSection(LVideoSection, LVideoArea);
 
@@ -1005,7 +1354,7 @@ begin
   VideoWriteStringAt(
     LVideoArea.PositionX,
     Succ(LVideoArea.PositionY),
-    PadCenter(AMessageBoxData.Title, kMessageBoxUIPadding),
+    PadCenter(AMessageBoxData.Title, kMessageBoxTitlePadding),
     AMessageBoxData.Colors.Background,
     AMessageBoxData.Colors.Foreground
   );
@@ -1013,7 +1362,7 @@ begin
   VideoWriteRegion(
     Succ(LVideoArea.PositionX),
     LVideoArea.PositionY + 2,
-    LTextLength + 2,
+    LMaxLength + 2,
     LFrameData.Height - 2,
     cSpace,
     VideoAttribute(
@@ -1022,56 +1371,38 @@ begin
     )
   );
 
-  VideoWriteStringAt(
-    LVideoArea.PositionX + 2,
-    LVideoArea.PositionY + 3,
-    AMessageBoxData.Text,
-    AMessageBoxData.Colors.Foreground,
-    AMessageBoxData.Colors.Background
-  );
-
-  LPaddedButton := PadCenter(AMessageBoxData.Button, kMessageBoxUIPadding);
-
-  LButtonX := LVideoArea.PositionX + LFrameData.Width - Length(LPaddedButton) - 2;
-  LButtonY := Pred(LVideoArea.PositionY + LFrameData.Height);
-
-  VideoWriteStringAt(
-    LButtonX,
-    LButtonY,
-    LPaddedButton,
-    AMessageBoxData.Colors.Background,
-    AMessageBoxData.Colors.Foreground
-  );
-
-  VideoHighlightRegion(
-    Succ(LButtonX),
-    LButtonY,
-    1,
-    1,
-    VideoAttribute(
-      AMessageBoxData.Colors.Accelerator,
-      AMessageBoxData.Colors.Foreground
-    )
-  );
-
-  while True do
+  for I := 0 to LStringsCount do
   begin
-    LAccelerator := UpCase(ReadKey);
-
-    case LAccelerator of
-      kKeyEnter, kKeyEscape:
-        Break;
-
-    else
-      if AMessageBoxData.Button[1] = LAccelerator then
-      begin
-        Break;
-      end;
-
-    end;
+    VideoWriteStringAt(
+      LVideoArea.PositionX + 2,
+      LVideoArea.PositionY + 3 + I,
+      LStrings^[I],
+      AMessageBoxData.Colors.Foreground,
+      AMessageBoxData.Colors.Background
+    );
   end;
 
+  LButtonCount := MessageBoxButtonCount(AMessageBoxData.Buttons);
+  LButtonsDataSize := SizeOf(TButtonData) * LButtonCount;
+
+  GetMem(LButtonsData, LButtonsDataSize);
+
+  MessageBoxCreateButtons(
+    LVideoArea.PositionX + LFrameData.Width - 2,
+    Pred(LVideoArea.PositionY + LFrameData.Height),
+    AMessageBoxData,
+    LButtonsData
+  );
+
+  MessageBoxDrawButtons(LButtonsData, LButtonCount);
+
+  ScreenMessageBoxDraw := MessageBoxEventHandler(LButtonsData, AMessageBoxData);
+
+  FreeMem(LButtonsData, LButtonsDataSize);
+
   VideoRestoreSection(LVideoSection, LVideoArea);
+
+  FreeMem(LStrings, LStringsSize);
 end;
 
 end.

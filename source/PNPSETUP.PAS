@@ -23,12 +23,6 @@ uses
   Types,
   Video;
 
-var
-  IGEdit: TEditData;
-  IGProgressBar: TProgressBarData;
-  IGRawData: TFramedAreaData;
-  IGMessageBox: TMessageBoxData;
-
 const
   kUICommands: array[0..5] of TUICommand = (
     ( Y: 4; Accelerator: sPnPSetupCmdF4; Name: sPnPSetupCmdEditFilename ),
@@ -38,6 +32,12 @@ const
     ( Y: 9; Accelerator: sPnPSetupCmdF8; Name: sPnPSetupCmdWriteEEPROM ),
     ( Y: 11; Accelerator: sPnPSetupCmdESC; Name: sPnPSetupCmdExit )
   );
+
+var
+  IGEdit: TEditData;
+  IGProgressBar: TProgressBarData;
+  IGRawData: TFramedAreaData;
+  IGMessageBox: TMessageBoxData;
 
 { private declarations }
 
@@ -182,10 +182,16 @@ begin
 
   IGMessageBox.Colors.Foreground := clMessageBoxFore;
   IGMessageBox.Colors.Background := clMessageBoxBack;
-  IGMessageBox.Colors.Accelerator := clMessageBoxAccelerator;
+  IGMessageBox.Colors.BtnForeground := clMessageBoxBtnHighFore;
+  IGMessageBox.Colors.BtnBackground := clMessageBoxBtnHighBack;
+  IGMessageBox.Colors.BtnAccelerator := clMessageBoxBtnAccel;
+  IGMessageBox.Colors.BtnHighForeground := clMessageBoxBtnHighFore;
+  IGMessageBox.Colors.BtnHighBackground := clMessageBoxBtnHighBack;
+  IGMessageBox.Colors.BtnHighAccelerator := clMessageBoxBtnHighAccel;
   IGMessageBox.Title := sMessageBoxError;
   IGMessageBox.Text := sPnPSetupFilenameError;
-  IGMessageBox.Button := sMessageBoxButtonClose;
+  IGMessageBox.Buttons := [mbClose];
+  IGMessageBox.DefaultButton := mbClose;
 end;
 
 procedure DrawComponents;
@@ -240,11 +246,10 @@ procedure UIDraw;
 begin
   ScreenDrawTitleBar(clInterfaceFore, clInterfaceBack, clInterfaceFore, sPnPSetupTitle);
 
-  DrawOptions;
-
   CreateComponents;
-  DrawComponents;
 
+  DrawOptions;
+  DrawComponents;
   DrawCommands;
 end;
 
