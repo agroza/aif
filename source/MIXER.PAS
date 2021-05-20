@@ -449,6 +449,8 @@ begin
           case ReadKey of
             kKeyF8:
               begin
+                IGMixerConfigChanged := True;
+
                 MixerDefaultConfig;
                 DrawConfig;
 
@@ -459,6 +461,8 @@ begin
               begin
                 if SetupLoadConfig then
                 begin
+                  IGMixerConfigChanged := True;
+
                   DrawConfig;
                 end;
 

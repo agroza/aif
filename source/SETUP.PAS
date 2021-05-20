@@ -136,7 +136,7 @@ const
   );
 
 var
-  IGAIConfigChanged: Boolean;
+  IGSetupConfigChanged: Boolean;
   IGSetupOptions: array[TSetupOption] of TSetupOptionData;
   IGSetupConfig: TSetupConfig;
   IGMessageBox: TMessageBoxData;
@@ -761,7 +761,7 @@ var
   LIndex: Byte;
 
 begin
-  IGAIConfigChanged := True;
+  IGSetupConfigChanged := True;
 
   LSetupOptionData := IGSetupOptions[ASetupOption];
   LIndex := LSetupOptionData.Index;
@@ -932,7 +932,7 @@ var
   LSetupOption: TSetupOption;
 
 begin
-  IGAIConfigChanged := False;
+  IGSetupConfigChanged := False;
 
   LSetupOption := Low(TSetupOption);
   HighlightOption(LSetupOption, True);
@@ -945,6 +945,8 @@ begin
           case ReadKey of
             kKeyF8:
               begin
+                IGSetupConfigChanged := True;
+
                 SetupDefaultConfig;
                 DrawConfig;
 
@@ -955,6 +957,8 @@ begin
               begin
                 if SetupLoadConfig then
                 begin
+                  IGSetupConfigChanged := True;
+
                   DrawConfig;
                 end;
 
@@ -1009,7 +1013,7 @@ begin
 
       kKeyEscape:
         begin
-          if IGAIConfigChanged then
+          if IGSetupConfigChanged then
           begin
             case ScreenMessageBoxDraw(IGMessageBox) of
               mrCancel:

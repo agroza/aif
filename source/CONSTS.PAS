@@ -18,7 +18,7 @@ const
   sCRLF                     = #13#10;
 
   { program stringtable }
-  sProgramTitle             = 'AUDIO INTERFACE  VER. 2.8 REV. B';
+  sProgramTitle             = 'AUDIO INTERFACE  VER. 2.8 REV. C';
   sProgramCopyright         = 'Copyright (C) 1998-2021 Microprogramming TECHNIQUES';
   sProgramAuthor            = 'Programming/PC Code: Alexandru Groza';
   sProgramRights            = 'All rights reserved.';
@@ -415,7 +415,8 @@ const
     'write'
   );
 
-  sPnPSetupFilenameError    = 'Filename does not exist.';
+  sPnPSetupFilenameError    = 'Filename does not exist.' + #13#10 +
+                              'Please specify a different one.';
 
   sPnPSetupCmdProgramCmds   = 'PROGRAM COMMANDS';
   sPnPSetupCmdF4            = 'F4';

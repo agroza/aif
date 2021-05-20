@@ -263,6 +263,9 @@ const
 
   kProgressBarHeight        = 3;
 
+  cButtonLeftDemarcation    = '';
+  cButtonRightDemarcation   = '';
+
   kMessageBoxTitlePadding   = 1;
   kMessageBoxButtonPadding  = 2;
 
@@ -1067,6 +1070,18 @@ begin
       AButtonData.Colors.Background
     )
   );
+
+  VideoWriteCharAt(
+    AButtonData.PositionX,
+    AButtonData.PositionY,
+    cSpace
+  );
+
+  VideoWriteCharAt(
+    Pred(AButtonData.PositionX + AButtonData.Width),
+    AButtonData.PositionY,
+    cSpace
+  );
 end;
 
 procedure ScreenButtonHighlight(const AButtonData: TButtonData);
@@ -1087,6 +1102,26 @@ begin
     AButtonData.PositionY,
     1,
     1,
+    VideoAttribute(
+      AButtonData.Colors.HighAccelerator,
+      AButtonData.Colors.HighForeground
+    )
+  );
+
+  VideoWriteCharAttrAt(
+    AButtonData.PositionX,
+    AButtonData.PositionY,
+    cButtonLeftDemarcation,
+    VideoAttribute(
+      AButtonData.Colors.HighAccelerator,
+      AButtonData.Colors.HighForeground
+    )
+  );
+
+  VideoWriteCharAttrAt(
+    Pred(AButtonData.PositionX + AButtonData.Width),
+    AButtonData.PositionY,
+    cButtonRightDemarcation,
     VideoAttribute(
       AButtonData.Colors.HighAccelerator,
       AButtonData.Colors.HighForeground
