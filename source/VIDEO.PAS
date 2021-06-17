@@ -440,10 +440,12 @@ var
 
 begin
   for I := ALeft to Pred(ALeft + AWidth) do
+  begin
     for J := ATop to Pred(ATop + AHeight) do
     begin
       VideoWriteCharAttrAt(I, J, ACharacter, AAttribute);
     end;
+  end;
 end;
 
 procedure VideoHighlightRegion(const ALeft, ATop, AWidth, AHeight: Byte; const AAttribute: Byte);
@@ -453,10 +455,12 @@ var
 
 begin
   for I := ALeft to Pred(ALeft + AWidth) do
+  begin
     for J := ATop to Pred(ATop + AHeight) do
     begin
       VideoWriteAttrAt(I, J, AAttribute);
     end;
+  end;
 end;
 
 end.

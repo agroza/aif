@@ -19,6 +19,7 @@ uses
   Consts,
   Control,
   Crt,
+  Init,
   Routines,
   SBPro,
   Setup,
@@ -56,6 +57,7 @@ end;
 procedure StatusWrite;
 var
   LStatusItems: TStatusItems;
+  LControllerMode: TControllerMode;
   LFrequency: Word;
   LOutputFormat: TCodecOutputFormat;
   LSoundOutput: TCodecSoundOutput;
@@ -70,7 +72,9 @@ begin
 
   FillChar(LStatusItems, SizeOf(LStatusItems), $00);
 
-  case ControllerGetMode of
+  LControllerMode := ControllerGetMode;
+
+  case LControllerMode of
     cmWSS:
       begin
         CodecGetOutputFormat(LFrequency, LOutputFormat, LSoundOutput);
@@ -135,6 +139,14 @@ begin
   WriteItem(sStatusGamePort, IfThenElse(LStatusItems.GamePort, sDisabledEnabled[True], sDisabledEnabled[False]));
   WriteItem(sStatusOutputFormat, LStatusItems.OutputFormat);
   WriteItem(sStatusLineOutRelay, sDisabledEnabled[LStatusItems.LineOutRelay]);
+
+  if not InitAIFController(LControllerMode) then
+  begin
+    Writeln;
+    Writeln(sControllerReinitError);
+
+    Halt(kControllerReinitError);
+  end;
 end;
 
 end.

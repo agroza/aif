@@ -1267,6 +1267,7 @@ begin
       if UpCase(sMessageBoxButtons[LButton][0]) = AAccelerator then
       begin
         MessageBoxAccelerator := MessageBoxResult(LButton);
+
         Exit;
       end;
     end;
@@ -1329,17 +1330,20 @@ begin
       kKeyEnter:
         begin
           MessageBoxEventHandler := MessageBoxResult(TMessageBoxButton(AButtonsData^[LButtonIndex].Tag));
+
           Break;
         end;
 
       kKeyEscape:
         begin
           MessageBoxEventHandler := mrCancel;
+
           Break;
         end;
 
     else
       MessageBoxEventHandler := MessageBoxAccelerator(LKey, AMessageBoxData.Buttons);
+
       Break;
     end;
   end;

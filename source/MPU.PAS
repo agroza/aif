@@ -86,6 +86,7 @@ begin
     if (Port[IGDataPort] <> CMD_ACK) or (LRetries = 0) then
     begin
       MPUReset := False;
+
       Exit;
     end;
 
@@ -94,6 +95,7 @@ begin
     if (Port[IGStatusPort] and DRR) <> 0 then
     begin
       MPUReset := False;
+
       Exit;
     end;
 
@@ -111,6 +113,7 @@ begin
     if (Port[IGDataPort] <> CMD_ACK) or (LRetries = 0) then
     begin
       MPUReset := False;
+
       Exit;
     end;
   end;

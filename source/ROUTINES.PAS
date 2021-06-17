@@ -83,6 +83,7 @@ begin
     if AArray[LIndex] = AValue then
     begin
       LocateByte := LIndex;
+
       Break;
     end;
   end;
@@ -98,6 +99,7 @@ begin
     if AArray[LIndex] = AValue then
     begin
       LocateWord := LIndex;
+
       Break;
     end;
   end;
@@ -404,8 +406,12 @@ var
 
 begin
   for I := Length(AFileName) downto 1 do
+  begin
     if AFileName[I] = cFullStop then
+    begin
       Break;
+    end;
+  end;
 
   if (I = 1) and (AFileName[I] <> cFullStop) then
   begin

@@ -374,6 +374,7 @@ begin
   if not WaitForCalibration then
   begin
     CodecCalibrate := False;
+
     Exit;
   end;
 
@@ -521,6 +522,7 @@ begin
        (LCrystal = kSampleRates[LSampleRate].Crystal) then
     begin
       AFrequency := kSampleRates[LSampleRate].Frequency;
+
       Break;
     end;
   end;
@@ -534,8 +536,12 @@ var
 
 begin
   for LSampleRate := Low(TCodecSampleRate) to High(TCodecSampleRate) do
+  begin
     if AFrequency = kSampleRates[LSampleRate].Frequency then
+    begin
       Break;
+    end;
+  end;
 
   LOutputFormat := kSampleRates[LSampleRate].Divider shl $01;
 

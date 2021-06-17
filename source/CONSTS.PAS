@@ -18,7 +18,7 @@ const
   sCRLF                     = #13#10;
 
   { program stringtable }
-  sProgramTitle             = 'AUDIO INTERFACE  VER. 2.8 REV. C';
+  sProgramTitle             = 'AUDIO INTERFACE  VER. 2.8 REV. D';
   sProgramCopyright         = 'Copyright (C) 1998-2021 Microprogramming TECHNIQUES';
   sProgramAuthor            = 'Programming/PC Code: Alexandru Groza';
   sProgramRights            = 'All rights reserved.';
@@ -238,6 +238,7 @@ const
 
   { program constants }
   kHardwareInitError        = 1;
+  kControllerReinitError    = 2;
 
   kOKFailedXPosition        = 60;
 
@@ -633,6 +634,8 @@ const
   sStatusGamePort           = 'Game Port';
   sStatusOutputFormat       = 'Audio Output Format';
   sStatusLineOutRelay       = 'Line Out Relay';
+
+  sControllerReinitError    = 'Controller reinitialization error.';
 
   { Status program constants }
   kStatusValueX             = 22;

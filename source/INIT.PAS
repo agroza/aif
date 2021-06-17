@@ -16,6 +16,8 @@ uses
 var
   GParameters: TParameters;
 
+function InitAIFController(const AControllerMode: TControllerMode): Boolean;
+
 procedure InitLineOut;
 
 procedure InitAIFBasic;
@@ -169,6 +171,7 @@ begin
     if not MPUReset(mrmDumbUART) then
     begin
       AIMPUInitialize := False;
+
       Exit;
     end;
 
@@ -213,6 +216,18 @@ begin
 end;
 
 { public declarations }
+
+function InitAIFController(const AControllerMode: TControllerMode): Boolean;
+begin
+  case AControllerMode of
+    cmWSS:
+      InitAIFController := AISetWSSMode;
+
+    cmSB:
+      InitAIFController := AISetSBMode;
+
+  end;
+end;
 
 procedure InitLineOut;
 begin
