@@ -23,6 +23,7 @@ function LocateWord(const AValue: Word; const AArray: array of Word): Word;
 
 function FindSimpleParameter(const AParameter: String): Boolean;
 function FindComplexParameter(const AParameter: String; var AValue: String): Boolean;
+function FindComplexParameterValue(const AParameter, AValue: String): Boolean;
 
 function IntToHex(const AInteger: Integer): String;
 function StrToIntDef(const AString: String; const ADefault: Longint): Longint;
@@ -141,6 +142,17 @@ begin
       Break;
     end;
   end;
+end;
+
+function FindComplexParameterValue(const AParameter, AValue: String): Boolean;
+begin
+  FindComplexParameterValue := LowerCase(
+    Copy(
+      AParameter,
+      Succ(Pos(cEqual, AParameter)),
+      Length(AValue)
+    )
+  ) = LowerCase(AValue);
 end;
 
 function IntToHex(const AInteger: Integer): String;

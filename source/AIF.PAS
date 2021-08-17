@@ -24,7 +24,7 @@ uses
 
 function ProcessParameters: Boolean;
 var
-  LValue: String;
+  LParameterLineOut: String;
 
 begin
   FillChar(GParameters, SizeOf(GParameters), $00);
@@ -54,9 +54,22 @@ begin
     GParameters.Quiet := FindSimpleParameter(pQuiet);
     GParameters.Status := FindSimpleParameter(pStatus);
 
-    GParameters.LineOut := FindComplexParameter(pLineOut, LValue);
-    GParameters.LineOutRelay := GParameters.LineOut and
-      (LowerCase(Copy(LValue, Succ(Pos(cEqual, LValue)), 3)) = pOn);
+    GParameters.LineOut := FindComplexParameter(pLineOut, LParameterLineOut);
+
+    if GParameters.LineOut then
+    begin
+      if FindComplexParameterValue(LParameterLineOut, pOn) then
+      begin
+        GParameters.LineOutRelay := True;
+      end else
+      if FindComplexParameterValue(LParameterLineOut, pOff) then
+      begin
+        GParameters.LineOutRelay := False;
+      end else
+      begin
+        GParameters.LineOut := False;
+      end;
+    end;
 
     ProcessParameters := GParameters.Setup or GParameters.PnPSetup or
       GParameters.Mixer or GParameters.Status or GParameters.LineOut or
