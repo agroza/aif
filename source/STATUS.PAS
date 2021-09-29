@@ -18,12 +18,12 @@ uses
   Codec,
   Consts,
   Control,
-  Crt,
   Init,
   Routines,
   SBPro,
   Setup,
-  Types;
+  Types,
+  Video;
 
 type
   TStatusItems = record
@@ -42,14 +42,16 @@ type
 { private declarations }
 
 procedure WriteItem(const AItem, AValue: String);
+var
+  LPositionY: Byte;
+
 begin
-  Write(AItem);
-  GotoXY(kStatusValueX, WhereY);
-  Write(cSemicolon + cSpace);
-  TextColor(clHighlight);
-  Write(AValue);
-  TextColor(clNormal);
-  Writeln;
+  LPositionY := VideoWhereY;
+
+  VideoWriteStringAt(kStatusItemX, LPositionY, AItem, clNormal, clBlack);
+  VideoWriteCharAt(kStatusSemicolonX, LPositionY, cSemicolon);
+  VideoWriteStringAt(kStatusValueX, LPositionY, AValue, clHighlight, clBlack);
+  VideoWriteNewln;
 end;
 
 { public declarations }
@@ -66,9 +68,12 @@ var
   LFilter: Boolean;
 
 begin
-  Writeln;
-  Writeln(sStatusAIFModel);
-  Writeln;
+  VideoSetForeground(clNormal);
+  VideoSetBackground(clBlack);
+
+  VideoWriteNewln;
+  VideoWriteln(sStatusAIFModel);
+  VideoWriteNewln;
 
   FillChar(LStatusItems, SizeOf(LStatusItems), $00);
 
@@ -142,8 +147,8 @@ begin
 
   if not InitAIFController(LControllerMode) then
   begin
-    Writeln;
-    Writeln(sControllerReinitError);
+    VideoWriteNewln;
+    VideoWriteln(sControllerReinitError);
 
     Halt(kControllerReinitError);
   end;

@@ -29,39 +29,6 @@ type
     Value: String
   end;
 
-  TStereoSliderColors = record
-    Foreground: Byte;
-    Background: Byte;
-    Title: Byte;
-    Text: Byte;
-    HighForeground: Byte;
-    HighBackground: Byte;
-    Grid: Byte;
-    Tip: Byte;
-    Normal: Byte;
-    Low: Byte;
-    Medium: Byte;
-    High: Byte;
-    VeryHigh: Byte;
-  end;
-
-  TStereoSliderData = record
-    PositionX: Byte;
-    PositionY: Byte;
-    Colors: TStereoSliderColors;
-    Min: Byte;
-    Max: Byte;
-    LeftPosition: Byte;
-    RightPosition: Byte;
-    Locked: Boolean;
-    Title: String;
-  end;
-
-  TSliderDirection = (
-    sdUp,
-    sdDown
-  );
-
   TEditColors = record
     Foreground: Byte;
     Background: Byte;
@@ -185,25 +152,59 @@ type
     DefaultButton: TMessageBoxButton;
   end;
 
-procedure SetHaltOnErrors(const AValue: Boolean);
+  TStereoSliderColors = record
+    Foreground: Byte;
+    Background: Byte;
+    Title: Byte;
+    Text: Byte;
+    HighForeground: Byte;
+    HighBackground: Byte;
+    Grid: Byte;
+    Tip: Byte;
+    Normal: Byte;
+    Low: Byte;
+    Medium: Byte;
+    High: Byte;
+    VeryHigh: Byte;
+  end;
 
-procedure ScreenWriteActionIf(const AMessage: String; const AAction, ACondition: Boolean);
+  TStereoSliderData = record
+    PositionX: Byte;
+    PositionY: Byte;
+    Colors: TStereoSliderColors;
+    Min: Byte;
+    Max: Byte;
+    LeftPosition: Byte;
+    RightPosition: Byte;
+    Locked: Boolean;
+    Title: String;
+  end;
+
+  TSliderDirection = (
+    sdUp,
+    sdDown
+  );
+
+procedure ScreenInitialize;
+procedure ScreenFinalize;
+
+procedure ScreenStoreFrameGlyphs;
+procedure ScreenRestoreFrameGlyphs;
+procedure ScreenSetVVFrameGlyphs;
 
 procedure ScreenStoreColors;
 procedure ScreenRestoreColors;
 procedure ScreenSetVVColors;
 
-procedure ScreenDrawTitleBar(const AForeColor, ABackColor, ATextColor: Byte; const ACaption: String);
+procedure SetHaltOnErrors(const AValue: Boolean);
 
-procedure ScreenDrawCommand(const ALeft, ATop, AHighlight, AColor, ABackground: Byte; const AShortcut, ADescription: String);
+procedure ScreenWriteActionIf(const AMessage: String; const AAction, ACondition: Boolean);
 
-procedure ScreenDrawKeyValue(const AKeyValueData: TKeyValueData);
+procedure ScreenTitleBarDraw(const AForeground, ABackground, ATextColor: Byte; const ACaption: String);
 
-procedure ScreenStereoSliderDraw(const ASliderData: TStereoSliderData);
-procedure ScreenStereoSliderHighlight(const ASliderData: TStereoSliderData;
-  const AChannel: TCodecSoundChannel; const AValue: Boolean);
-procedure ScreenStereoSliderMove(var ASliderData: TStereoSliderData;
-  const AChannel: TCodecSoundChannel; const ADirection: TSliderDirection);
+procedure ScreenCommandDraw(const ALeft, ATop, AHighlight, AColor, ABackground: Byte; const AShortcut, ADescription: String);
+
+procedure ScreenKeyValueDraw(const AKeyValueData: TKeyValueData);
 
 procedure ScreenEditDraw(const AEditData: TEditData);
 procedure ScreenEditChange(var AEditData: TEditData);
@@ -218,15 +219,31 @@ procedure ScreenProgressBarReset(const AProgressBarData: TProgressBarData);
 
 function ScreenMessageBoxDraw(const AMessageBoxData: TMessageBoxData): TMessageBoxResult;
 
+procedure ScreenStereoSliderDraw(const ASliderData: TStereoSliderData);
+procedure ScreenStereoSliderHighlight(const ASliderData: TStereoSliderData;
+  const AChannel: TCodecSoundChannel; const AValue: Boolean);
+procedure ScreenStereoSliderMove(var ASliderData: TStereoSliderData;
+  const AChannel: TCodecSoundChannel; const ADirection: TSliderDirection);
+
 implementation
 
 uses
   Consts,
-  Crt,
   Routines,
   Video;
 
 type
+  TWindowFrameBorder = (
+    wfbBottomLeft,
+    wfbBottom,
+    wfbBottomRight
+  );
+
+  TWindowFrameBorderGlyph = record
+    Ordinal: Byte;
+    Data: TGlyphData;
+  end;
+
   TFrameGlyphs = (
     fgTopLeft,
     fgLeft,
@@ -239,6 +256,14 @@ type
   );
 
 const
+  { VersaVision frame border glyph data }
+  kVVWindowFrameBorders : array[TWindowFrameBorder] of TWindowFrameBorderGlyph = (
+    ( Ordinal: 200; Data: ( $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $FF, $FF, $FF, $FF ) ),
+    ( Ordinal: 205; Data: ( $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $FF, $FF, $FF, $FF ) ),
+    ( Ordinal: 201; Data: ( $0F, $0F, $0F, $0F, $0F, $0F, $0F, $0F, $0F, $0F, $0F, $0F, $0F, $FF, $FF, $FF, $FF ) )
+  );
+
+  { VersaVision color scheme data }
   kVVBlue: TPaletteColor = ( RIntensity: 0; GIntensity: 0; BIntensity: 16 );
   kVVRed: TPaletteColor = ( RIntensity: 32; GIntensity: 0; BIntensity: 0 );
   kVVBrown: TPaletteColor = ( RIntensity: 26; GIntensity: 26; BIntensity: 26 );
@@ -247,15 +272,13 @@ const
   kVVLightRed: TPaletteColor = ( RIntensity: 50; GIntensity: 30; BIntensity: 0 );
   kVVYellow: TPaletteColor = ( RIntensity: 50; GIntensity: 50; BIntensity: 0 );
 
-  { UI objects constants. }
-  sSliderGrid               = 'цдедедедедедедедедедедедедедед╢';
-  cSliderTip                = 'ш';
-  cSliderLeftBar            = 'ъ';
-  cSliderRightBar           = 'э';
+  { UI objects constants }
+  kTitleBarHeight           = 1;
+  kEditHeight               = 1;
 
   kFrameGlyphs: array[TFrameType] of array[TFrameGlyphs] of Char = (
     ( 'з', 'Ё', 'ю', 'д', '©', 'Ё', 'ы', 'д' ),
-    ( 'ш', 'щ', 'ш', 'ш', 'ш', 'ч', 'ш', 'э' )
+    ( 'ш', 'щ', 'х', 'ш', 'ш', 'ч', 'и', 'м' )
   );
 
   cProgressBarEmpty         = '╟';
@@ -276,65 +299,74 @@ const
     'No'
   );
 
+  sSliderGrid               = 'цдедедедедедедедедедедедедедед╢';
+  cSliderTip                = 'ш';
+  cSliderLeftBar            = 'ъ';
+  cSliderRightBar           = 'э';
+
 var
   IGHaltOnErrors: Boolean;
 
+  IGWindowFrameBorders: array[TWindowFrameBorder] of TWindowFrameBorderGlyph;
   IGVGAPalette: array[kVGAPaletteStart..kVGAPaletteEnd] of TPaletteColor;
 
 { private and public declarations }
 
-procedure SetHaltOnErrors(const AValue: Boolean);
+procedure ScreenInitialize;
 begin
-  if IGHaltOnErrors <> AValue then
+  ScreenSetVVFrameGlyphs;
+  ScreenSetVVColors;
+end;
+
+procedure ScreenFinalize;
+begin
+  ScreenRestoreColors;
+  ScreenRestoreFrameGlyphs;
+end;
+
+procedure ScreenStoreFrameGlyphs;
+var
+  LWindowFrameBorder: TWindowFrameBorder;
+
+begin
+  for LWindowFrameBorder := Low(kVVWindowFrameBorders) to High(kVVWindowFrameBorders) do
   begin
-    IGHaltOnErrors := AValue;
+    IGWindowFrameBorders[LWindowFrameBorder].Ordinal := kVVWindowFrameBorders[LWindowFrameBorder].Ordinal;
+
+    VideoGetGlyphData(
+      IGWindowFrameBorders[LWindowFrameBorder].Ordinal,
+      IGWindowFrameBorders[LWindowFrameBorder].Data
+    );
   end;
 end;
 
-procedure ScreenWriteActionIf(const AMessage: String; const AAction, ACondition: Boolean);
+procedure ScreenRestoreFrameGlyphs;
 var
-  LPosition: Byte;
-  LPositionY: Byte;
+  LWindowFrameBorder: TWindowFrameBorder;
 
 begin
-  if ACondition then
+  for LWindowFrameBorder := Low(IGWindowFrameBorders) to High(IGWindowFrameBorders) do
   begin
-    Writeln(AMessage);
-
-    LPosition := kOKFailedXPosition;
-    LPositionY := Pred(WhereY);
-
-    VideoWriteCharAt(
-      LPosition,
-      LPositionY,
-      cOpenSquareBracket
-    );
-
-    Inc(LPosition, 2);
-
-    VideoWriteStringAt(
-      LPosition,
-      LPositionY,
-      sFAILEDOK[AAction],
-      clFAILEDOK[AAction],
-      clBlack
-    );
-
-    Inc(LPosition, Succ(Length(sFAILEDOK[AAction])));
-
-    VideoWriteCharAt(
-      LPosition,
-      LPositionY,
-      cClosedSquareBracket
+    VideoSetGlyphData(
+      IGWindowFrameBorders[LWindowFrameBorder].Ordinal,
+      IGWindowFrameBorders[LWindowFrameBorder].Data
     );
   end;
+end;
 
-  if IGHaltOnErrors and not AAction then
+procedure ScreenSetVVFrameGlyphs;
+var
+  LWindowFrameBorder: TWindowFrameBorder;
+
+begin
+  ScreenStoreFrameGlyphs;
+
+  for LWindowFrameBorder := Low(kVVWindowFrameBorders) to High(kVVWindowFrameBorders) do
   begin
-    Writeln;
-    Writeln(sHardwareInitError);
-
-    Halt(kHardwareInitError);
+    VideoSetGlyphData(
+      kVVWindowFrameBorders[LWindowFrameBorder].Ordinal,
+      kVVWindowFrameBorders[LWindowFrameBorder].Data
+    );
   end;
 end;
 
@@ -373,17 +405,82 @@ begin
   VideoSetPaletteColor(clVGAPaletteYellow, kVVYellow);
 end;
 
-procedure ScreenDrawTitleBar(const AForeColor, ABackColor, ATextColor: Byte; const ACaption: String);
+procedure SetHaltOnErrors(const AValue: Boolean);
+begin
+  if IGHaltOnErrors <> AValue then
+  begin
+    IGHaltOnErrors := AValue;
+  end;
+end;
+
+procedure ScreenWriteActionIf(const AMessage: String; const AAction, ACondition: Boolean);
+var
+  LPositionX: Byte;
+  LPositionY: Byte;
+
+begin
+  if ACondition then
+  begin
+    LPositionX := VideoWhereX;
+    LPositionY := VideoWhereY;
+
+    VideoWriteStringAt(
+      LPositionX,
+      LPositionY,
+      AMessage,
+      clNormal,
+      clBlack
+    );
+
+    LPositionX := kOKFailedXPosition;
+
+    VideoWriteCharAt(
+      LPositionX,
+      LPositionY,
+      cOpenSquareBracket
+    );
+
+    Inc(LPositionX, 2);
+
+    VideoWriteStringAt(
+      LPositionX,
+      LPositionY,
+      sFAILEDOK[AAction],
+      clFAILEDOK[AAction],
+      clBlack
+    );
+
+    Inc(LPositionX, Succ(Length(sFAILEDOK[AAction])));
+
+    VideoWriteCharAt(
+      LPositionX,
+      LPositionY,
+      cClosedSquareBracket
+    );
+
+    VideoWriteNewln;
+  end;
+
+  if IGHaltOnErrors and not AAction then
+  begin
+    VideoWriteNewln;
+    VideoWriteln(sHardwareInitError);
+
+    Halt(kHardwareInitError);
+  end;
+end;
+
+procedure ScreenTitleBarDraw(const AForeground, ABackground, ATextColor: Byte; const ACaption: String);
 begin
   VideoWriteRegion(
     k80x25Left,
     k80x25Top,
     k80x25Width,
-    1,
+    kTitleBarHeight,
     cSpace,
     VideoAttribute(
-      AForeColor,
-      ABackColor
+      AForeground,
+      ABackground
     )
   );
 
@@ -392,11 +489,11 @@ begin
     k80x25Top,
     ACaption,
     ATextColor,
-    ABackColor
+    ABackground
   );
 end;
 
-procedure ScreenDrawCommand(const ALeft, ATop, AHighlight, AColor, ABackground: Byte; const AShortcut, ADescription: String);
+procedure ScreenCommandDraw(const ALeft, ATop, AHighlight, AColor, ABackground: Byte; const AShortcut, ADescription: String);
 begin
   VideoWriteStringAt(
     ALeft,
@@ -415,7 +512,7 @@ begin
   );
 end;
 
-procedure ScreenDrawKeyValue(const AKeyValueData: TKeyValueData);
+procedure ScreenKeyValueDraw(const AKeyValueData: TKeyValueData);
 begin
   VideoWriteStringAt(
     AKeyValueData.NameX,
@@ -595,134 +692,13 @@ begin
   );
 end;
 
-procedure ScreenStereoSliderDraw(const ASliderData: TStereoSliderData);
-begin
-  VideoWriteStringAt(
-    ASliderData.PositionX + kMixerSlidersTipX,
-    ASliderData.PositionY,
-    ASliderData.Title,
-    ASliderData.Colors.Title,
-    ASliderData.Colors.Background
-  );
-
-  VideoWriteStringAt(
-    ASliderData.PositionX + kMixerSlidersTipX,
-    ASliderData.PositionY + 2,
-    sSliderGrid,
-    ASliderData.Colors.Grid,
-    ASliderData.Colors.Background
-  );
-
-  StereoSliderDrawBar(ASliderData, ASliderData.LeftPosition, kMixerSlidersLeftY, sMixerSliderLeft, cSliderLeftBar);
-  StereoSliderDrawBar(ASliderData, ASliderData.RightPosition, kMixerSlidersRightY, sMixerSliderRight, cSliderRightBar);
-
-  StereoSliderUpdate(ASliderData, scLeft);
-  StereoSliderUpdate(ASliderData, scRight);
-end;
-
-procedure ScreenStereoSliderHighlight(const ASliderData: TStereoSliderData;
-  const AChannel: TCodecSoundChannel; const AValue: Boolean);
-var
-  LLeftAttribute: Byte;
-  LRightAttribute: Byte;
-
-begin
-  if AValue then
-  begin
-    case AChannel of
-      scLeft:
-        begin
-          LLeftAttribute := VideoAttribute(
-            ASliderData.Colors.HighForeground,
-            ASliderData.Colors.HighBackground
-          );
-
-          LRightAttribute := VideoAttribute(
-            ASliderData.Colors.Text,
-            ASliderData.Colors.Background
-          );
-        end;
-
-      scRight:
-        begin
-          LLeftAttribute := VideoAttribute(
-            ASliderData.Colors.Text,
-            ASliderData.Colors.Background
-          );
-
-          LRightAttribute := VideoAttribute(
-            ASliderData.Colors.HighForeground,
-            ASliderData.Colors.HighBackground
-          );
-        end;
-
-    end;
-  end else
-  begin
-    LLeftAttribute := VideoAttribute(
-      ASliderData.Colors.Text,
-      ASliderData.Colors.Background
-    );
-
-    LRightAttribute := VideoAttribute(
-      ASliderData.Colors.Text,
-      ASliderData.Colors.Background
-    );
-  end;
-
-  VideoHighlightRegion(
-    ASliderData.PositionX,
-    ASliderData.PositionY + kMixerSlidersLeftY,
-    4,
-    1,
-    LLeftAttribute
-  );
-
-  VideoHighlightRegion(
-    ASliderData.PositionX,
-    ASliderData.PositionY + kMixerSlidersRightY,
-    5,
-    1,
-    LRightAttribute
-  );
-end;
-
-procedure ScreenStereoSliderMove(var ASliderData: TStereoSliderData;
-  const AChannel: TCodecSoundChannel; const ADirection: TSliderDirection);
-begin
-  if ASliderData.Locked then
-  begin
-    StereoSliderAct(ASliderData, ASliderData.LeftPosition, ADirection, kMixerSlidersLeftY, cSliderLeftBar);
-    StereoSliderUpdate(ASliderData, scLeft);
-
-    StereoSliderAct(ASliderData, ASliderData.RightPosition, ADirection, kMixerSlidersRightY, cSliderRightBar);
-    StereoSliderUpdate(ASliderData, scRight);
-  end else
-  begin
-    case AChannel of
-      scLeft:
-        begin
-          StereoSliderAct(ASliderData, ASliderData.LeftPosition, ADirection, kMixerSlidersLeftY, cSliderLeftBar);
-        end;
-
-      scRight:
-        begin
-          StereoSliderAct(ASliderData, ASliderData.RightPosition, ADirection, kMixerSlidersRightY, cSliderRightBar);
-        end;
-
-    end;
-
-    StereoSliderUpdate(ASliderData, AChannel);
-  end;
-end;
-
 procedure EditUpdate(const AEditData: TEditData);
 begin
   VideoWriteRegion(
     AEditData.PositionX,
     AEditData.PositionY,
     AEditData.Width,
-    1,
+    kEditHeight,
     cSpace,
     VideoAttribute(
       AEditData.Colors.Foreground,
@@ -745,7 +721,7 @@ begin
     AEditData.PositionX,
     AEditData.PositionY,
     AEditData.Width,
-    1,
+    kEditHeight,
     VideoAttribute(
       AEditData.Colors.Foreground,
       AEditData.Colors.Background
@@ -759,7 +735,7 @@ begin
     AEditData.PositionX,
     AEditData.PositionY,
     AEditData.Width,
-    1,
+    kEditHeight,
     VideoAttribute(
       AEditData.Colors.HighForeground,
       AEditData.Colors.HighBackground
@@ -782,7 +758,7 @@ var
 begin
   EditHighlight(AEditData);
 
-  GotoXY(AEditData.PositionX + Length(AEditData.Text), AEditData.PositionY);
+  VideoGotoXY(AEditData.PositionX + Length(AEditData.Text), AEditData.PositionY);
   VideoEnableCursor;
 
   LInput := AEditData.Text;
@@ -793,7 +769,7 @@ begin
 
   while True do
   begin
-    LKey := ReadKey;
+    LKey := Routines.ReadKey;
 
     case LKey of
       kKeyBackspace:
@@ -803,13 +779,13 @@ begin
             Delete(LInput, Length(LInput), 1);
 
             VideoWriteCharAttrAt(
-              Pred(WhereX),
+              Pred(VideoWhereX),
               AEditData.PositionY,
               cSpace,
               LAttribute
             );
 
-            GotoXY(Pred(WhereX), WhereY);
+            VideoGotoXY(Pred(VideoWhereX), VideoWhereY);
           end;
         end;
 
@@ -830,13 +806,13 @@ begin
             LInput := LInput + LKey;
 
             VideoWriteCharAttrAt(
-              WhereX,
+              VideoWhereX,
               AEditData.PositionY,
               LKey,
               LAttribute
             );
 
-            GotoXY(Succ(WhereX), AEditData.PositionY);
+            VideoGotoXY(Succ(VideoWhereX), AEditData.PositionY);
           end;
         end;
 
@@ -1288,43 +1264,37 @@ begin
 
   while True do
   begin
-    LKey := UpCase(ReadKey);
+    LKey := UpCase(Routines.ReadKey);
 
     case LKey of
-      kKeyExtended:
+      kKeyLeft:
         begin
-          case ReadKey of
-            kKeyLeft:
-              begin
-                ScreenButtonNormal(AButtonsData^[LButtonIndex]);
+          ScreenButtonNormal(AButtonsData^[LButtonIndex]);
 
-                if LButtonIndex < LButtonCount then
-                begin
-                  Inc(LButtonIndex);
-                end else
-                begin
-                  LButtonIndex := 0;
-                end;
-
-                ScreenButtonHighlight(AButtonsData^[LButtonIndex]);
-              end;
-
-            kKeyRight:
-              begin
-                ScreenButtonNormal(AButtonsData^[LButtonIndex]);
-
-                if LButtonIndex > 0 then
-                begin
-                  Dec(LButtonIndex);
-                end else
-                begin
-                  LButtonIndex := LButtonCount;
-                end;
-
-                ScreenButtonHighlight(AButtonsData^[LButtonIndex]);
-              end;
-
+          if LButtonIndex < LButtonCount then
+          begin
+            Inc(LButtonIndex);
+          end else
+          begin
+            LButtonIndex := 0;
           end;
+
+          ScreenButtonHighlight(AButtonsData^[LButtonIndex]);
+        end;
+
+      kKeyRight:
+        begin
+          ScreenButtonNormal(AButtonsData^[LButtonIndex]);
+
+          if LButtonIndex > 0 then
+          begin
+            Dec(LButtonIndex);
+          end else
+          begin
+            LButtonIndex := LButtonCount;
+          end;
+
+          ScreenButtonHighlight(AButtonsData^[LButtonIndex]);
         end;
 
       kKeyEnter:
@@ -1442,6 +1412,127 @@ begin
   VideoRestoreSection(LVideoSection, LVideoArea);
 
   FreeMem(LStrings, LStringsSize);
+end;
+
+procedure ScreenStereoSliderDraw(const ASliderData: TStereoSliderData);
+begin
+  VideoWriteStringAt(
+    ASliderData.PositionX + kMixerSlidersTipX,
+    ASliderData.PositionY,
+    ASliderData.Title,
+    ASliderData.Colors.Title,
+    ASliderData.Colors.Background
+  );
+
+  VideoWriteStringAt(
+    ASliderData.PositionX + kMixerSlidersTipX,
+    ASliderData.PositionY + 2,
+    sSliderGrid,
+    ASliderData.Colors.Grid,
+    ASliderData.Colors.Background
+  );
+
+  StereoSliderDrawBar(ASliderData, ASliderData.LeftPosition, kMixerSlidersLeftY, sMixerSliderLeft, cSliderLeftBar);
+  StereoSliderDrawBar(ASliderData, ASliderData.RightPosition, kMixerSlidersRightY, sMixerSliderRight, cSliderRightBar);
+
+  StereoSliderUpdate(ASliderData, scLeft);
+  StereoSliderUpdate(ASliderData, scRight);
+end;
+
+procedure ScreenStereoSliderHighlight(const ASliderData: TStereoSliderData;
+  const AChannel: TCodecSoundChannel; const AValue: Boolean);
+var
+  LLeftAttribute: Byte;
+  LRightAttribute: Byte;
+
+begin
+  if AValue then
+  begin
+    case AChannel of
+      scLeft:
+        begin
+          LLeftAttribute := VideoAttribute(
+            ASliderData.Colors.HighForeground,
+            ASliderData.Colors.HighBackground
+          );
+
+          LRightAttribute := VideoAttribute(
+            ASliderData.Colors.Text,
+            ASliderData.Colors.Background
+          );
+        end;
+
+      scRight:
+        begin
+          LLeftAttribute := VideoAttribute(
+            ASliderData.Colors.Text,
+            ASliderData.Colors.Background
+          );
+
+          LRightAttribute := VideoAttribute(
+            ASliderData.Colors.HighForeground,
+            ASliderData.Colors.HighBackground
+          );
+        end;
+
+    end;
+  end else
+  begin
+    LLeftAttribute := VideoAttribute(
+      ASliderData.Colors.Text,
+      ASliderData.Colors.Background
+    );
+
+    LRightAttribute := VideoAttribute(
+      ASliderData.Colors.Text,
+      ASliderData.Colors.Background
+    );
+  end;
+
+  VideoHighlightRegion(
+    ASliderData.PositionX,
+    ASliderData.PositionY + kMixerSlidersLeftY,
+    4,
+    1,
+    LLeftAttribute
+  );
+
+  VideoHighlightRegion(
+    ASliderData.PositionX,
+    ASliderData.PositionY + kMixerSlidersRightY,
+    5,
+    1,
+    LRightAttribute
+  );
+end;
+
+procedure ScreenStereoSliderMove(var ASliderData: TStereoSliderData;
+  const AChannel: TCodecSoundChannel; const ADirection: TSliderDirection);
+begin
+  if ASliderData.Locked then
+  begin
+    StereoSliderAct(ASliderData, ASliderData.LeftPosition, ADirection, kMixerSlidersLeftY, cSliderLeftBar);
+    StereoSliderUpdate(ASliderData, scLeft);
+
+    StereoSliderAct(ASliderData, ASliderData.RightPosition, ADirection, kMixerSlidersRightY, cSliderRightBar);
+    StereoSliderUpdate(ASliderData, scRight);
+  end else
+  begin
+    case AChannel of
+      scLeft:
+        begin
+          StereoSliderAct(ASliderData, ASliderData.LeftPosition, ADirection, kMixerSlidersLeftY, cSliderLeftBar);
+        end;
+
+      scRight:
+        begin
+          StereoSliderAct(ASliderData, ASliderData.RightPosition, ADirection, kMixerSlidersRightY, cSliderRightBar);
+        end;
+
+    end;
+
+    StereoSliderUpdate(ASliderData, AChannel);
+  end;
 end;
 
 end.

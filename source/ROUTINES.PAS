@@ -15,6 +15,8 @@ uses
 
 procedure Delay(const ADuration: Word);
 
+function ReadKey: Char;
+
 function GetBit(const AByte, ABit: Byte): Boolean;
 procedure SetBit(var AByte: Byte; const ABit: Byte; const AValue: Boolean);
 
@@ -56,6 +58,18 @@ asm
   mov dx,ax
   mov ah,86h
   int 15h
+end;
+
+function ReadKey: Char; assembler;
+asm
+  xor ah,ah
+  int 16h
+  or al,al
+  jnz @exit
+  mov al,ah
+
+@exit:
+
 end;
 
 function GetBit(const AByte, ABit: Byte): Boolean;
@@ -237,21 +251,20 @@ asm
   xchg ax,cx
   jcxz @exit
 
-@lowercase:
+@lowerCase:
   lodsb
   cmp al,'A'
-  jb @next
+  jb @nextByte
   cmp al,'Z'
-  ja @next
+  ja @nextByte
   add al,20h
 
-@next:
+@nextByte:
   stosb
-  loop @lowercase
+  loop @lowerCase
 
 @exit:
   pop ds
-
 end;
 
 function StrPas(const APChar: PChar): String; assembler;
@@ -327,6 +340,7 @@ end;
 function MaxLength(const AStrings: PStrings; const AStringsCount: Byte): Byte;
 var
   I: Byte;
+  LCurrentLength: Byte;
   LMaxLength: Byte;
 
 begin
@@ -334,9 +348,11 @@ begin
 
   for I := 0 to AStringsCount do
   begin
-    if Length(AStrings^[I]) > LMaxLength then
+    LCurrentLength := Length(AStrings^[I]);
+
+    if LCurrentLength > LMaxLength then
     begin
-      LMaxLength := Length(AStrings^[I]);
+      LMaxLength := LCurrentLength;
     end;
   end;
 

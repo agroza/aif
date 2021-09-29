@@ -15,7 +15,6 @@ procedure PnPSetupStart;
 implementation
 
 uses
-  Crt,
   Consts,
   Control,
   Routines,
@@ -126,7 +125,7 @@ begin
   LKeyValueData.Name := AName;
   LKeyValueData.Value := AValue;
 
-  ScreenDrawKeyValue(LKeyValueData);
+  ScreenKeyValueDraw(LKeyValueData);
 end;
 
 procedure DrawOptions;
@@ -230,7 +229,7 @@ begin
 
   for I := Low(kUICommands) to High(kUICommands) do
   begin
-    ScreenDrawCommand(
+    ScreenCommandDraw(
       kPnPSetupCmdX,
       kUICommands[I].Y,
       clPnPSetupCmdHigh,
@@ -244,7 +243,7 @@ end;
 
 procedure UIDraw;
 begin
-  ScreenDrawTitleBar(clInterfaceFore, clInterfaceBack, clInterfaceFore, sPnPSetupTitle);
+  ScreenTitleBarDraw(clInterfaceFore, clInterfaceBack, clInterfaceFore, sPnPSetupTitle);
 
   CreateComponents;
 
@@ -257,48 +256,42 @@ procedure UILoop;
 begin
   while True do
   begin
-    case UpCase(ReadKey) of
-      kKeyExtended:
+    case UpCase(Routines.ReadKey) of
+      kKeyF4:
         begin
-          case ReadKey of
-            kKeyF4:
-              begin
-                ScreenEditChange(IGEdit);
-              end;
+          ScreenEditChange(IGEdit);
+        end;
 
-            kKeyF5:
-              begin
-                ResetOperationStatus(eoEraseFast);
-                DrawResult(ControllerEraseEEPROM(cemFast, UpdateProgressBar));
-              end;
+      kKeyF5:
+        begin
+          ResetOperationStatus(eoEraseFast);
+          DrawResult(ControllerEraseEEPROM(cemFast, UpdateProgressBar));
+        end;
 
-            kKeyF6:
-              begin
-                ResetOperationStatus(eoEraseSlow);
-                DrawResult(ControllerEraseEEPROM(cemSlow, UpdateProgressBar));
-              end;
+      kKeyF6:
+        begin
+          ResetOperationStatus(eoEraseSlow);
+          DrawResult(ControllerEraseEEPROM(cemSlow, UpdateProgressBar));
+        end;
 
-            kKeyF7:
-              begin
-                ResetOperationStatus(eoRead);
-                DrawResult(ControllerReadEEPROM(IGEdit.Text, UpdateProgressBar));
-              end;
+      kKeyF7:
+        begin
+          ResetOperationStatus(eoRead);
+          DrawResult(ControllerReadEEPROM(IGEdit.Text, UpdateProgressBar));
+        end;
 
-            kKeyF8:
-              begin
-                ResetOperationStatus(eoWrite);
+      kKeyF8:
+        begin
+          ResetOperationStatus(eoWrite);
 
-                if FileExists(IGEdit.Text) then
-                begin
-                  DrawResult(ControllerWriteEEPROM(IGEdit.Text, UpdateProgressBar));
-                end else
-                begin
-                  ScreenMessageBoxDraw(IGMessageBox);
+          if FileExists(IGEdit.Text) then
+          begin
+            DrawResult(ControllerWriteEEPROM(IGEdit.Text, UpdateProgressBar));
+          end else
+          begin
+            ScreenMessageBoxDraw(IGMessageBox);
 
-                  DrawResult(False);
-                end;
-              end;
-
+            DrawResult(False);
           end;
         end;
 
@@ -313,33 +306,20 @@ end;
 
 procedure PnPSetupStart;
 var
-  LSaveY: Byte;
+  LPositionY: Byte;
   LVideoRAMData: PVideoRAMData;
 
 begin
   Routines.Delay(kPnPSetupStartupDelay);
 
-  LSaveY := WhereY;
-
-  GetMem(LVideoRAMData, kVGARAMSize);
-  VideoStoreScreen(LVideoRAMData);
-  VideoClearScreen;
-  VideoEnableHighColors;
-  VideoDisableCursor;
-
-  ScreenSetVVColors;
+  VideoInitialize(LPositionY, LVideoRAMData);
+  ScreenInitialize;
 
   UIDraw;
   UILoop;
 
-  ScreenRestoreColors;
-
-  VideoEnableCursor;
-  VideoDisableHighColors;
-  VideoRestoreScreen(LVideoRAMData);
-  FreeMem(LVideoRAMData, kVGARAMSize);
-
-  GotoXY(k80x25Left, LSaveY);
+  ScreenFinalize;
+  VideoFinalize(LPositionY, LVideoRAMData);
 end;
 
 end.

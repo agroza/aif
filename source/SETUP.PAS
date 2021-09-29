@@ -33,7 +33,6 @@ procedure SetupStart;
 implementation
 
 uses
-  Crt,
   Dos,
   Consts,
   Mixer,
@@ -689,7 +688,7 @@ begin
   LKeyValueData.Name := AName;
   LKeyValueData.Value := AValue;
 
-  ScreenDrawKeyValue(LKeyValueData);
+  ScreenKeyValueDraw(LKeyValueData);
 end;
 
 procedure DrawOptions;
@@ -865,7 +864,7 @@ begin
 
   for I := Low(kUICommands) to High(kUICommands) do
   begin
-    ScreenDrawCommand(
+    ScreenCommandDraw(
       kSetupCmdX,
       kUICommands[I].Y,
       clSetupCmdHigh,
@@ -912,7 +911,7 @@ end;
 
 procedure UIDraw;
 begin
-  ScreenDrawTitleBar(clInterfaceFore, clInterfaceBack, clInterfaceFore, sSetupTitle);
+  ScreenTitleBarDraw(clInterfaceFore, clInterfaceBack, clInterfaceFore, sSetupTitle);
 
   CreateComponents;
 
@@ -939,77 +938,71 @@ begin
 
   while True do
   begin
-    case UpCase(ReadKey) of
-      kKeyExtended:
+    case UpCase(Routines.ReadKey) of
+      kKeyF8:
         begin
-          case ReadKey of
-            kKeyF8:
-              begin
-                IGSetupConfigChanged := True;
+          IGSetupConfigChanged := True;
 
-                SetupDefaultConfig;
-                DrawConfig;
+          SetupDefaultConfig;
+          DrawConfig;
 
-                HighlightOption(LSetupOption, True);
-              end;
-
-            kKeyF9:
-              begin
-                if SetupLoadConfig then
-                begin
-                  IGSetupConfigChanged := True;
-
-                  DrawConfig;
-                end;
-
-                HighlightOption(LSetupOption, True);
-              end;
-
-            kKeyF10:
-              begin
-                ExitAndSave;
-
-                Break;
-              end;
-
-            kKeyUp:
-              begin
-                HighlightOption(LSetupOption, False);
-
-                if LSetupOption > Low(TSetupOption) then
-                begin
-                  Dec(LSetupOption);
-                end else
-                begin
-                  LSetupOption := High(TSetupOption);
-                end;
-
-                HighlightOption(LSetupOption, True);
-              end;
-
-            kKeyDown:
-              begin
-                HighlightOption(LSetupOption, False);
-
-                if LSetupOption < High(TSetupOption) then
-                begin
-                  Inc(LSetupOption);
-                end else
-                begin
-                  LSetupOption := Low(TSetupOption);
-                end;
-
-                HighlightOption(LSetupOption, True);
-              end;
-
-            kKeyLeft:
-              EditOption(LSetupOption, aaPrevious);
-
-            kKeyRight:
-              EditOption(LSetupOption, aaNext);
-
-          end;
+          HighlightOption(LSetupOption, True);
         end;
+
+      kKeyF9:
+        begin
+          if SetupLoadConfig then
+          begin
+            IGSetupConfigChanged := True;
+
+            DrawConfig;
+          end;
+
+          HighlightOption(LSetupOption, True);
+        end;
+
+      kKeyF10:
+        begin
+          ExitAndSave;
+
+          Break;
+        end;
+
+      kKeyUp:
+        begin
+          HighlightOption(LSetupOption, False);
+
+          if LSetupOption > Low(TSetupOption) then
+          begin
+            Dec(LSetupOption);
+          end else
+          begin
+            LSetupOption := High(TSetupOption);
+          end;
+
+          HighlightOption(LSetupOption, True);
+        end;
+
+      kKeyDown:
+        begin
+          HighlightOption(LSetupOption, False);
+
+          if LSetupOption < High(TSetupOption) then
+          begin
+            Inc(LSetupOption);
+          end else
+          begin
+            LSetupOption := Low(TSetupOption);
+          end;
+
+          HighlightOption(LSetupOption, True);
+        end;
+
+      kKeyLeft:
+        EditOption(LSetupOption, aaPrevious);
+
+      kKeyRight:
+        EditOption(LSetupOption, aaNext);
 
       kKeyEscape:
         begin
@@ -1183,33 +1176,20 @@ end;
 
 procedure SetupStart;
 var
-  LSaveY: Byte;
+  LPositionY: Byte;
   LVideoRAMData: PVideoRAMData;
 
 begin
   Routines.Delay(kSetupStartupDelay);
 
-  LSaveY := WhereY;
-
-  GetMem(LVideoRAMData, kVGARAMSize);
-  VideoStoreScreen(LVideoRAMData);
-  VideoClearScreen;
-  VideoEnableHighColors;
-  VideoDisableCursor;
-
-  ScreenSetVVColors;
+  VideoInitialize(LPositionY, LVideoRAMData);
+  ScreenInitialize;
 
   UIDraw;
   UILoop;
 
-  ScreenRestoreColors;
-
-  VideoEnableCursor;
-  VideoDisableHighColors;
-  VideoRestoreScreen(LVideoRAMData);
-  FreeMem(LVideoRAMData, kVGARAMSize);
-
-  GotoXY(k80x25Left, LSaveY);
+  ScreenFinalize;
+  VideoFinalize(LPositionY, LVideoRAMData);
 end;
 
 end.

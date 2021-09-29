@@ -11,14 +11,15 @@ unit Consts;
 interface
 
 uses
-  Types;
+  Types,
+  Video;
 
 const
   sEmpty                    = '';
   sCRLF                     = #13#10;
 
   { program stringtable }
-  sProgramTitle             = 'AUDIO INTERFACE  VER. 2.8 REV. E';
+  sProgramTitle             = 'AUDIO INTERFACE  VER. 2.9 REV. A';
   sProgramCopyright         = 'Copyright (C) 1998-2021 Microprogramming TECHNIQUES';
   sProgramAuthor            = 'Programming/PC Code: Alexandru Groza';
   sProgramRights            = 'All rights reserved.';
@@ -197,23 +198,6 @@ const
   kMaxByte                  = 255;
 
   { color constants }
-  clBlack                   = 0;
-  clBlue                    = 1;
-  clGreen                   = 2;
-  clCyan                    = 3;
-  clRed                     = 4;
-  clMagenta                 = 5;
-  clBrown                   = 6;
-  clLightGray               = 7;
-  clDarkGray                = 8;
-  clLightBlue               = 9;
-  clLightGreen              = 10;
-  clLightCyan               = 11;
-  clLightRed                = 12;
-  clLightMagenta            = 13;
-  clYellow                  = 14;
-  clWhite                   = 15;
-
   clError                   = clRed;
   clSuccess                 = clGreen;
   clNormal                  = clLightGray;
@@ -247,7 +231,6 @@ const
   kKeyBackspace             = #08;
   kKeyEnter                 = #13;
   kKeyEscape                = #27;
-  kKeyExtended              = #00;
   kKeyUp                    = #72;
   kKeyDown                  = #80;
   kKeyLeft                  = #75;
@@ -639,7 +622,9 @@ const
   sControllerReinitError    = 'Controller reinitialization error.';
 
   { Status program constants }
-  kStatusValueX             = 22;
+  kStatusItemX              = 1;
+  kStatusSemicolonX         = 23;
+  kStatusValueX             = 25;
 
   kSBDSPVersions: array[TCodecSBDSPVersion] of Byte = (
     2,

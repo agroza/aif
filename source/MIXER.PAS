@@ -22,7 +22,6 @@ procedure MixerStart;
 implementation
 
 uses
-  Crt,
   Codec,
   Control,
   Consts,
@@ -239,7 +238,7 @@ begin
 
   for I := Low(kUIStatCommands) to High(kUIStatCommands) do
   begin
-    ScreenDrawCommand(
+    ScreenCommandDraw(
       kMixerCmdX,
       kUIStatCommands[I].Y,
       clMixerCmdHigh,
@@ -334,7 +333,7 @@ begin
 
   for I := Low(kUIDynCommands) to High(kUIDynCommands) do
   begin
-    ScreenDrawCommand(
+    ScreenCommandDraw(
       kMixerCmdX,
       kUIDynCommands[I].Y,
       clMixerCmdHigh,
@@ -416,7 +415,7 @@ end;
 
 procedure UIDraw;
 begin
-  ScreenDrawTitleBar(clInterfaceFore, clInterfaceBack, clInterfaceFore, sMixerTitle);
+  ScreenTitleBarDraw(clInterfaceFore, clInterfaceBack, clInterfaceFore, sMixerTitle);
 
   DrawCommands;
   DrawConfig;
@@ -443,109 +442,102 @@ begin
 
   while True do
   begin
-    case UpCase(ReadKey) of
-      kKeyExtended:
+    case UpCase(Routines.ReadKey) of
+      kKeyF8:
         begin
-          case ReadKey of
-            kKeyF8:
+          IGMixerConfigChanged := True;
+
+          MixerDefaultConfig;
+          DrawConfig;
+
+          ScreenStereoSliderHighlight(IGStereoSliders[LStereoSlider], LSoundChannel, True);
+        end;
+
+      kKeyF9:
+        begin
+          if SetupLoadConfig then
+          begin
+            IGMixerConfigChanged := True;
+
+            DrawConfig;
+          end;
+
+          ScreenStereoSliderHighlight(IGStereoSliders[LStereoSlider], LSoundChannel, True);
+        end;
+
+      kKeyF10:
+        begin
+          ExitAndSave;
+
+          Break;
+        end;
+
+      kKeyUp:
+        begin
+          ScreenStereoSliderHighlight(IGStereoSliders[LStereoSlider], LSoundChannel, False);
+
+          case LSoundChannel of
+            scLeft:
               begin
-                IGMixerConfigChanged := True;
+                Inc(LSoundChannel);
 
-                MixerDefaultConfig;
-                DrawConfig;
-
-                ScreenStereoSliderHighlight(IGStereoSliders[LStereoSlider], LSoundChannel, True);
-              end;
-
-            kKeyF9:
-              begin
-                if SetupLoadConfig then
+                if LStereoSlider > Low(TStereoSlider) then
                 begin
-                  IGMixerConfigChanged := True;
-
-                  DrawConfig;
+                  Dec(LStereoSlider);
+                end else
+                begin
+                  LStereoSlider := High(TStereoSlider);
                 end;
-
-                ScreenStereoSliderHighlight(IGStereoSliders[LStereoSlider], LSoundChannel, True);
               end;
 
-            kKeyF10:
+            scRight:
               begin
-                ExitAndSave;
-
-                Break;
-              end;
-
-            kKeyUp:
-              begin
-                ScreenStereoSliderHighlight(IGStereoSliders[LStereoSlider], LSoundChannel, False);
-
-                case LSoundChannel of
-                  scLeft:
-                    begin
-                      Inc(LSoundChannel);
-
-                      if LStereoSlider > Low(TStereoSlider) then
-                      begin
-                        Dec(LStereoSlider);
-                      end else
-                      begin
-                        LStereoSlider := High(TStereoSlider);
-                      end;
-                    end;
-
-	          scRight:
-                    begin
-                      Dec(LSoundChannel);
-                    end;
-
-                end;
-
-                ScreenStereoSliderHighlight(IGStereoSliders[LStereoSlider], LSoundChannel, True);
-              end;
-
-            kKeyDown:
-              begin
-                ScreenStereoSliderHighlight(IGStereoSliders[LStereoSlider], LSoundChannel, False);
-
-                case LSoundChannel of
-                  scLeft:
-                    begin
-                      Inc(LSoundChannel);
-                    end;
-
-                  scRight:
-                    begin
-                      Dec(LSoundChannel);
-
-                      if LStereoSlider < High(TStereoSlider) then
-                      begin
-                        Inc(LStereoSlider);
-                      end else
-                      begin
-                        LStereoSlider := Low(TStereoSlider);
-                      end;
-                    end;
-
-                end;
-
-                ScreenStereoSliderHighlight(IGStereoSliders[LStereoSlider], LSoundChannel, True);
-              end;
-
-            kKeyLeft:
-              begin
-                IGMixerConfigChanged := True;
-                ScreenStereoSliderMove(IGStereoSliders[LStereoSlider], LSoundChannel, sdDown);
-              end;
-
-            kKeyRight:
-              begin
-                IGMixerConfigChanged := True;
-                ScreenStereoSliderMove(IGStereoSliders[LStereoSlider], LSoundChannel, sdUp);
+                Dec(LSoundChannel);
               end;
 
           end;
 
+          ScreenStereoSliderHighlight(IGStereoSliders[LStereoSlider], LSoundChannel, True);
+        end;
+
+      kKeyDown:
+        begin
+          ScreenStereoSliderHighlight(IGStereoSliders[LStereoSlider], LSoundChannel, False);
+
+          case LSoundChannel of
+            scLeft:
+              begin
+                Inc(LSoundChannel);
+              end;
+
+            scRight:
+              begin
+                Dec(LSoundChannel);
+
+                if LStereoSlider < High(TStereoSlider) then
+                begin
+                  Inc(LStereoSlider);
+                end else
+                begin
+                  LStereoSlider := Low(TStereoSlider);
+                end;
+              end;
+
+          end;
+
+          ScreenStereoSliderHighlight(IGStereoSliders[LStereoSlider], LSoundChannel, True);
+        end;
+
+      kKeyLeft:
+        begin
+          IGMixerConfigChanged := True;
+          ScreenStereoSliderMove(IGStereoSliders[LStereoSlider], LSoundChannel, sdDown);
+        end;
+
+      kKeyRight:
+        begin
+          IGMixerConfigChanged := True;
+          ScreenStereoSliderMove(IGStereoSliders[LStereoSlider], LSoundChannel, sdUp);
         end;
 
       kKeyEscape:
@@ -663,33 +655,20 @@ end;
 
 procedure MixerStart;
 var
-  LSaveY: Byte;
+  LPositionY: Byte;
   LVideoRAMData: PVideoRAMData;
 
 begin
   Routines.Delay(kMixerStartupDelay);
 
-  LSaveY := WhereY;
-
-  GetMem(LVideoRAMData, kVGARAMSize);
-  VideoStoreScreen(LVideoRAMData);
-  VideoClearScreen;
-  VideoEnableHighColors;
-  VideoDisableCursor;
-
-  ScreenSetVVColors;
+  VideoInitialize(LPositionY, LVideoRAMData);
+  ScreenInitialize;
 
   UIDraw;
   UILoop;
 
-  ScreenRestoreColors;
-
-  VideoEnableCursor;
-  VideoDisableHighColors;
-  VideoRestoreScreen(LVideoRAMData);
-  FreeMem(LVideoRAMData, kVGARAMSize);
-
-  GotoXY(k80x25Left, LSaveY);
+  ScreenFinalize;
+  VideoFinalize(LPositionY, LVideoRAMData);
 end;
 
 end.

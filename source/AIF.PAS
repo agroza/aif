@@ -11,7 +11,6 @@
 program aif;
 
 uses
-  Crt,
   Consts,
   Init,
   Mixer,
@@ -20,7 +19,8 @@ uses
   Setup,
   PnPSetup,
   Status,
-  Types;
+  Types,
+  Video;
 
 function ProcessParameters: Boolean;
 var
@@ -82,15 +82,19 @@ end;
 
 procedure WriteProgramHeader;
 begin
-  TextColor(clHighlight);
-  Writeln;
-  Writeln(sProgramTitle);
+  VideoWriteNewln;
 
-  TextColor(clNormal);
-  Writeln(sProgramCopyright);
-  Writeln(sProgramAuthor);
-  Writeln(sProgramRights);
-  Writeln;
+  VideoSetBackground(clBlack);
+
+  VideoSetForeground(clHighlight);
+  VideoWriteln(sProgramTitle);
+
+  VideoSetForeground(clNormal);
+  VideoWriteln(sProgramCopyright);
+  VideoWriteln(sProgramAuthor);
+  VideoWriteln(sProgramRights);
+
+  VideoWriteNewln;
 end;
 
 procedure WriteHelp;
@@ -98,23 +102,29 @@ var
   LHelpParameter: Byte;
 
 begin
-  Writeln(sHelpUsage);
-  Writeln(sHelpWhere);
+  VideoSetForeground(clNormal);
+  VideoSetBackground(clBlack);
+
+  VideoWriteln(sHelpUsage);
+  VideoWriteln(sHelpWhere);
 
   for LHelpParameter := Low(kHelpParameters) to High(kHelpParameters) do
   begin
-    Writeln(StrPas(kHelpParameters[LHelpParameter]));
+    VideoWriteln(StrPas(kHelpParameters[LHelpParameter]));
   end;
 
-  Writeln;
-  Writeln(sHelpExamples);
+  VideoWriteNewln;
+  VideoWriteln(sHelpExamples);
 end;
 
 procedure WriteParameterError;
 begin
-  Writeln(sParameterMissing);
-  Writeln;
-  Writeln(sTypeHelp);
+  VideoSetForeground(clNormal);
+  VideoSetBackground(clBlack);
+
+  VideoWriteln(sParameterMissing);
+  VideoWriteNewln;
+  VideoWriteln(sTypeHelp);
 end;
 
 var

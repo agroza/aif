@@ -34,7 +34,8 @@ uses
   Routines,
   SBPro,
   Screen,
-  Setup;
+  Setup,
+  Video;
 
 const
   kVolumeNorm = 4.28;
@@ -189,6 +190,9 @@ var
   LAction: Boolean;
 
 begin
+  VideoSetForeground(clNormal);
+  VideoSetBackground(clBlack);
+
   case AParameters.InitMode of
     imWSS:
       begin
@@ -197,7 +201,7 @@ begin
 
         if LAction and AParameters.Quiet then
         begin
-          Writeln(sAIInitializedWSSMode);
+          VideoWriteln(sAIInitializedWSSMode);
         end;
       end;
 
@@ -208,7 +212,7 @@ begin
 
         if LAction and AParameters.Quiet then
         begin
-          Writeln(sAIInitializedSBMode);
+          VideoWriteln(sAIInitializedSBMode);
         end;
       end;
 
@@ -235,8 +239,11 @@ begin
 
   InitAIFComplete;
 
-  Writeln;
-  Writeln(sLineOutRelay + LowerCase(sDisabledEnabled[GCodecMixerConfig.OutputsEnabled]) + cFullStop);
+  VideoSetForeground(clNormal);
+  VideoSetBackground(clBlack);
+
+  VideoWriteNewln;
+  VideoWriteln(sLineOutRelay + LowerCase(sDisabledEnabled[GCodecMixerConfig.OutputsEnabled]) + cFullStop);
 end;
 
 procedure InitAIFBasic;
