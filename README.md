@@ -17,6 +17,8 @@ I used the Pascal programming language and I wrote time-critical routines in ass
 
 ![Audio Interface](https://github.com/agroza/aif/blob/master/images/isa-audio-interface-driver3.jpg?raw=true)
 
+![Audio Interface](https://github.com/agroza/aif/blob/master/images/isa-audio-interface-driver4.jpg?raw=true)
+
 Thankfully the datasheets are very verbose in terms of register descriptions and principles of operation. I ended up using some of Jan's code for the Sound Blaster Pro interface and MPU-401 initialization -- thanks for allowing me to use your code! I had to rewrite large portions of that code to adapt it to my project. Furthermore I removed everything else that I wasn't planning to use while optimizing the remaining stuff.
 
 ### Program Usage
