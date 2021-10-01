@@ -928,6 +928,8 @@ end;
 
 procedure UILoop;
 var
+  LScanCode: Word;
+  LKey: Char;
   LSetupOption: TSetupOption;
 
 begin
@@ -938,71 +940,80 @@ begin
 
   while True do
   begin
-    case UpCase(Routines.ReadKey) of
-      kKeyF8:
+    LScanCode := GetScanCode;
+    LKey := UpCase(GetStandardKey(LScanCode));
+  
+    case LKey of
+      kKeyExtended:
         begin
-          IGSetupConfigChanged := True;
+          case GetExtendedKey(LScanCode) of
+            kKeyF8:
+              begin
+                IGSetupConfigChanged := True;
 
-          SetupDefaultConfig;
-          DrawConfig;
+                SetupDefaultConfig;
+                DrawConfig;
 
-          HighlightOption(LSetupOption, True);
-        end;
+                HighlightOption(LSetupOption, True);
+              end;
 
-      kKeyF9:
-        begin
-          if SetupLoadConfig then
-          begin
-            IGSetupConfigChanged := True;
+            kKeyF9:
+              begin
+                if SetupLoadConfig then
+                begin
+                  IGSetupConfigChanged := True;
 
-            DrawConfig;
+                  DrawConfig;
+                end;
+
+                HighlightOption(LSetupOption, True);
+              end;
+
+            kKeyF10:
+              begin
+                ExitAndSave;
+
+                Break;
+              end;
+
+            kKeyUp:
+              begin
+                HighlightOption(LSetupOption, False);
+
+                if LSetupOption > Low(TSetupOption) then
+                begin
+                  Dec(LSetupOption);
+                end else
+                begin
+                  LSetupOption := High(TSetupOption);
+                end;
+
+                HighlightOption(LSetupOption, True);
+              end;
+
+            kKeyDown:
+              begin
+                HighlightOption(LSetupOption, False);
+
+                if LSetupOption < High(TSetupOption) then
+                begin
+                  Inc(LSetupOption);
+                end else
+                begin
+                  LSetupOption := Low(TSetupOption);
+                end;
+
+                HighlightOption(LSetupOption, True);
+              end;
+
+            kKeyLeft:
+              EditOption(LSetupOption, aaPrevious);
+
+            kKeyRight:
+              EditOption(LSetupOption, aaNext);
+
           end;
-
-          HighlightOption(LSetupOption, True);
         end;
-
-      kKeyF10:
-        begin
-          ExitAndSave;
-
-          Break;
-        end;
-
-      kKeyUp:
-        begin
-          HighlightOption(LSetupOption, False);
-
-          if LSetupOption > Low(TSetupOption) then
-          begin
-            Dec(LSetupOption);
-          end else
-          begin
-            LSetupOption := High(TSetupOption);
-          end;
-
-          HighlightOption(LSetupOption, True);
-        end;
-
-      kKeyDown:
-        begin
-          HighlightOption(LSetupOption, False);
-
-          if LSetupOption < High(TSetupOption) then
-          begin
-            Inc(LSetupOption);
-          end else
-          begin
-            LSetupOption := Low(TSetupOption);
-          end;
-
-          HighlightOption(LSetupOption, True);
-        end;
-
-      kKeyLeft:
-        EditOption(LSetupOption, aaPrevious);
-
-      kKeyRight:
-        EditOption(LSetupOption, aaNext);
 
       kKeyEscape:
         begin

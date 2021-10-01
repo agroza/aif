@@ -1,6 +1,6 @@
 { --------------------------------------------------------------------------- }
 { - Audio Interface - Routines (routines.pas)                               - }
-{ - Copyright (C) 1998-2020 Alexandru Groza of Microprogramming TECHNIQUES  - }
+{ - Copyright (C) 1998-2021 Alexandru Groza of Microprogramming TECHNIQUES  - }
 { - All rights reserved.                                                    - }
 { --------------------------------------------------------------------------- }
 { - License: GNU General Public License v3.0                                - }
@@ -15,7 +15,9 @@ uses
 
 procedure Delay(const ADuration: Word);
 
-function ReadKey: Char;
+function GetScanCode: Word;
+function GetStandardKey(const AScanCode: Word): Char;
+function GetExtendedKey(const AScanCode: Word): Char;
 
 function GetBit(const AByte, ABit: Byte): Boolean;
 procedure SetBit(var AByte: Byte; const ABit: Byte; const AValue: Boolean);
@@ -60,16 +62,21 @@ asm
   int 15h
 end;
 
-function ReadKey: Char; assembler;
+function GetScanCode: Word; assembler;
 asm
   xor ah,ah
   int 16h
-  or al,al
-  jnz @exit
-  mov al,ah
+end;
 
-@exit:
+function GetStandardKey(const AScanCode: Word): Char; assembler;
+asm
+  mov ax,AScanCode
+end;
 
+function GetExtendedKey(const AScanCode: Word): Char; assembler;
+asm
+  mov ax,AScanCode
+  xchg ah,al
 end;
 
 function GetBit(const AByte, ABit: Byte): Boolean;
@@ -242,8 +249,8 @@ asm
 
   cld
 
-  lds si,AString
-  les di,@Result
+  lds si,[AString]
+  les di,[@Result]
   lodsb
   stosb
 
@@ -261,6 +268,7 @@ asm
 
 @nextByte:
   stosb
+
   loop @lowerCase
 
 @exit:
@@ -273,7 +281,7 @@ asm
 
   cld
 
-  les di,APChar
+  les di,[APChar]
   xor al,al
   mov cx,0FFFFh
   repne scasb
@@ -281,8 +289,8 @@ asm
   not cx
   dec cx
 
-  lds si,APChar
-  les di,@Result
+  lds si,[APChar]
+  les di,[@Result]
   mov al,cl
   stosb
   rep movsb

@@ -253,45 +253,58 @@ begin
 end;
 
 procedure UILoop;
+var
+  LScanCode: Word;
+  LKey: Char;
+
 begin
   while True do
   begin
-    case UpCase(Routines.ReadKey) of
-      kKeyF4:
+    LScanCode := GetScanCode;
+    LKey := UpCase(GetStandardKey(LScanCode));
+
+    case LKey of
+      kKeyExtended:
         begin
-          ScreenEditChange(IGEdit);
-        end;
+          case GetExtendedKey(LScanCode) of
+            kKeyF4:
+              begin
+                ScreenEditChange(IGEdit);
+              end;
 
-      kKeyF5:
-        begin
-          ResetOperationStatus(eoEraseFast);
-          DrawResult(ControllerEraseEEPROM(cemFast, UpdateProgressBar));
-        end;
+            kKeyF5:
+              begin
+                ResetOperationStatus(eoEraseFast);
+                DrawResult(ControllerEraseEEPROM(cemFast, UpdateProgressBar));
+              end;
 
-      kKeyF6:
-        begin
-          ResetOperationStatus(eoEraseSlow);
-          DrawResult(ControllerEraseEEPROM(cemSlow, UpdateProgressBar));
-        end;
+            kKeyF6:
+              begin
+                ResetOperationStatus(eoEraseSlow);
+                DrawResult(ControllerEraseEEPROM(cemSlow, UpdateProgressBar));
+              end;
 
-      kKeyF7:
-        begin
-          ResetOperationStatus(eoRead);
-          DrawResult(ControllerReadEEPROM(IGEdit.Text, UpdateProgressBar));
-        end;
+            kKeyF7:
+              begin
+                ResetOperationStatus(eoRead);
+                DrawResult(ControllerReadEEPROM(IGEdit.Text, UpdateProgressBar));
+              end;
 
-      kKeyF8:
-        begin
-          ResetOperationStatus(eoWrite);
+            kKeyF8:
+              begin
+                ResetOperationStatus(eoWrite);
 
-          if FileExists(IGEdit.Text) then
-          begin
-            DrawResult(ControllerWriteEEPROM(IGEdit.Text, UpdateProgressBar));
-          end else
-          begin
-            ScreenMessageBoxDraw(IGMessageBox);
+                if FileExists(IGEdit.Text) then
+                begin
+                  DrawResult(ControllerWriteEEPROM(IGEdit.Text, UpdateProgressBar));
+                end else
+                begin
+                  ScreenMessageBoxDraw(IGMessageBox);
 
-            DrawResult(False);
+                  DrawResult(False);
+                end;
+              end;
+
           end;
         end;
 

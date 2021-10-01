@@ -192,7 +192,7 @@ asm
   push bp
   push ds
 
-  les di,AGlyphData
+  les di,[AGlyphData]
 
   push es
   push di
@@ -239,7 +239,7 @@ asm
   xor dh,dh
   mov dl,AIndex
 
-  les di,AGlyphData
+  les di,[AGlyphData]
   mov bp,di
   int 10h
 
@@ -263,7 +263,7 @@ asm
 
 @getColor:
   in al,dx
-  mov [es:di],al
+  mov es:[di],al
   inc di
 
   loop @getColor
@@ -287,7 +287,7 @@ asm
   mov cx,03h
 
 @setColor:
-  mov al,[es:si]
+  mov al,es:[si]
   out dx,al
   inc si
 
@@ -448,7 +448,7 @@ asm
 
   mov al,AAttribute
 
-  mov byte ptr [es:di],al
+  mov byte ptr es:[di],al
 end;
 
 procedure VideoWriteCharAt(const ALeft, ATop: Byte; const ACharacter: Char); assembler;
@@ -477,7 +477,7 @@ asm
 
   mov al,ACharacter
 
-  mov byte ptr [es:di],al
+  mov byte ptr es:[di],al
 end;
 
 procedure VideoWriteCharAttrAt(const ALeft, ATop: Byte; const ACharacter: Char; const AAttribute: Byte); assembler;
@@ -507,7 +507,7 @@ asm
   mov ah,AAttribute
   mov al,ACharacter
 
-  mov word ptr [es:di],ax
+  mov word ptr es:[di],ax
 end;
 
 procedure VideoWriteStringAt(const ALeft, ATop: Byte; const AString: String; const AForeground, ABackground: Byte); assembler;
@@ -539,7 +539,7 @@ asm
 
   push ds
 
-  lds si,AString
+  lds si,[AString]
 
   lodsb
 
@@ -614,7 +614,7 @@ asm
 
   push ds
 
-  lds si,AString
+  lds si,[AString]
 
   lodsb
 
@@ -776,12 +776,18 @@ end;
 
 procedure VideoSetForeground(const AColor: Byte);
 begin
-  IGForeground := AColor;
+  if IGForeground <> AColor then
+  begin
+    IGForeground := AColor;
+  end;
 end;
 
 procedure VideoSetBackground(const AColor: Byte);
 begin
-  IGBackground := AColor;
+  if IGBackground <> AColor then
+  begin
+    IGBackground := AColor;
+  end;
 end;
 
 procedure VideoGotoXY(const APositionX, APositionY: Byte); assembler;
