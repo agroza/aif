@@ -33,6 +33,7 @@ function IntToHex(const AInteger: Integer): String;
 function StrToIntDef(const AString: String; const ADefault: Longint): Longint;
 function AddSizeSeparator(const AString: String; const AUnitPresent: Boolean): String;
 function LowerCase(const AString: String): String;
+function StringOfChar(const ACharacter: Char; const ATimes: Byte): String;
 function StrPas(const APChar: PChar): String;
 function FindOccurences(const AString, ASubString: String): Byte;
 procedure Split(const AString, ASubString: String; var AStrings: PStrings);
@@ -88,10 +89,10 @@ procedure SetBit(var AByte: Byte; const ABit: Byte; const AValue: Boolean);
 begin
   if AValue then
   begin
-    AByte := AByte or (1 shl ABit);
+    AByte := AByte or ($01 shl ABit);
   end else
   begin
-    AByte := AByte and not (1 shl ABit);
+    AByte := AByte and not ($01 shl ABit);
   end;
 end;
 
@@ -193,7 +194,7 @@ begin
   for I := kHexLength downto 1 do
   begin
     IntToHex[I] := kHexDigits[LInteger and $0F];
-    LInteger := LInteger shr 4;
+    LInteger := LInteger shr $04;
   end;
 end;
 
@@ -204,6 +205,7 @@ var
 
 begin
   Val(AString, LValue, LErrorCode);
+
   if LErrorCode = 0 then
   begin
     StrToIntDef := LValue;
@@ -214,33 +216,38 @@ begin
 end;
 
 function AddSizeSeparator(const AString: String; const AUnitPresent: Boolean): String;
+const
+  kDecrementUnit   = 5;
+  kDecrementNoUnit = 2;
+  kDecrementDigits = 3;
+
 var
-  I: Integer;
-  LString: String;
+  LPosition: Integer;
+  LSeparatedString: String;
 
 begin
-  LString := AString;
+  LSeparatedString := AString;
 
   if AString <> sEmpty then
   begin
-    I := Length(LString);
+    LPosition := Length(LSeparatedString);
 
     if AUnitPresent then
     begin
-      Dec(I, 5);
+      Dec(LPosition, kDecrementUnit);
     end else
     begin
-      Dec(I, 2);
+      Dec(LPosition, kDecrementNoUnit);
     end;
 
-    while I > 1 do
+    while LPosition > 1 do
     begin
-      Insert(',', LString, I);
-      Dec(I, 3);
+      Insert(cComma, LSeparatedString, LPosition);
+      Dec(LPosition, kDecrementDigits);
     end;
   end;
 
-  AddSizeSeparator := LString;
+  AddSizeSeparator := LSeparatedString;
 end;
 
 function LowerCase(const AString: String): String; assembler;
@@ -273,6 +280,20 @@ asm
 
 @exit:
   pop ds
+end;
+
+function StringOfChar(const ACharacter: Char; const ATimes: Byte): String; assembler;
+asm
+  mov al,ACharacter
+  xor ch,ch
+  mov cl,ATimes
+  les di,[@Result]
+
+  cld
+
+  mov es:[di],cl
+  inc di
+  repz stosb
 end;
 
 function StrPas(const APChar: PChar): String; assembler;
@@ -347,16 +368,16 @@ end;
 
 function MaxLength(const AStrings: PStrings; const AStringsCount: Byte): Byte;
 var
-  I: Byte;
+  LStringIndex: Byte;
   LCurrentLength: Byte;
   LMaxLength: Byte;
 
 begin
   LMaxLength := Length(AStrings^[0]);
 
-  for I := 0 to AStringsCount do
+  for LStringIndex := 0 to AStringsCount do
   begin
-    LCurrentLength := Length(AStrings^[I]);
+    LCurrentLength := Length(AStrings^[LStringIndex]);
 
     if LCurrentLength > LMaxLength then
     begin
@@ -369,46 +390,37 @@ end;
 
 function IntToStr(const AInteger: Longint): String;
 var
-  S: String;
+  LString: String;
 
 begin
-  Str(AInteger, S);
-  IntToStr := S;
+  Str(AInteger, LString);
+  IntToStr := LString;
 end;
 
 function PadPercent(const AInteger: Longint): String;
+const
+  kMaxLength  = 5;
+  sPercentage = ' %';
+
 var
-  LSpaces: String;
+  LPaddedString: String;
 
 begin
-  case AInteger of
-    0..9:
-      LSpaces := '  ';
+  LPaddedString := IntToStr(AInteger) + sPercentage;
+  Insert(StringOfChar(cSpace, kMaxLength - Length(LPaddedString)), LPaddedString, 1);
 
-    10..99:
-      LSpaces := ' ';
-
-  else
-    LSpaces := sEmpty;
-  end;
-
-  PadPercent := LSpaces + IntToStr(AInteger) + ' %';
+  PadPercent := LPaddedString;
 end;
 
 function PadCenter(const AString: String; const APads: Byte): String;
 var
-  I: Byte;
-  LSpaces: String;
+  LPaddedString: String;
 
 begin
-  LSpaces := sEmpty;
+  LPaddedString := StringOfChar(cSpace, APads * 2);
+  Insert(AString, LPaddedString, Succ(APads));
 
-  for I := 0 to Pred(APads) do
-  begin
-    LSpaces := LSpaces + cSpace;
-  end;
-
-  PadCenter := LSpaces + AString + LSpaces;
+  PadCenter := LPaddedString;
 end;
 
 function IfThenElse(const ACondition: Boolean; const AThen, AElse: String): String;
@@ -438,23 +450,23 @@ end;
 
 function ReplaceFileExt(const AFileName, AExtension: String): String;
 var
-  I: Byte;
+  LDotPosition: Byte;
 
 begin
-  for I := Length(AFileName) downto 1 do
+  for LDotPosition := Length(AFileName) downto 1 do
   begin
-    if AFileName[I] = cFullStop then
+    if AFileName[LDotPosition] = cFullStop then
     begin
       Break;
     end;
   end;
 
-  if (I = 1) and (AFileName[I] <> cFullStop) then
+  if (LDotPosition = 1) and (AFileName[LDotPosition] <> cFullStop) then
   begin
     ReplaceFileExt := AFileName;
   end else
   begin
-    ReplaceFileExt := Copy(AFileName, 1, I) + AExtension;
+    ReplaceFileExt := Copy(AFileName, 1, LDotPosition) + AExtension;
   end;
 end;
 

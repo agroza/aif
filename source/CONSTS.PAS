@@ -19,7 +19,7 @@ const
   sCRLF                     = #13#10;
 
   { program stringtable }
-  sProgramTitle             = 'AUDIO INTERFACE  VER. 2.9 REV. B';
+  sProgramTitle             = 'AUDIO INTERFACE  VER. 2.9 REV. C';
   sProgramCopyright         = 'Copyright (C) 1998-2021 Microprogramming TECHNIQUES';
   sProgramAuthor            = 'Programming/PC Code: Alexandru Groza';
   sProgramRights            = 'All rights reserved.';
@@ -143,6 +143,7 @@ const
   { single character constants }
   cSpace                    = ' ';
   cFullStop                 = '.';
+  cComma                    = ',';
   cSemicolon                = ':';
   cBackslash                = '\';
   cSlash                    = '/';
@@ -489,7 +490,7 @@ const
   sMixerVolumeFMAUXIn       = 'FM Synthesizer & AUX In Volume';
   sMixerVolumeCDROMLineIn   = 'CD-ROM & Line In Volume';
   sMixerVolumeADCInputGain  = 'ADC Input Gain';
-  sMixerVolumeDME           = 'Digital Mix Volume';
+  sMixerVolumeDME           = 'Digital Mix Volume (Mono)';
 
   sMixerCmdProgramCmds      = 'PROGRAM COMMANDS';
   sMixerCmdF8               = 'F8';
