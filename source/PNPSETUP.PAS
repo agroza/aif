@@ -181,16 +181,12 @@ begin
 
   IGMessageBox.Colors.Foreground := clMessageBoxFore;
   IGMessageBox.Colors.Background := clMessageBoxBack;
-  IGMessageBox.Colors.BtnForeground := clMessageBoxBtnHighFore;
-  IGMessageBox.Colors.BtnBackground := clMessageBoxBtnHighBack;
+  IGMessageBox.Colors.BtnForeground := clMessageBoxBtnFore;
+  IGMessageBox.Colors.BtnBackground := clMessageBoxBtnBack;
   IGMessageBox.Colors.BtnAccelerator := clMessageBoxBtnAccel;
   IGMessageBox.Colors.BtnHighForeground := clMessageBoxBtnHighFore;
   IGMessageBox.Colors.BtnHighBackground := clMessageBoxBtnHighBack;
   IGMessageBox.Colors.BtnHighAccelerator := clMessageBoxBtnHighAccel;
-  IGMessageBox.Title := sMessageBoxError;
-  IGMessageBox.Text := sPnPSetupFilenameError;
-  IGMessageBox.Buttons := [mbClose];
-  IGMessageBox.DefaultButton := mbClose;
 end;
 
 procedure DrawComponents;
@@ -287,6 +283,21 @@ begin
             kKeyF7:
               begin
                 ResetOperationStatus(eoRead);
+
+                if FileExists(IGEdit.Text) then
+                begin
+                  IGMessageBox.Title := sMessageBoxQuestion;
+                  IGMessageBox.Text := sPnPSetupFileExists;
+                  IGMessageBox.Buttons := [mbYes, mbNo];
+                  IGMessageBox.DefaultButton := mbYes;
+
+                  if ScreenMessageBoxDraw(IGMessageBox) <> mrYes then
+                  begin
+                    DrawResult(False);
+                    Continue;
+                  end;
+                end;
+
                 DrawResult(ControllerReadEEPROM(IGEdit.Text, UpdateProgressBar));
               end;
 
@@ -299,6 +310,11 @@ begin
                   DrawResult(ControllerWriteEEPROM(IGEdit.Text, UpdateProgressBar));
                 end else
                 begin
+                  IGMessageBox.Title := sMessageBoxError;
+                  IGMessageBox.Text := sPnPSetupFileNotExists;
+                  IGMessageBox.Buttons := [mbClose];
+                  IGMessageBox.DefaultButton := mbClose;
+
                   ScreenMessageBoxDraw(IGMessageBox);
 
                   DrawResult(False);
