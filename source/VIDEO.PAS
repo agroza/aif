@@ -327,6 +327,7 @@ procedure VideoClearScreen; assembler;
 asm
   mov ax,kVGARAMAddress
   mov es,ax
+
   xor di,di
   mov ah,caDefaultAttribute
   mov al,kEmptySpace
@@ -447,6 +448,8 @@ asm
 
   mov al,AAttribute
 
+  cld
+
   stosb
 end;
 
@@ -475,6 +478,8 @@ asm
   mov di,ax
 
   mov al,ACharacter
+
+  cld
 
   stosb
 end;
@@ -506,6 +511,8 @@ asm
   mov ah,AAttribute
   mov al,ACharacter
 
+  cld
+
   stosw
 end;
 
@@ -516,6 +523,8 @@ asm
   mov es,ax
 
   xor ch,ch
+
+  cld
 
 @calculatePosition:
   xor ah,ah
@@ -546,8 +555,6 @@ asm
   xor ch,ch
   mov cl,AWidth
 
-  cld
-
   rep stosw
 
   pop cx
@@ -563,6 +570,8 @@ asm
   mov es,ax
 
   xor ch,ch
+
+  cld
 
 @calculatePosition:
   xor ah,ah
@@ -593,6 +602,7 @@ asm
   dec cl
 
   mov al,es:[di]
+
   stosw
 
   or cl,cl
@@ -633,6 +643,8 @@ asm
   push ds
 
   lds si,[AString]
+
+  cld
 
   lodsb
 
@@ -739,6 +751,8 @@ asm
   retn
 
 @start:
+  cld
+
   mov ah,03h
   xor bh,bh
   int 10h

@@ -33,7 +33,7 @@ function IntToHex(const AInteger: Integer): String;
 function StrToIntDef(const AString: String; const ADefault: Longint): Longint;
 function AddSizeSeparator(const AString: String; const AUnitPresent: Boolean): String;
 function LowerCase(const AString: String): String;
-function StringOfChar(const ACharacter: Char; const ATimes: Byte): String;
+function ReplicateChar(const ACharacter: Char; const ATimes: Byte): String;
 function StrPas(const APChar: PChar): String;
 function FindOccurences(const AString, ASubString: String): Byte;
 procedure Split(const AString, ASubString: String; var AStrings: PStrings);
@@ -254,11 +254,13 @@ function LowerCase(const AString: String): String; assembler;
 asm
   push ds
 
-  cld
-
   lds si,[AString]
   les di,[@Result]
+
+  cld
+
   lodsb
+
   stosb
 
   xor ah,ah
@@ -267,6 +269,7 @@ asm
 
 @lowerCase:
   lodsb
+
   cmp al,'A'
   jb @nextByte
   cmp al,'Z'
@@ -282,17 +285,18 @@ asm
   pop ds
 end;
 
-function StringOfChar(const ACharacter: Char; const ATimes: Byte): String; assembler;
+function ReplicateChar(const ACharacter: Char; const ATimes: Byte): String; assembler;
 asm
   mov al,ACharacter
   xor ch,ch
   mov cl,ATimes
   les di,[@Result]
 
-  cld
-
   mov es:[di],cl
   inc di
+
+  cld
+
   repz stosb
 end;
 
@@ -300,11 +304,12 @@ function StrPas(const APChar: PChar): String; assembler;
 asm
   push ds
 
-  cld
-
   les di,[APChar]
   xor al,al
   mov cx,0FFFFh
+
+  cld
+
   repne scasb
 
   not cx
@@ -313,7 +318,9 @@ asm
   lds si,[APChar]
   les di,[@Result]
   mov al,cl
+
   stosb
+
   rep movsb
 
   pop ds
@@ -407,7 +414,7 @@ var
 
 begin
   LPaddedString := IntToStr(AInteger) + sPercentage;
-  Insert(StringOfChar(cSpace, kMaxLength - Length(LPaddedString)), LPaddedString, 1);
+  Insert(ReplicateChar(cSpace, kMaxLength - Length(LPaddedString)), LPaddedString, 1);
 
   PadPercent := LPaddedString;
 end;
@@ -417,7 +424,7 @@ var
   LPaddedString: String;
 
 begin
-  LPaddedString := StringOfChar(cSpace, APads * 2);
+  LPaddedString := ReplicateChar(cSpace, APads * 2);
   Insert(AString, LPaddedString, Succ(APads));
 
   PadCenter := LPaddedString;

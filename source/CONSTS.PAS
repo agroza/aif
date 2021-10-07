@@ -19,7 +19,7 @@ const
   sCRLF                     = #13#10;
 
   { program stringtable }
-  sProgramTitle             = 'AUDIO INTERFACE  VER. 3.0 REV. A';
+  sProgramTitle             = 'AUDIO INTERFACE  VER. 3.0 REV. B';
   sProgramCopyright         = 'Copyright (C) 1998-2021 Microprogramming TECHNIQUES';
   sProgramAuthor            = 'Programming/PC Code: Alexandru Groza';
   sProgramRights            = 'All rights reserved.';
@@ -186,6 +186,11 @@ const
   { VersaVision UI support messages }
   sMessageBoxError          = 'Error';
   sMessageBoxQuestion       = 'Question';
+
+  sMessageBoxCancel         = 'Cancel';
+  sMessageBoxClose          = 'Close';
+  sMessageBoxYes            = 'Yes';
+  sMessageBoxNo             = 'No';
 
   { file masks }
   fmBINFiles                = 'bin';

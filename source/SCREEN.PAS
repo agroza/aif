@@ -296,10 +296,10 @@ const
   kMessageBoxButtonPadding  = 2;
 
   sMessageBoxButtons: array[TMessageBoxButton] of PChar = (
-    'Cancel',
-    'Close',
-    'Yes',
-    'No'
+    sMessageBoxCancel,
+    sMessageBoxClose,
+    sMessageBoxYes,
+    sMessageBoxNo
   );
 
   kMessageBoxResults: array[TMessageBoxButton] of TMessageBoxResult = (
