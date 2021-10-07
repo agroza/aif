@@ -226,19 +226,16 @@ begin
       AVolume := 7;
     end;
 
-    if AChannel = scLeft then
-    begin
-      Volume := (SBMixerGetVolume(ADeviceType, scRight) shl $01) or (AVolume shl $05);
-    end;
+    case AChannel of
+      scLeft:
+        Volume := (SBMixerGetVolume(ADeviceType, scRight) shl $01) or (AVolume shl $05);
 
-    if AChannel = scRight then
-    begin
-      Volume := (AVolume shl $01) or (SBMixerGetVolume(ADeviceType, scLeft) shl $05);
-    end;
+      scRight:
+        Volume := (AVolume shl $01) or (SBMixerGetVolume(ADeviceType, scLeft) shl $05);
 
-    if AChannel = scLeftRight then
-    begin
-      Volume := (AVolume shl $01) or (AVolume shl $05);
+      scLeftRight:
+        Volume := (AVolume shl $01) or (AVolume shl $05);
+
     end;
   end;
 

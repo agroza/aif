@@ -122,25 +122,24 @@ procedure VideoEnableCursor;
 procedure VideoDisableCursor;
 
 procedure VideoClearScreen;
-procedure VideoStoreScreen(const AVideoRAMData: PVideoRAMData);
-procedure VideoRestoreScreen(const AVideoRAMData: PVideoRAMData);
+procedure VideoGetScreen(var AVideoRAMData: PVideoRAMData);
+procedure VideoSetScreen(const AVideoRAMData: PVideoRAMData);
 
-procedure VideoStoreSection(var AVideoSection: PVideoSection; const AVideoArea: TVideoArea);
-procedure VideoRestoreSection(var AVideoSection: PVideoSection; const AVideoArea: TVideoArea);
+procedure VideoGetSection(var AVideoSection: PVideoSection; const AVideoArea: TVideoArea);
+procedure VideoSetSection(var AVideoSection: PVideoSection; const AVideoArea: TVideoArea);
 
 function VideoAttribute(const AForeground, ABackground: Byte): Byte;
 
 procedure VideoWriteAttrAt(const ALeft, ATop, AAttribute: Byte);
 procedure VideoWriteCharAt(const ALeft, ATop: Byte; const ACharacter: Char);
 procedure VideoWriteCharAttrAt(const ALeft, ATop: Byte; const ACharacter: Char; const AAttribute: Byte);
-
-procedure VideoWriteStringAt(const ALeft, ATop: Byte; const AString: String; const AForeground, ABackground: Byte);
-procedure VideoWrite(const AString: String);
-procedure VideoWriteln(const AString: String);
-procedure VideoWriteNewln;
-
 procedure VideoWriteRegion(const ALeft, ATop, AWidth, AHeight: Byte; const ACharacter: Char; const AAttribute: Byte);
 procedure VideoHighlightRegion(const ALeft, ATop, AWidth, AHeight: Byte; const AAttribute: Byte);
+procedure VideoWriteStringAt(const ALeft, ATop: Byte; const AString: String; const AForeground, ABackground: Byte);
+procedure VideoWriteNewln;
+
+procedure VideoWrite(const AString: String);
+procedure VideoWriteln(const AString: String);
 
 procedure VideoSetForeground(const AColor: Byte);
 procedure VideoSetBackground(const AColor: Byte);
@@ -171,7 +170,7 @@ begin
   APositionY := VideoWhereY;
 
   GetMem(AVideoRAMData, kVGARAMSize);
-  VideoStoreScreen(AVideoRAMData);
+  VideoGetScreen(AVideoRAMData);
   VideoClearScreen;
   VideoEnableHighColors;
   VideoDisableCursor;
@@ -181,7 +180,7 @@ procedure VideoFinalize(var APositionY: Byte; var AVideoRAMData: PVideoRAMData);
 begin
   VideoEnableCursor;
   VideoDisableHighColors;
-  VideoRestoreScreen(AVideoRAMData);
+  VideoSetScreen(AVideoRAMData);
   FreeMem(AVideoRAMData, kVGARAMSize);
 
   VideoGotoXY(k80x25Left, APositionY);
@@ -338,7 +337,7 @@ asm
   rep stosw
 end;
 
-procedure VideoStoreScreen(const AVideoRAMData: PVideoRAMData);
+procedure VideoGetScreen(var AVideoRAMData: PVideoRAMData);
 begin
   if Assigned(AVideoRAMData) then
   begin
@@ -350,7 +349,7 @@ begin
   end;
 end;
 
-procedure VideoRestoreScreen(const AVideoRAMData: PVideoRAMData);
+procedure VideoSetScreen(const AVideoRAMData: PVideoRAMData);
 begin
   if Assigned(AVideoRAMData) then
   begin
@@ -362,7 +361,7 @@ begin
   end;
 end;
 
-procedure VideoStoreSection(var AVideoSection: PVideoSection; const AVideoArea: TVideoArea);
+procedure VideoGetSection(var AVideoSection: PVideoSection; const AVideoArea: TVideoArea);
 var
   I: Integer;
   LVideoSectionSize: Integer;
@@ -388,7 +387,7 @@ begin
   Dec(AVideoSection, LVideoSectionSize);
 end;
 
-procedure VideoRestoreSection(var AVideoSection: PVideoSection; const AVideoArea: TVideoArea);
+procedure VideoSetSection(var AVideoSection: PVideoSection; const AVideoArea: TVideoArea);
 var
   I: Integer;
   LVideoSectionSize: Integer;
@@ -448,7 +447,7 @@ asm
 
   mov al,AAttribute
 
-  mov byte ptr es:[di],al
+  stosb
 end;
 
 procedure VideoWriteCharAt(const ALeft, ATop: Byte; const ACharacter: Char); assembler;
@@ -477,7 +476,7 @@ asm
 
   mov al,ACharacter
 
-  mov byte ptr es:[di],al
+  stosb
 end;
 
 procedure VideoWriteCharAttrAt(const ALeft, ATop: Byte; const ACharacter: Char; const AAttribute: Byte); assembler;
@@ -507,7 +506,101 @@ asm
   mov ah,AAttribute
   mov al,ACharacter
 
-  mov word ptr es:[di],ax
+  stosw
+end;
+
+procedure VideoWriteRegion(const ALeft, ATop, AWidth, AHeight: Byte; const ACharacter: Char;
+  const AAttribute: Byte); assembler;
+asm
+  mov ax,kVGARAMAddress
+  mov es,ax
+
+  xor ch,ch
+
+@calculatePosition:
+  xor ah,ah
+  mov al,ATop
+  dec al
+  add al,ch
+
+  xor bh,bh
+  mov bl,kVGAColumnCount
+  mul bx
+
+  shl ax,01h
+
+  xor dh,dh
+  mov dl,ALeft
+  shl dx,01h
+  dec dx
+  dec dx
+
+  add ax,dx
+  mov di,ax
+
+  mov ah,AAttribute
+  mov al,ACharacter
+
+  push cx
+
+  xor ch,ch
+  mov cl,AWidth
+
+  cld
+
+  rep stosw
+
+  pop cx
+
+  inc ch
+  cmp ch,AHeight
+  jnz @calculatePosition
+end;
+
+procedure VideoHighlightRegion(const ALeft, ATop, AWidth, AHeight: Byte; const AAttribute: Byte); assembler;
+asm
+  mov ax,kVGARAMAddress
+  mov es,ax
+
+  xor ch,ch
+
+@calculatePosition:
+  xor ah,ah
+  mov al,ATop
+  dec al
+  add al,ch
+
+  xor bh,bh
+  mov bl,kVGAColumnCount
+  mul bx
+
+  shl ax,01h
+
+  xor dh,dh
+  mov dl,ALeft
+  shl dx,01h
+  dec dx
+  dec dx
+
+  add ax,dx
+  mov di,ax
+
+  mov ah,AAttribute
+
+  mov cl,AWidth
+
+@nextPosition:
+  dec cl
+
+  mov al,es:[di]
+  stosw
+
+  or cl,cl
+  jnz @nextPosition
+
+  inc ch
+  cmp ch,AHeight
+  jnz @calculatePosition
 end;
 
 procedure VideoWriteStringAt(const ALeft, ATop: Byte; const AString: String; const AForeground, ABackground: Byte); assembler;
@@ -556,6 +649,52 @@ asm
 
 @exit:
   pop ds
+end;
+
+procedure VideoWriteNewln; assembler;
+asm
+  jmp @start
+
+@@moveCursor:
+  mov ah,02h
+  xor bh,bh
+  int 10h
+
+  retn
+
+@start:
+  mov ah,03h
+  xor bh,bh
+  int 10h
+
+  xor dl,dl
+
+  cmp dh,kVGARowCount - 1
+  jz @scrollUp
+  inc dh
+
+  call @@moveCursor
+
+  jmp @exit
+
+@scrollUp:
+  call @@moveCursor
+
+  mov ah,08h
+  int 10h
+  mov bh,ah
+
+  mov ah,06h
+  mov al,01h
+  xor cx,cx
+  mov dh,kVGARowCount
+  dec dh
+  mov dl,kVGAColumnCount
+  dec dl
+  int 10h
+
+@exit:
+
 end;
 
 procedure VideoWrite(const AString: String); assembler;
@@ -696,82 +835,6 @@ procedure VideoWriteln(const AString: String);
 begin
   VideoWrite(AString);
   VideoWriteNewln;
-end;
-
-procedure VideoWriteNewln; assembler;
-asm
-  jmp @start
-
-@moveCursor:
-  mov ah,02h
-  xor bh,bh
-  int 10h
-
-  retn
-
-@start:
-  mov ah,03h
-  xor bh,bh
-  int 10h
-
-  xor dl,dl
-
-  cmp dh,kVGARowCount - 1
-  jz @scrollUp
-  inc dh
-
-  call @moveCursor
-
-  jmp @exit
-
-@scrollUp:
-  call @moveCursor
-
-  mov ah,08h
-  int 10h
-  mov bh,ah
-
-  mov ah,06h
-  mov al,01h
-  xor cx,cx
-  mov dh,kVGARowCount
-  dec dh
-  mov dl,kVGAColumnCount
-  dec dl
-  int 10h
-
-@exit:
-
-end;
-
-procedure VideoWriteRegion(const ALeft, ATop, AWidth, AHeight: Byte; const ACharacter: Char; const AAttribute: Byte);
-var
-  I: Byte;
-  J: Byte;
-
-begin
-  for I := ALeft to Pred(ALeft + AWidth) do
-  begin
-    for J := ATop to Pred(ATop + AHeight) do
-    begin
-      VideoWriteCharAttrAt(I, J, ACharacter, AAttribute);
-    end;
-  end;
-end;
-
-procedure VideoHighlightRegion(const ALeft, ATop, AWidth, AHeight: Byte; const AAttribute: Byte);
-var
-  I: Byte;
-  J: Byte;
-
-begin
-  for I := ALeft to Pred(ALeft + AWidth) do
-  begin
-    for J := ATop to Pred(ATop + AHeight) do
-    begin
-      VideoWriteAttrAt(I, J, AAttribute);
-    end;
-  end;
 end;
 
 procedure VideoSetForeground(const AColor: Byte);

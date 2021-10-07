@@ -294,6 +294,7 @@ begin
                   if ScreenMessageBoxDraw(IGMessageBox) <> mrYes then
                   begin
                     DrawResult(False);
+
                     Continue;
                   end;
                 end;

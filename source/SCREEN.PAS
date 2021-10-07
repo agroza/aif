@@ -287,7 +287,6 @@ const
 
   kProgressBarHeight        = 3;
   kProgressBarInternHeight  = 1;
-  kButtonAcceleratorWidth   = 1;
   kButtonHeight             = 1;
 
   cButtonLeftDemarcation    = '';
@@ -301,6 +300,13 @@ const
     'Close',
     'Yes',
     'No'
+  );
+
+  kMessageBoxResults: array[TMessageBoxButton] of TMessageBoxResult = (
+    mrCancel,
+    mrClose,
+    mrYes,
+    mrNo
   );
 
   kSliderChannelHeight      = 1;
@@ -866,11 +872,9 @@ begin
     AButtonData.Colors.Background
   );
 
-  VideoHighlightRegion(
+  VideoWriteAttrAt(
     AButtonData.PositionX + kMessageBoxButtonPadding,
     AButtonData.PositionY,
-    kButtonAcceleratorWidth,
-    kButtonHeight,
     VideoAttribute(
       AButtonData.Colors.Accelerator,
       AButtonData.Colors.Background
@@ -891,11 +895,9 @@ begin
     )
   );
 
-  VideoHighlightRegion(
+  VideoWriteAttrAt(
     AButtonData.PositionX + kMessageBoxButtonPadding,
     AButtonData.PositionY,
-    kButtonAcceleratorWidth,
-    kButtonHeight,
     VideoAttribute(
       AButtonData.Colors.Accelerator,
       AButtonData.Colors.Background
@@ -916,6 +918,9 @@ begin
 end;
 
 procedure ScreenButtonHighlight(const AButtonData: TButtonData);
+var
+  LHighAttribute: Byte;
+
 begin
   VideoHighlightRegion(
     AButtonData.PositionX,
@@ -928,35 +933,29 @@ begin
     )
   );
 
-  VideoHighlightRegion(
+  LHighAttribute := VideoAttribute(
+    AButtonData.Colors.HighAccelerator,
+    AButtonData.Colors.HighForeground
+  );
+
+  VideoWriteAttrAt(
     AButtonData.PositionX + kMessageBoxButtonPadding,
     AButtonData.PositionY,
-    kButtonAcceleratorWidth,
-    kButtonHeight,
-    VideoAttribute(
-      AButtonData.Colors.HighAccelerator,
-      AButtonData.Colors.HighForeground
-    )
+    LHighAttribute
   );
 
   VideoWriteCharAttrAt(
     AButtonData.PositionX,
     AButtonData.PositionY,
     cButtonLeftDemarcation,
-    VideoAttribute(
-      AButtonData.Colors.HighAccelerator,
-      AButtonData.Colors.HighForeground
-    )
+    LHighAttribute
   );
 
   VideoWriteCharAttrAt(
     Pred(AButtonData.PositionX + AButtonData.Width),
     AButtonData.PositionY,
     cButtonRightDemarcation,
-    VideoAttribute(
-      AButtonData.Colors.HighAccelerator,
-      AButtonData.Colors.HighForeground
-    )
+    LHighAttribute
   );
 end;
 
@@ -1068,24 +1067,6 @@ begin
   end;
 end;
 
-function MessageBoxResult(const AButton: TMessageBoxButton): TMessageBoxResult;
-begin
-  case AButton of
-    mbCancel:
-      MessageBoxResult := mrCancel;
-
-    mbClose:
-      MessageBoxResult := mrClose;
-
-    mbYes:
-      MessageBoxResult := mrYes;
-
-    mbNo:
-      MessageBoxResult := mrNo;
-
-  end;
-end;
-
 function MessageBoxAccelerator(const AAccelerator: Char; const AMessageBoxButtons: TMessageBoxButtons): TMessageBoxResult;
 var
   LButton: TMessageBoxButton;
@@ -1097,7 +1078,7 @@ begin
     begin
       if UpCase(sMessageBoxButtons[LButton][0]) = AAccelerator then
       begin
-        MessageBoxAccelerator := MessageBoxResult(LButton);
+        MessageBoxAccelerator := kMessageBoxResults[LButton];
 
         Exit;
       end;
@@ -1162,7 +1143,7 @@ begin
 
       kKeyEnter:
         begin
-          MessageBoxEventHandler := MessageBoxResult(TMessageBoxButton(AButtonsData^[LButtonIndex].Tag));
+          MessageBoxEventHandler := kMessageBoxResults[TMessageBoxButton(AButtonsData^[LButtonIndex].Tag)];
 
           Break;
         end;
@@ -1211,7 +1192,7 @@ begin
   LVideoArea.Width := LMaxLength + 4;
   LVideoArea.Height := LStringsCount + 7;
 
-  VideoStoreSection(LVideoSection, LVideoArea);
+  VideoGetSection(LVideoSection, LVideoArea);
 
   LFrameData.PositionX := LVideoArea.PositionX;
   LFrameData.PositionY := LVideoArea.PositionY;
@@ -1272,7 +1253,7 @@ begin
 
   FreeMem(LButtonsData, LButtonsDataSize);
 
-  VideoRestoreSection(LVideoSection, LVideoArea);
+  VideoSetSection(LVideoSection, LVideoArea);
 
   FreeMem(LStrings, LStringsSize);
 end;
@@ -1456,51 +1437,42 @@ end;
 procedure ScreenStereoSliderHighlight(const ASliderData: TStereoSliderData;
   const AChannel: TCodecSoundChannel; const AValue: Boolean);
 var
+  LAttribute: Byte;
+  LHighAttribute: Byte;
   LLeftAttribute: Byte;
   LRightAttribute: Byte;
 
 begin
+  LAttribute := VideoAttribute(
+    ASliderData.Colors.Text,
+    ASliderData.Colors.Background
+  );
+
+  LHighAttribute := VideoAttribute(
+    ASliderData.Colors.HighForeground,
+    ASliderData.Colors.HighBackground
+  );
+
   if AValue then
   begin
     case AChannel of
       scLeft:
         begin
-          LLeftAttribute := VideoAttribute(
-            ASliderData.Colors.HighForeground,
-            ASliderData.Colors.HighBackground
-          );
-
-          LRightAttribute := VideoAttribute(
-            ASliderData.Colors.Text,
-            ASliderData.Colors.Background
-          );
+          LLeftAttribute := LHighAttribute;
+          LRightAttribute := LAttribute;
         end;
 
       scRight:
         begin
-          LLeftAttribute := VideoAttribute(
-            ASliderData.Colors.Text,
-            ASliderData.Colors.Background
-          );
-
-          LRightAttribute := VideoAttribute(
-            ASliderData.Colors.HighForeground,
-            ASliderData.Colors.HighBackground
-          );
+          LLeftAttribute := LAttribute;
+          LRightAttribute := LHighAttribute;
         end;
 
     end;
   end else
   begin
-    LLeftAttribute := VideoAttribute(
-      ASliderData.Colors.Text,
-      ASliderData.Colors.Background
-    );
-
-    LRightAttribute := VideoAttribute(
-      ASliderData.Colors.Text,
-      ASliderData.Colors.Background
-    );
+    LLeftAttribute := LAttribute;
+    LRightAttribute := LAttribute;
   end;
 
   VideoHighlightRegion(
