@@ -298,7 +298,7 @@ end;
 procedure VideoEnableHighColors; assembler;
 asm
   mov ax,1003h
-  mov bx,0000h
+  xor bx,bx
   int 10h
 end;
 
@@ -364,7 +364,7 @@ end;
 
 procedure VideoGetSection(var AVideoSection: PVideoSection; const AVideoArea: TVideoArea);
 var
-  I: Integer;
+  LHeight: Integer;
   LVideoSectionSize: Integer;
   LVideoAreaWidthSize: Byte;
 
@@ -374,10 +374,10 @@ begin
 
   GetMem(AVideoSection, LVideoSectionSize);
 
-  for I := 0 to Pred(AVideoArea.Height) do
+  for LHeight := 0 to Pred(AVideoArea.Height) do
   begin
     Move(
-      Mem[kVGARAMAddress : ((AVideoArea.PositionY + I) * kVGAColumnCount + Pred(AVideoArea.PositionX)) * 2],
+      Mem[kVGARAMAddress : ((AVideoArea.PositionY + LHeight) * kVGAColumnCount + Pred(AVideoArea.PositionX)) * 2],
       AVideoSection^,
       LVideoAreaWidthSize
     );
@@ -390,7 +390,7 @@ end;
 
 procedure VideoSetSection(var AVideoSection: PVideoSection; const AVideoArea: TVideoArea);
 var
-  I: Integer;
+  LHeight: Integer;
   LVideoSectionSize: Integer;
   LVideoAreaWidthSize: Byte;
 
@@ -398,11 +398,11 @@ begin
   LVideoSectionSize := AVideoArea.Width * AVideoArea.Height * 2;
   LVideoAreaWidthSize := AVideoArea.Width * 2;
 
-  for I := 0 to Pred(AVideoArea.Height) do
+  for LHeight := 0 to Pred(AVideoArea.Height) do
   begin
     Move(
       AVideoSection^,
-      Mem[kVGARAMAddress : ((AVideoArea.PositionY + I) * kVGAColumnCount + Pred(AVideoArea.PositionX)) * 2],
+      Mem[kVGARAMAddress : ((AVideoArea.PositionY + LHeight) * kVGAColumnCount + Pred(AVideoArea.PositionX)) * 2],
       LVideoAreaWidthSize
     );
 
@@ -615,6 +615,8 @@ end;
 
 procedure VideoWriteStringAt(const ALeft, ATop: Byte; const AString: String; const AForeground, ABackground: Byte); assembler;
 asm
+  push ds
+
   xor ah,ah
   mov al,ATop
   dec al
@@ -639,8 +641,6 @@ asm
   mov cl,04h
   shl ah,cl
   add ah,AForeground
-
-  push ds
 
   lds si,[AString]
 
@@ -751,7 +751,7 @@ asm
   retn
 
 @start:
-  cld
+  push ds
 
   mov ah,03h
   xor bh,bh
@@ -765,9 +765,9 @@ asm
   shl ah,cl
   add ah,IGForeground
 
-  push ds
-
   lds si,[AString]
+
+  cld
 
   lodsb
 

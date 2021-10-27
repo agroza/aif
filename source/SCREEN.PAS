@@ -1494,7 +1494,16 @@ end;
 
 procedure ScreenStereoSliderMove(var ASliderData: TStereoSliderData;
   const AChannel: TCodecSoundChannel; const ADirection: TSliderDirection);
+var
+  LStoreLock: Boolean;
+
 begin
+  LStoreLock := ASliderData.Locked;
+  if not LStoreLock then
+  begin
+    ASliderData.Locked := GetShiftDown;
+  end;
+
   if ASliderData.Locked then
   begin
     StereoSliderAct(ASliderData, ASliderData.LeftPosition, ADirection, kMixerSlidersLeftY, cSliderLeftBar);
@@ -1514,6 +1523,11 @@ begin
     end;
 
     StereoSliderUpdate(ASliderData, AChannel);
+  end;
+
+  if not LStoreLock then
+  begin
+    ASliderData.Locked := LStoreLock;
   end;
 end;
 

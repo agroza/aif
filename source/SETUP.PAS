@@ -1055,7 +1055,7 @@ var
 begin
   SetupLoadConfig := False;
 
-  LFileName := ReplaceFileExt(FExpand(ParamStr(0)), fmBINFiles);
+  LFileName := FileReplaceExt(FExpand(ParamStr(0)), fmBINFiles);
 
   if not FileExists(LFileName) then
     Exit;
@@ -1087,7 +1087,7 @@ var
 begin
   SetupSaveConfig := False;
 
-  LFileName := ReplaceFileExt(FExpand(ParamStr(0)), fmBINFiles);
+  LFileName := FileReplaceExt(FExpand(ParamStr(0)), fmBINFiles);
 
 {$I-}
   Assign(LFile, LFileName);

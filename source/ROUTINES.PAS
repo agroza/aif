@@ -15,6 +15,7 @@ uses
 
 procedure Delay(const ADuration: Word);
 
+function GetShiftDown: Boolean;
 function GetScanCode: Word;
 function GetStandardKey(const AScanCode: Word): Char;
 function GetExtendedKey(const AScanCode: Word): Char;
@@ -43,8 +44,8 @@ function PadPercent(const AInteger: Longint): String;
 function PadCenter(const AString: String; const APads: Byte): String;
 function IfThenElse(const ACondition: Boolean; const AThen, AElse: String): String;
 
+function FileReplaceExt(const AFileName, AExtension: String): String;
 function FileExists(const AFileName: String): Boolean;
-function ReplaceFileExt(const AFileName, AExtension: String): String;
 
 implementation
 
@@ -61,6 +62,24 @@ asm
   mov dx,ax
   mov ah,86h
   int 15h
+end;
+
+function GetShiftDown: Boolean; assembler;
+asm
+  mov ah,02h
+  int 16h
+
+  and al,03h
+  jz @shiftDepressed
+
+  mov al,True
+  jmp @exit
+
+@shiftDepressed:
+  xor al,al
+
+@exit:
+
 end;
 
 function GetScanCode: Word; assembler;
@@ -130,14 +149,14 @@ end;
 
 function FindSimpleParameter(const AParameter: String): Boolean;
 var
-  I: Integer;
+  LIndex: Integer;
 
 begin
   FindSimpleParameter := False;
 
-  for I := 1 to ParamCount do
+  for LIndex := 1 to ParamCount do
   begin
-    if LowerCase(ParamStr(I)) = AParameter then
+    if LowerCase(ParamStr(LIndex)) = AParameter then
     begin
       FindSimpleParameter := True;
 
@@ -148,17 +167,17 @@ end;
 
 function FindComplexParameter(const AParameter: String; var AValue: String): Boolean;
 var
-  I: Integer;
+  LIndex: Integer;
 
 begin
   FindComplexParameter := False;
 
-  for I := 1 to ParamCount do
+  for LIndex := 1 to ParamCount do
   begin
-    if Pos(AParameter, LowerCase(ParamStr(I))) <> 0 then
-    begin
-      AValue := ParamStr(I);
+    AValue := ParamStr(LIndex);
 
+    if Pos(AParameter, LowerCase(AValue)) <> 0 then
+    begin
       FindComplexParameter := True;
 
       Break;
@@ -441,21 +460,7 @@ begin
   end;
 end;
 
-function FileExists(const AFileName: String): Boolean;
-var
-  LFile: File of Byte;
-
-begin
-{$I-}
-  Assign(LFile, AFileName);
-  Reset(LFile);
-  Close(LFile);
-{$I+}
-
-  FileExists := IOResult = 0;
-end;
-
-function ReplaceFileExt(const AFileName, AExtension: String): String;
+function FileReplaceExt(const AFileName, AExtension: String): String;
 var
   LDotPosition: Byte;
 
@@ -470,11 +475,24 @@ begin
 
   if (LDotPosition = 1) and (AFileName[LDotPosition] <> cFullStop) then
   begin
-    ReplaceFileExt := AFileName;
+    FileReplaceExt := AFileName;
   end else
   begin
-    ReplaceFileExt := Copy(AFileName, 1, LDotPosition) + AExtension;
+    FileReplaceExt := Copy(AFileName, 1, LDotPosition) + AExtension;
   end;
+end;
+
+function FileExists(const AFileName: String): Boolean;
+var
+  LFile: File of Byte;
+
+begin
+{$I-}
+  Assign(LFile, AFileName);
+  Reset(LFile);
+  Close(LFile);
+{$I+}
+  FileExists := IOResult = 0;
 end;
 
 end.
