@@ -15,13 +15,13 @@ uses
   Types;
 
 type
-  TCodecAudioConfig = record
+  TCodecAudioConfig = packed record
     SampleRate: TCodecSampleRate;
     BitDepth: TCodecBitDepth;
     SoundOutput: TCodecSoundOutput;
   end;
 
-  TCodecMixerConfig = record
+  TCodecMixerConfig = packed record
     DACLeft: Byte;
     DACRight: Byte;
     AUX1Left: Byte;
@@ -39,14 +39,14 @@ type
     OutputsEnabled: Boolean;
   end;
 
-  TSampleRateData = record
+  TSampleRateData = packed record
     Divider: Byte;
     Crystal: Byte;
     Frequency: Word;
   end;
 
 const
-  kSampleRates: array[TCodecSampleRate] of TSampleRateData = (
+  kSampleRates: packed array[TCodecSampleRate] of TSampleRateData = (
     ( Divider: 0; Crystal: 2; Frequency:  5512 ),
     ( Divider: 7; Crystal: 2; Frequency:  6615 ),
     ( Divider: 0; Crystal: 1; Frequency:  8000 ),
@@ -103,7 +103,7 @@ uses
   Routines;
 
 type
-  TCodecConfig = record
+  TCodecConfig = packed record
     WSSPort: Word;
     Address: Word;
     Data: Word;
@@ -192,7 +192,7 @@ const
   { Digital Mix Control Register }
   kBitDME                             = 0;
 
-  kRegisterResetValue: array[0..15] of Byte = (
+  kRegisterResetValue: packed array[0..15] of Byte = (
     $00, { Left Input Control Register }
     $00, { Right Input Control Register }
     $80, { Left Auxiliary #1 Input Control Register }
@@ -214,7 +214,7 @@ const
   { Codec Communication }
   kCodecCommunicationDelay            = 1;
 
-  kDeviceTypes: array[TCodecDeviceType] of Byte = (
+  kDeviceTypes: packed array[TCodecDeviceType] of Byte = (
     kREGISTER_LEFT_AUX1_INPUT_CONTROL,
     kREGISTER_LEFT_AUX2_INPUT_CONTROL,
     kREGISTER_LEFT_DAC_CONTROL
@@ -254,9 +254,7 @@ var
   LOldRegister: Byte;
 
 begin
-  asm
-    cli
-  end;
+  DisableInterrupts;
 
   if CodecIsReady then
   begin
@@ -272,9 +270,7 @@ begin
     Routines.Delay(kCodecCommunicationDelay);
   end;
 
-  asm
-    sti
-  end;
+  EnableInterrupts;
 end;
 
 procedure CodecWrite(const ARegister: Byte; AData: Byte);
@@ -282,9 +278,7 @@ var
   LOldRegister: Byte;
 
 begin
-  asm
-    cli
-  end;
+  DisableInterrupts;
 
   if CodecIsReady then
   begin
@@ -304,9 +298,7 @@ begin
     Routines.Delay(kCodecCommunicationDelay);
   end;
 
-  asm
-    sti
-  end;
+  EnableInterrupts;
 end;
 
 procedure SetRegisterBit(const ARegister, ABit: Byte; const AValue: Boolean);
@@ -359,9 +351,7 @@ var
   LPinControlMask: Byte;
 
 begin
-  asm
-    cli
-  end;
+  DisableInterrupts;
 
   LPinControlMask := CodecRead(kREGISTER_PIN_CONTROL) and $40;
 
@@ -389,9 +379,7 @@ begin
 
   CodecCalibrate := True;
 
-  asm
-    sti
-  end;
+  EnableInterrupts;
 end;
 
 { public declarations }
@@ -445,9 +433,7 @@ var
   LResult: Boolean;
 
 begin
-  asm
-    cli
-  end;
+  DisableInterrupts;
 
   if CodecIsReady then
   begin
@@ -473,9 +459,7 @@ begin
     CodecInitialize := False;
   end;
 
-  asm
-    sti
-  end;
+  EnableInterrupts;
 end;
 
 procedure CodecGetOutputFormat(var AFrequency: Word; var AFormat: TCodecOutputFormat;

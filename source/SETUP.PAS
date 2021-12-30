@@ -41,7 +41,7 @@ uses
   Video;
 
 type
-  TFileSignature = array[0..7] of Char;
+  TFileSignature = packed array[0..7] of Char;
 
   TArrayAdvance = (
     aaPrevious,
@@ -77,8 +77,8 @@ type
 
   TGSVFunction = function(const AIndex: Byte; const ASetValue: Boolean): String;
 
-  TSetupOptionData = record
-    Name: String;
+  TSetupOptionData = packed record
+    Name: PChar;
     PositionY: Byte;
     Low: Byte;
     High: Byte;
@@ -86,7 +86,7 @@ type
     GSVFunction: TGSVFunction;
   end;
 
-  TSetupConfig = record
+  TSetupConfig = packed record
     AIFMode: TBitStatus;
     WSSBASE: Word;
     WSSIRQ: Byte;
@@ -113,19 +113,39 @@ type
     AVC: TBitStatus;
   end;
 
+{$F+}
+
+function GSVAIFMode(const AIndex: Byte; const ASetValue: Boolean): String; forward;
+function GSVWSSBASE(const AIndex: Byte; const ASetValue: Boolean): String; forward;
+function GSVWSSIRQ(const AIndex: Byte; const ASetValue: Boolean): String; forward;
+function GSVWSSDRQ(const AIndex: Byte; const ASetValue: Boolean): String; forward;
+function GSVSBBASE(const AIndex: Byte; const ASetValue: Boolean): String; forward;
+function GSVSBIRQ(const AIndex: Byte; const ASetValue: Boolean): String; forward;
+function GSVSBDRQ(const AIndex: Byte; const ASetValue: Boolean): String; forward;
+function GSVMPU401(const AIndex: Byte; const ASetValue: Boolean): String; forward;
+function GSVMPUBASE(const AIndex: Byte; const ASetValue: Boolean): String; forward;
+function GSVMPUIRQ(const AIndex: Byte; const ASetValue: Boolean): String; forward;
+function GSVGamePort(const AIndex: Byte; const ASetValue: Boolean): String; forward;
+function GSVIDECDROM(const AIndex: Byte; const ASetValue: Boolean): String; forward;
+function GSVCFIX(const AIndex: Byte; const ASetValue: Boolean): String; forward;
+function GSVFMAP(const AIndex: Byte; const ASetValue: Boolean): String; forward;
+function GSVWSSSampleRate(const AIndex: Byte; const ASetValue: Boolean): String; forward;
+function GSVWSSBitDepth(const AIndex: Byte; const ASetValue: Boolean): String; forward;
+function GSVWSSSoundOutput(const AIndex: Byte; const ASetValue: Boolean): String; forward;
+function GSVSBSampleRate(const AIndex: Byte; const ASetValue: Boolean): String; forward;
+function GSVSBBitDepth(const AIndex: Byte; const ASetValue: Boolean): String; forward;
+function GSVSBSoundOutput(const AIndex: Byte; const ASetValue: Boolean): String; forward;
+function GSVSBDSPVersion(const AIndex: Byte; const ASetValue: Boolean): String; forward;
+function GSVSBADPCM(const AIndex: Byte; const ASetValue: Boolean): String; forward;
+function GSVCFIFO(const AIndex: Byte; const ASetValue: Boolean): String; forward;
+function GSVAVC(const AIndex: Byte; const ASetValue: Boolean): String; forward;
+
+{$F-}
+
 const
   kFileSignature: TFileSignature = 'AG86.BIN';
 
-  kWSSBASEs: array[0..3] of Word = ( $0530, $0E80, $0F40, $0604 );
-  kWSSIRQs: array[0..4] of Byte = ( $07, $09, $0A, $0B, $FF );
-  kWSSDRQs: array[0..3] of Byte = ( $00, $01, $03, $FF );
-  kSBBASEs: array[0..1] of Word = ( $0220, $0240 );
-  kSBIRQs: array[0..3] of Byte = ( $05, $07, $0A, $FF );
-  kSBDRQs: array[0..3] of Byte = ( $00, $01, $03, $FF );
-  kMPUBASEs: array[0..3] of Word = ( $0300, $0310, $0320, $0330 );
-  kMPUIRQs: array[0..3] of Byte = ( $05, $07, $09, $0A );
-
-  kUICommands: array[0..5] of TUICommand = (
+  kUICommands: packed array[0..kSetupCmdCount] of TUICommand = (
     ( Y: 4; Accelerator: sSetupCmdF8; Name: sSetupCmdDefaultConfig ),
     ( Y: 5; Accelerator: sSetupCmdF9; Name: sSetupCmdReloadConfig ),
     ( Y: 6; Accelerator: sSetupCmdF10; Name: sSetupCmdSaveExit ),
@@ -134,9 +154,64 @@ const
     ( Y: 13; Accelerator: sSetupCmdLeftRight; Name: sSetupCmdModifyOption )
   );
 
+  kSetupOptions: packed array[TSetupOption] of TSetupOptionData = (
+    ( Name: sSetupAIFMode; PositionY: 2; Low: 0; High: 0; Index: 0; GSVFunction: GSVAIFMode ),
+    ( Name: sSetupWSSBASE; PositionY: 3; Low: 0; High: 0; Index: 0; GSVFunction: GSVWSSBASE ),
+    ( Name: sSetupWSSIRQ; PositionY: 4; Low: 0; High: 0; Index: 0; GSVFunction: GSVWSSIRQ ),
+    ( Name: sSetupWSSDRQ; PositionY: 5; Low: 0; High: 0; Index: 0; GSVFunction: GSVWSSDRQ ),
+    ( Name: sSetupSBBASE; PositionY: 6; Low: 0; High: 0; Index: 0; GSVFunction: GSVSBBASE ),
+    ( Name: sSetupSBIRQ; PositionY: 7; Low: 0; High: 0; Index: 0; GSVFunction: GSVSBIRQ ),
+    ( Name: sSetupSBDRQ; PositionY: 8; Low: 0; High: 0; Index: 0; GSVFunction: GSVSBDRQ ),
+    ( Name: sSetupMPU401; PositionY: 9; Low: 0; High: 0; Index: 0; GSVFunction: GSVMPU401 ),
+    ( Name: sSetupMPUBASE; PositionY: 10; Low: 0; High: 0; Index: 0; GSVFunction: GSVMPUBASE ),
+    ( Name: sSetupMPUIRQ; PositionY: 11; Low: 0; High: 0; Index: 0; GSVFunction: GSVMPUIRQ ),
+    ( Name: sSetupGamePort; PositionY: 12; Low: 0; High: 0; Index: 0; GSVFunction: GSVGamePort ),
+    ( Name: sSetupIDECDROM; PositionY: 13; Low: 0; High: 0; Index: 0; GSVFunction: GSVIDECDROM ),
+    ( Name: sSetupCFIX; PositionY: 14; Low: 0; High: 0; Index: 0; GSVFunction: GSVCFIX ),
+    ( Name: sSetupFMAP; PositionY: 15; Low: 0; High: 0; Index: 0; GSVFunction: GSVFMAP ),
+    ( Name: sSetupWSSSampleRate; PositionY: 16; Low: 0; High: 0; Index: 0; GSVFunction: GSVWSSSampleRate ),
+    ( Name: sSetupWSSBitDepth; PositionY: 17; Low: 0; High: 0; Index: 0; GSVFunction: GSVWSSBitDepth ),
+    ( Name: sSetupWSSSoundOutput; PositionY: 18; Low: 0; High: 0; Index: 0; GSVFunction: GSVWSSSoundOutput ),
+    ( Name: sSetupSBSampleRate; PositionY: 19; Low: 0; High: 0; Index: 0; GSVFunction: GSVSBSampleRate ),
+    ( Name: sSetupSBBitDepth; PositionY: 20; Low: 0; High: 0; Index: 0; GSVFunction: GSVSBBitDepth ),
+    ( Name: sSetupSBSoundOutput; PositionY: 21; Low: 0; High: 0; Index: 0; GSVFunction: GSVSBSoundOutput ),
+    ( Name: sSetupSBDSPVersion; PositionY: 22; Low: 0; High: 0; Index: 0; GSVFunction: GSVSBDSPVersion ),
+    ( Name: sSetupSBADPCM; PositionY: 23; Low: 0; High: 0; Index: 0; GSVFunction: GSVSBADPCM ),
+    ( Name: sSetupCFIFO; PositionY: 24; Low: 0; High: 0; Index: 0; GSVFunction: GSVCFIFO ),
+    ( Name: sSetupAVC; PositionY: 25; Low: 0; High: 0; Index: 0; GSVFunction: GSVAVC )
+  );
+
+  kWSSBASEs: packed array[0..3] of Word = ( $0530, $0E80, $0F40, $0604 );
+  kWSSIRQs: packed array[0..4] of Byte = ( $07, $09, $0A, $0B, $FF );
+  kWSSDRQs: packed array[0..3] of Byte = ( $00, $01, $03, $FF );
+  kSBBASEs: packed array[0..1] of Word = ( $0220, $0240 );
+  kSBIRQs: packed array[0..3] of Byte = ( $05, $07, $0A, $FF );
+  kSBDRQs: packed array[0..3] of Byte = ( $00, $01, $03, $FF );
+  kMPUBASEs: packed array[0..3] of Word = ( $0300, $0310, $0320, $0330 );
+  kMPUIRQs: packed array[0..3] of Byte = ( $05, $07, $09, $0A );
+
+  sBSDisabledEnabled: packed array[TBitStatus] of String[Length(sDisabled)] = (
+    sDisabled,
+    sEnabled
+  );
+
+  sCFIX: packed array[TBitStatus] of String[Length(sAudioCodecAD1848orCS4248)] = (
+    sAudioCodecAD1848orCS4248,
+    sAudioCodecAD1845orCS4231
+  );
+
+  sFMAP: packed array[TBitStatus] of String[Length(sCrystal16and24MHz)] = (
+    sCrystal16and24MHz,
+    sCrystal16MHz
+  );
+
+  sAVC: packed array[TBitStatus] of String[Length(sVolumeControlAutomatic)] = (
+    sVolumeControlAutomatic,
+    sVolumeControlNormal
+  );
+
 var
   IGSetupConfigChanged: Boolean;
-  IGSetupOptions: array[TSetupOption] of TSetupOptionData;
   IGSetupConfig: TSetupConfig;
   IGMessageBox: TMessageBoxData;
 
@@ -462,239 +537,45 @@ end;
 
 {$F-}
 
-procedure InitOption(const ASetupOption: TSetupOption; const AName: String;
-  const AHigh, AIndex: Byte; const AGSVFunction: TGSVFunction);
+procedure InitOptionVector(const ASetupOption: TSetupOption; const AHigh, AIndex: Byte);
 begin
-  IGSetupOptions[ASetupOption].Name := AName;
-  IGSetupOptions[ASetupOption].High := AHigh;
-  IGSetupOptions[ASetupOption].Index := AIndex;
-  IGSetupOptions[ASetupOption].GSVFunction := AGSVFunction;
+  kSetupOptions[ASetupOption].High := AHigh;
+  kSetupOptions[ASetupOption].Index := AIndex;
 end;
 
-procedure InitOptions;
-var
-  LSetupOption: TSetupOption;
-
+procedure InitOptionVectors;
 begin
-  for LSetupOption := Low(TSetupOption) to High(LSetupOption) do
-  begin
-    IGSetupOptions[LSetupOption].PositionY := Byte(LSetupOption) + 2;
-    IGSetupOptions[LSetupOption].Low := 0;
-  end;
-
-  InitOption(
-    soAIFMode,
-    sSetupAIFMode,
-    Byte(High(sAIFMode)),
-    Byte(IGSetupConfig.AIFMode),
-    GSVAIFMode
-  );
-
-  InitOption(
-    soWSSBASE,
-    sSetupWSSBASE,
-    High(kWSSBASEs),
-    LocateWord(IGSetupConfig.WSSBASE, kWSSBASEs),
-    GSVWSSBASE
-  );
-
-  InitOption(
-    soWSSIRQ,
-    sSetupWSSIRQ,
-    High(kWSSIRQs),
-    LocateByte(IGSetupConfig.WSSIRQ, kWSSIRQs),
-    GSVWSSIRQ
-  );
-
-  InitOption(
-    soWSSDRQ,
-    sSetupWSSDRQ,
-    High(kWSSDRQs),
-    LocateByte(IGSetupConfig.WSSDRQ, kWSSDRQs),
-    GSVWSSDRQ
-  );
-
-  InitOption(
-    soSBBASE,
-    sSetupSBBASE,
-    High(kSBBASEs),
-    LocateWord(IGSetupConfig.SBBASE, kSBBASEs),
-    GSVSBBASE
-  );
-
-  InitOption(
-    soSBIRQ,
-    sSetupSBIRQ,
-    High(kSBIRQs),
-    LocateByte(IGSetupConfig.SBIRQ, kSBIRQs),
-    GSVSBIRQ
-  );
-
-  InitOption(
-    soSBDRQ,
-    sSetupSBDRQ,
-    High(kSBDRQs),
-    LocateByte(IGSetupConfig.SBDRQ, kSBDRQs),
-    GSVSBDRQ
-  );
-
-  InitOption(
-    soMPU401,
-    sSetupMPU401,
-    Byte(High(sBSDisabledEnabled)),
-    Byte(IGSetupConfig.MPU401),
-    GSVMPU401
-  );
-
-  InitOption(
-    soMPUBASE,
-    sSetupMPUBASE,
-    High(kMPUBASEs),
-    LocateWord(IGSetupConfig.MPUBASE, kMPUBASEs),
-    GSVMPUBASE
-  );
-
-  InitOption(
-    soMPUIRQ,
-    sSetupMPUIRQ,
-    High(kMPUIRQs),
-    LocateByte(IGSetupConfig.MPUIRQ, kMPUIRQs),
-    GSVMPUIRQ
-  );
-
-  InitOption(
-    soGamePort,
-    sSetupGamePort,
-    Byte(High(sBSDisabledEnabled)),
-    Byte(IGSetupConfig.GamePort),
-    GSVGamePort
-  );
-
-  InitOption(
-    soIDECDROM,
-    sSetupIDECDROM,
-    Byte(High(sBSDisabledEnabled)),
-    Byte(IGSetupConfig.IDECDROM),
-    GSVIDECDROM
-  );
-
-  InitOption(
-    soCFIX,
-    sSetupCFIX,
-    Byte(High(sCFIX)),
-    Byte(IGSetupConfig.CFIX),
-    GSVCFIX
-  );
-
-  InitOption(
-    soFMAP,
-    sSetupFMAP,
-    Byte(High(sBSDisabledEnabled)),
-    Byte(IGSetupConfig.FMAP),
-    GSVFMAP
-  );
-
-  InitOption(
-    soWSSSampleRate,
-    sSetupWSSSampleRate,
-    Byte(High(kSampleRates)),
-    Byte(IGSetupConfig.WSSSampleRate),
-    GSVWSSSampleRate
-  );
-
-  InitOption(
-    soWSSBitDepth,
-    sSetupWSSBitDepth,
-    Byte(High(sBitDepth)),
-    Byte(IGSetupConfig.WSSBitDepth),
-    GSVWSSBitDepth
-  );
-
-  InitOption(
-    soWSSSoundOutput,
-    sSetupWSSSoundOutput,
-    Byte(High(sSoundOutput)),
-    Byte(IGSetupConfig.WSSSoundOutput),
-    GSVWSSSoundOutput
-  );
-
-  InitOption(
-    soSBSampleRate,
-    sSetupSBSampleRate,
-    Byte(High(kSampleRates)),
-    Byte(IGSetupConfig.SBSampleRate),
-    GSVSBSampleRate
-  );
-
-  InitOption(
-    soSBBitDepth,
-    sSetupSBBitDepth,
-    Byte(High(sBitDepth)),
-    Byte(IGSetupConfig.SBBitDepth),
-    GSVSBBitDepth
-  );
-
-  InitOption(
-    soSBSoundOutput,
-    sSetupSBSoundOutput,
-    Byte(High(sSoundOutput)),
-    Byte(IGSetupConfig.SBSoundOutput),
-    GSVSBSoundOutput
-  );
-
-  InitOption(
-    soSBDSPVersion,
-    sSetupSBDSPVersion,
-    Byte(High(sSBDSPVersions)),
-    Byte(IGSetupConfig.SBDSPVersion),
-    GSVSBDSPVersion
-  );
-
-  InitOption(
-    soSBADPCM,
-    sSetupSBADPCM,
-    Byte(High(sBSDisabledEnabled)),
-    Byte(IGSetupConfig.SBADPCM),
-    GSVSBADPCM
-  );
-
-  InitOption(
-    soCFIFO,
-    sSetupCFIFO,
-    Byte(High(sBSDisabledEnabled)),
-    Byte(IGSetupConfig.CFIFO),
-    GSVCFIFO
-  );
-
-  InitOption(
-    soAVC,
-    sSetupAVC,
-    Byte(High(sBSDisabledEnabled)),
-    Byte(IGSetupConfig.AVC),
-    GSVAVC
-  );
-end;
-
-procedure DrawOption(const APositionY: Byte; const AName, AValue: String);
-var
-  LKeyValueData: TKeyValueData;
-
-begin
-  LKeyValueData.NameX := kSetupNameX;
-  LKeyValueData.ValueX := kSetupValueX;
-  LKeyValueData.PositionY := APositionY;
-  LKeyValueData.Colors.Foreground := clSetupFore;
-  LKeyValueData.Colors.Background := clSetupBack;
-  LKeyValueData.Name := AName;
-  LKeyValueData.Value := AValue;
-
-  ScreenKeyValueDraw(LKeyValueData);
+  InitOptionVector(soAIFMode, Byte(High(sAIFMode)), Byte(IGSetupConfig.AIFMode));
+  InitOptionVector(soWSSBASE, High(kWSSBASEs), LocateWord(IGSetupConfig.WSSBASE, kWSSBASEs));
+  InitOptionVector(soWSSIRQ, High(kWSSIRQs), LocateByte(IGSetupConfig.WSSIRQ, kWSSIRQs));
+  InitOptionVector(soWSSDRQ, High(kWSSDRQs), LocateByte(IGSetupConfig.WSSDRQ, kWSSDRQs));
+  InitOptionVector(soSBBASE, High(kSBBASEs), LocateWord(IGSetupConfig.SBBASE, kSBBASEs));
+  InitOptionVector(soSBIRQ, High(kSBIRQs), LocateByte(IGSetupConfig.SBIRQ, kSBIRQs));
+  InitOptionVector(soSBDRQ, High(kSBDRQs), LocateByte(IGSetupConfig.SBDRQ, kSBDRQs));
+  InitOptionVector(soMPU401, Byte(High(sBSDisabledEnabled)), Byte(IGSetupConfig.MPU401));
+  InitOptionVector(soMPUBASE, High(kMPUBASEs), LocateWord(IGSetupConfig.MPUBASE, kMPUBASEs));
+  InitOptionVector(soMPUIRQ, High(kMPUIRQs), LocateByte(IGSetupConfig.MPUIRQ, kMPUIRQs));
+  InitOptionVector(soGamePort, Byte(High(sBSDisabledEnabled)), Byte(IGSetupConfig.GamePort));
+  InitOptionVector(soIDECDROM, Byte(High(sBSDisabledEnabled)), Byte(IGSetupConfig.IDECDROM));
+  InitOptionVector(soCFIX, Byte(High(sCFIX)), Byte(IGSetupConfig.CFIX));
+  InitOptionVector(soFMAP, Byte(High(sBSDisabledEnabled)), Byte(IGSetupConfig.FMAP));
+  InitOptionVector(soWSSSampleRate, Byte(High(kSampleRates)), Byte(IGSetupConfig.WSSSampleRate));
+  InitOptionVector(soWSSBitDepth, Byte(High(sBitDepth)), Byte(IGSetupConfig.WSSBitDepth));
+  InitOptionVector(soWSSSoundOutput, Byte(High(sSoundOutput)), Byte(IGSetupConfig.WSSSoundOutput));
+  InitOptionVector(soSBSampleRate, Byte(High(kSampleRates)), Byte(IGSetupConfig.SBSampleRate));
+  InitOptionVector(soSBBitDepth, Byte(High(sBitDepth)), Byte(IGSetupConfig.SBBitDepth));
+  InitOptionVector(soSBSoundOutput, Byte(High(sSoundOutput)), Byte(IGSetupConfig.SBSoundOutput));
+  InitOptionVector(soSBDSPVersion, Byte(High(sSBDSPVersions)), Byte(IGSetupConfig.SBDSPVersion));
+  InitOptionVector(soSBADPCM, Byte(High(sBSDisabledEnabled)), Byte(IGSetupConfig.SBADPCM));
+  InitOptionVector(soCFIFO, Byte(High(sBSDisabledEnabled)), Byte(IGSetupConfig.CFIFO));
+  InitOptionVector(soAVC, Byte(High(sBSDisabledEnabled)), Byte(IGSetupConfig.AVC));
 end;
 
 procedure DrawOptions;
 var
   LSetupOption: TSetupOption;
   LSetupOptionData: TSetupOptionData;
+  LKeyValueData: TKeyValueData;
 
 begin
   VideoWriteRegion(
@@ -711,13 +592,18 @@ begin
 
   for LSetupOption := Low(TSetupOption) to High(TSetupOption) do
   begin
-    LSetupOptionData := IGSetupOptions[LSetupOption];
+    LSetupOptionData := kSetupOptions[LSetupOption];
 
-    DrawOption(
-      LSetupOptionData.PositionY,
-      LSetupOptionData.Name,
-      LSetupOptionData.GSVFunction(LSetupOptionData.Index, False)
-    );
+    LKeyValueData.KeyX := kSetupKeyX;
+    LKeyValueData.ValueX := kSetupValueX;
+    LKeyValueData.PositionY := LSetupOptionData.PositionY;
+    LKeyValueData.Width := kSetupKeyValueWidth;
+    LKeyValueData.Colors.Foreground := clSetupFore;
+    LKeyValueData.Colors.Background := clSetupBack;
+    LKeyValueData.Key := StrPas(LSetupOptionData.Name);
+    LKeyValueData.Value := LSetupOptionData.GSVFunction(LSetupOptionData.Index, False);
+
+    ScreenKeyValueDraw(LKeyValueData);
   end;
 end;
 
@@ -739,7 +625,7 @@ begin
 
   VideoHighlightRegion(
     kSetupOptionX,
-    IGSetupOptions[ASetupOption].PositionY,
+    kSetupOptions[ASetupOption].PositionY,
     kSetupOptionWidth,
     kSetupOptionHeight,
     LAttribute
@@ -747,7 +633,7 @@ begin
 
   VideoHighlightRegion(
     kSetupOptionEditX,
-    IGSetupOptions[ASetupOption].PositionY,
+    kSetupOptions[ASetupOption].PositionY,
     kSetupOptionEditWidth,
     kSetupOptionEditHeight,
     LEditAttribute
@@ -762,7 +648,7 @@ var
 begin
   IGSetupConfigChanged := True;
 
-  LSetupOptionData := IGSetupOptions[ASetupOption];
+  LSetupOptionData := kSetupOptions[ASetupOption];
   LIndex := LSetupOptionData.Index;
 
   case AArrayAdvance of
@@ -810,7 +696,7 @@ begin
     clRed
   );
 
-  IGSetupOptions[ASetupOption].Index := LIndex;
+  kSetupOptions[ASetupOption].Index := LIndex;
 end;
 
 procedure CreateComponents;
@@ -823,15 +709,19 @@ begin
   IGMessageBox.Colors.BtnHighForeground := clMessageBoxBtnHighFore;
   IGMessageBox.Colors.BtnHighBackground := clMessageBoxBtnHighBack;
   IGMessageBox.Colors.BtnHighAccelerator := clMessageBoxBtnHighAccel;
-  IGMessageBox.Title := sMessageBoxQuestion;
-  IGMessageBox.Text := sSetupConfigChanged;
-  IGMessageBox.Buttons := [mbYes, mbNo];
-  IGMessageBox.DefaultButton := mbNo;
+
+  ScreenMessageBoxPrepare(
+    IGMessageBox,
+    sMessageBoxQuestion,
+    sSetupConfigChanged,
+    [mbYes, mbNo],
+    mbNo
+  );
 end;
 
 procedure DrawCommands;
 var
-  I: Byte;
+  LUICommand: Byte;
 
 begin
   VideoWriteRegion(
@@ -862,16 +752,16 @@ begin
     clSetupCmdBack
   );
 
-  for I := Low(kUICommands) to High(kUICommands) do
+  for LUICommand := Low(kUICommands) to High(kUICommands) do
   begin
     ScreenCommandDraw(
       kSetupCmdX,
-      kUICommands[I].Y,
+      kUICommands[LUICommand].Y,
       clSetupCmdHigh,
       clSetupCmdFore,
       clSetupCmdBack,
-      StrPas(kUICommands[I].Accelerator),
-      StrPas(kUICommands[I].Name)
+      StrPas(kUICommands[LUICommand].Accelerator),
+      StrPas(kUICommands[LUICommand].Name)
     );
   end;
 end;
@@ -879,15 +769,13 @@ end;
 procedure DrawRevision;
 var
   LControllerRevision: Byte;
-  LRevisionString: String;
 
 begin
   LControllerRevision := ControllerGetRevision;
-  LRevisionString := IntToStr(LControllerRevision div 10) + cFullStop + IntToStr(LControllerRevision mod 10);
 
   VideoWriteStringAt(
     kSetupCmdX,
-    23,
+    kSetupSoundControllerY,
     sSetupSoundController,
     clSetupCmdHeader,
     clSetupCmdBack
@@ -895,8 +783,8 @@ begin
 
   VideoWriteStringAt(
     kSetupCmdX,
-    24,
-    sSetupOPTi82c924 + LRevisionString,
+    kSetupOPTi82c924Y,
+    sSetupOPTi82c924 + IntToStr(LControllerRevision div 10) + cFullStop + IntToStr(LControllerRevision mod 10),
     clSetupCmdFore,
     clSetupCmdBack
   );
@@ -905,7 +793,7 @@ end;
 procedure DrawConfig;
 begin
   InitConfig;
-  InitOptions;
+  InitOptionVectors;
   DrawOptions;
 end;
 
@@ -1065,7 +953,7 @@ begin
 {$I-}
   Assign(LFile, LFileName);
   FileMode := fmReadOnly;
-  Reset(LFile, 1);
+  Reset(LFile, frsBinaryFileRecordSize);
 
   BlockRead(LFile, LFileSignature, SizeOf(kFileSignature));
   BlockRead(LFile, GControllerConfig, SizeOf(GControllerConfig));
@@ -1092,7 +980,7 @@ begin
 {$I-}
   Assign(LFile, LFileName);
   FileMode := fmReadWrite;
-  Rewrite(LFile, 1);
+  Rewrite(LFile, frsBinaryFileRecordSize);
 
   BlockWrite(LFile, kFileSignature, SizeOf(kFileSignature));
   BlockWrite(LFile, GControllerConfig, SizeOf(GControllerConfig));

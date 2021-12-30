@@ -13,8 +13,13 @@ interface
 uses
   Types;
 
+procedure DisableInterrupts; inline ( $FA );
+procedure EnableInterrupts; inline ( $FB );
+
+procedure GetBIOSTime(var AHours, AMinutes, ASeconds: Byte);
 procedure Delay(const ADuration: Word);
 
+function GetKeyPressed: Boolean;
 function GetShiftDown: Boolean;
 function GetScanCode: Word;
 function GetStandardKey(const AScanCode: Word): Char;
@@ -29,6 +34,8 @@ function LocateWord(const AValue: Word; const AArray: array of Word): Word;
 function FindSimpleParameter(const AParameter: String): Boolean;
 function FindComplexParameter(const AParameter: String; var AValue: String): Boolean;
 function FindComplexParameterValue(const AParameter, AValue: String): Boolean;
+
+function SecondElapsed(var ACurrentSecond: Byte): Boolean;
 
 function IntToHex(const AInteger: Integer): String;
 function StrToIntDef(const AString: String; const ADefault: Longint): Longint;
@@ -54,6 +61,21 @@ uses
 
 { public declarations }
 
+procedure GetBIOSTime(var AHours, AMinutes, ASeconds: Byte); assembler;
+asm
+  clc
+
+  mov ah,02h
+  int 1Ah
+
+  les bx,[AHours]
+  mov byte ptr es:[bx],ch
+  les bx,[AMinutes]
+  mov byte ptr es:[bx],cl
+  les bx,[ASeconds]
+  mov byte ptr es:[bx],dh
+end;
+
 procedure Delay(const ADuration: Word); assembler;
 asm
   mov ax,1000
@@ -62,6 +84,23 @@ asm
   mov dx,ax
   mov ah,86h
   int 15h
+end;
+
+function GetKeyPressed: Boolean; assembler;
+asm
+  mov ah,01h
+  int 16h
+
+  jnz @keyPressed
+
+  mov al,False
+  jmp @exit
+
+@keyPressed:
+  mov al,True
+
+@exit:
+
 end;
 
 function GetShiftDown: Boolean; assembler;
@@ -196,10 +235,30 @@ begin
   ) = LowerCase(AValue);
 end;
 
+function SecondElapsed(var ACurrentSecond: Byte): Boolean;
+var
+  LHours: Byte;
+  LMinutes: Byte;
+  LSeconds: Byte;
+
+begin
+  GetBIOSTime(LHours, LMinutes, LSeconds);
+
+  if LSeconds <> ACurrentSecond then
+  begin
+    ACurrentSecond := LSeconds;
+
+    SecondElapsed := True;
+  end else
+  begin
+    SecondElapsed := False;
+  end;
+end;
+
 function IntToHex(const AInteger: Integer): String;
 const
   kHexLength = 4;
-  kHexDigits: array[0..15] of Char = '0123456789ABCDEF';
+  kHexDigits: packed array[$00..$0F] of Char = '0123456789ABCDEF';
 
 var
   I: Integer;

@@ -12,6 +12,11 @@ interface
 
 type
   { general program types }
+  TProgramError = (
+    peHardwareInit,
+    peControllerReinit
+  );
+
   TAIFDetectionMode = (
     dmPnP,
     dmnonPnP
@@ -24,7 +29,7 @@ type
     imSB
   );
 
-  TParameters = record
+  TParameters = packed record
     Setup: Boolean;
     PnPSetup: Boolean;
     Mixer: Boolean;
@@ -43,7 +48,7 @@ type
   TUpdateProgress = procedure(const ABytes: Word; const AByte: Byte);
 
   PStrings = ^TStrings;
-  TStrings = array[0..0] of String;
+  TStrings = packed array[0..0] of String;
 
   { codec types }
   TCodecSampleRate = (
@@ -118,19 +123,17 @@ type
   );
 
   { UI types }
-  TUICommand = record
+  TUICommand = packed record
     Y: Byte;
     Accelerator: PChar;
     Name: PChar;
   end;
 
-  { PnP Setup types }
-  TEEPROMOperation = (
-    eoEraseFast,
-    eoEraseSlow,
-    eoRead,
-    eoWrite
-  );
+  TUIKeyValue = packed record
+    Y: Byte;
+    Key: PChar;
+    Value: PChar;
+  end;
 
 implementation
 

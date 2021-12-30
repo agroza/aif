@@ -1,5 +1,5 @@
 { --------------------------------------------------------------------------- }
-{ - VersaVision Video Driver (Video.pas)                                    - }
+{ - VersaVision Video Driver (video.pas)                                    - }
 { - Integrant part of VersaVision Framework                                 - }
 { - Copyright (C) 1998-2021 Alexandru Groza of Microprogramming TECHNIQUES  - }
 { - All rights reserved.                                                    - }
@@ -65,7 +65,7 @@ const
   { VGA Palette constants }
   kVGAPaletteStart         = 0;
   kVGAPaletteEnd           = 15;
-  kVGAPaletteIndex: array[kVGAPaletteStart..kVGAPaletteEnd] of Byte = (
+  kVGAPaletteIndex: packed array[kVGAPaletteStart..kVGAPaletteEnd] of Byte = (
     clVGAPaletteBlack,
     clVGAPaletteBlue,
     clVGAPaletteGreen,
@@ -85,18 +85,18 @@ const
   );
 
 type
-  TGlyphData = array[0..kVGAChHeight] of Byte;
+  TGlyphData = packed array[0..kVGAChHeight] of Byte;
 
-  TPaletteColor = record
+  TPaletteColor = packed record
     RIntensity: Byte;
     GIntensity: Byte;
     BIntensity: Byte;
   end;
 
   PVideoRAMData = ^TVideoRAMData;
-  TVideoRAMData = array[1..kVGARAMSize] of Byte;
+  TVideoRAMData = packed array[1..kVGARAMSize] of Byte;
 
-  TVideoArea = record
+  TVideoArea = packed record
     PositionX: Byte;
     PositionY: Byte;
     Width: Byte;
@@ -104,7 +104,7 @@ type
   end;
 
   PVideoSection = ^TVideoSection;
-  TVideoSection = array[1..1] of Byte;
+  TVideoSection = packed array[1..1] of Byte;
 
 procedure VideoInitialize(var APositionY: Byte; var AVideoRAMData: PVideoRAMData);
 procedure VideoFinalize(var APositionY: Byte; var AVideoRAMData: PVideoRAMData);

@@ -18,6 +18,7 @@ uses
   Codec,
   Consts,
   Control,
+  Error,
   Init,
   Routines,
   SBPro,
@@ -26,7 +27,7 @@ uses
   Video;
 
 type
-  TStatusItems = record
+  TStatusItems = packed record
     BitMOD: TBitStatus;
     Address: Word;
     IRQ: Byte;
@@ -147,10 +148,8 @@ begin
 
   if not InitAIFController(LControllerMode) then
   begin
-    VideoWriteNewln;
-    VideoWriteln(sControllerReinitError);
-
-    Halt(kControllerReinitError);
+    ErrorSetProgramError(peControllerReinit);
+    ErrorWriteHalt;
   end;
 end;
 

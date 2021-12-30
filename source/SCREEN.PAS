@@ -1,5 +1,5 @@
 { --------------------------------------------------------------------------- }
-{ - VersaVision Screen Routines (Screen.pas)                                - }
+{ - VersaVision Screen Routines (screen.pas)                                - }
 { - Integrant part of VersaVision Framework                                 - }
 { - Copyright (C) 1998-2021 Alexandru Groza of Microprogramming TECHNIQUES  - }
 { - All rights reserved.                                                    - }
@@ -15,28 +15,29 @@ uses
   Types;
 
 type
-  TKeyValueColors = record
+  TKeyValueColors = packed record
     Foreground: Byte;
     Background: Byte;
   end;
 
-  TKeyValueData = record
-    NameX: Byte;
+  TKeyValueData = packed record
+    KeyX: Byte;
     ValueX: Byte;
     PositionY: Byte;
+    Width: Byte;
     Colors: TKeyValueColors;
-    Name: String;
-    Value: String
+    Key: String;
+    Value: String;
   end;
 
-  TEditColors = record
+  TEditColors = packed record
     Foreground: Byte;
     Background: Byte;
     HighForeground: Byte;
     HighBackground: Byte;
   end;
 
-  TEditData = record
+  TEditData = packed record
     PositionX: Byte;
     PositionY: Byte;
     Width: Byte;
@@ -49,12 +50,12 @@ type
     ftWindow
   );
 
-  TFrameColors = record
+  TFrameColors = packed record
     Foreground: Byte;
     Background: Byte;
   end;
 
-  TFrameData = record
+  TFrameData = packed record
     PositionX: Byte;
     PositionY: Byte;
     Width: Byte;
@@ -63,13 +64,13 @@ type
     FrameType: TFrameType;
   end;
 
-  TFramedAreaColors = record
+  TFramedAreaColors = packed record
     Foreground: Byte;
     Background: Byte;
     Title: Byte;
   end;
 
-  TFramedAreaData = record
+  TFramedAreaData = packed record
     PositionX: Byte;
     PositionY: Byte;
     Width: Byte;
@@ -78,14 +79,14 @@ type
     Title: String;
   end;
 
-  TProgressBarColors = record
+  TProgressBarColors = packed record
     Foreground: Byte;
     Background: Byte;
     Title: Byte;
     Progress: Byte;
   end;
 
-  TProgressBarData = record
+  TProgressBarData = packed record
     PositionX: Byte;
     PositionY: Byte;
     Width: Byte;
@@ -96,7 +97,7 @@ type
     Title: String;
   end;
 
-  TButtonColors = record
+  TButtonColors = packed record
     Foreground: Byte;
     Background: Byte;
     Accelerator: Byte;
@@ -105,7 +106,7 @@ type
     HighAccelerator: Byte;
   end;
 
-  TButtonData = record
+  TButtonData = packed record
     PositionX: Byte;
     PositionY: Byte;
     Width: Byte;
@@ -121,7 +122,7 @@ type
     mrNo
   );
 
-  TMessageBoxColors = record
+  TMessageBoxColors = packed record
     Foreground: Byte;
     Background: Byte;
     BtnForeground: Byte;
@@ -142,9 +143,9 @@ type
   TMessageBoxButtons = set of TMessageBoxButton;
 
   PMessageBoxButtonsData = ^TMessageBoxButtonsData;
-  TMessageBoxButtonsData = array[0..0] of TButtonData;
+  TMessageBoxButtonsData = packed array[0..0] of TButtonData;
 
-  TMessageBoxData = record
+  TMessageBoxData = packed record
     Colors: TMessageBoxColors;
     Title: String;
     Text: String;
@@ -152,7 +153,7 @@ type
     DefaultButton: TMessageBoxButton;
   end;
 
-  TStereoSliderColors = record
+  TStereoSliderColors = packed record
     Foreground: Byte;
     Background: Byte;
     Title: Byte;
@@ -168,7 +169,7 @@ type
     VeryHigh: Byte;
   end;
 
-  TStereoSliderData = record
+  TStereoSliderData = packed record
     PositionX: Byte;
     PositionY: Byte;
     Colors: TStereoSliderColors;
@@ -196,8 +197,6 @@ procedure ScreenStoreColors;
 procedure ScreenRestoreColors;
 procedure ScreenSetVVColors;
 
-procedure SetHaltOnErrors(const AValue: Boolean);
-
 procedure ScreenWriteActionIf(const AMessage: String; const AAction, ACondition: Boolean);
 
 procedure ScreenTitleBarDraw(const AForeground, ABackground, ATextColor: Byte; const ACaption: String);
@@ -205,6 +204,7 @@ procedure ScreenTitleBarDraw(const AForeground, ABackground, ATextColor: Byte; c
 procedure ScreenCommandDraw(const ALeft, ATop, AHighlight, AColor, ABackground: Byte; const AShortcut, ADescription: String);
 
 procedure ScreenKeyValueDraw(const AKeyValueData: TKeyValueData);
+procedure ScreenKeyValueSetValue(var AKeyValueData: TKeyValueData; const AValue: String);
 
 procedure ScreenEditDraw(const AEditData: TEditData);
 procedure ScreenEditChange(var AEditData: TEditData);
@@ -215,8 +215,11 @@ procedure ScreenFramedAreaDraw(const AFramedAreaData: TFramedAreaData);
 
 procedure ScreenProgressBarDraw(const AProgressBarData: TProgressBarData);
 procedure ScreenProgressBarUpdate(const AProgressBarData: TProgressBarData);
-procedure ScreenProgressBarReset(const AProgressBarData: TProgressBarData);
+procedure ScreenProgressBarReset(var AProgressBarData: TProgressBarData; const AValue: Word);
+procedure ScreenProgressBarSetProgress(var AProgressBarData: TProgressBarData; AValue: Word);
 
+procedure ScreenMessageBoxPrepare(var AMessageBoxData: TMessageBoxData; const ATitle, AText: String;
+  const AButtons: TMessageBoxButtons; const ADefaultButton: TMessageBoxButton);
 function ScreenMessageBoxDraw(const AMessageBoxData: TMessageBoxData): TMessageBoxResult;
 
 procedure ScreenStereoSliderDraw(const ASliderData: TStereoSliderData);
@@ -229,6 +232,7 @@ implementation
 
 uses
   Consts,
+  Error,
   Routines,
   Video;
 
@@ -239,7 +243,7 @@ type
     wfbBottomRight
   );
 
-  TWindowFrameBorderGlyph = record
+  TWindowFrameBorderGlyph = packed record
     Ordinal: Byte;
     Data: TGlyphData;
   end;
@@ -257,7 +261,7 @@ type
 
 const
   { VersaVision frame border glyph data }
-  kVVWindowFrameBorders : array[TWindowFrameBorder] of TWindowFrameBorderGlyph = (
+  kVVWindowFrameBorders: packed array[TWindowFrameBorder] of TWindowFrameBorderGlyph = (
     ( Ordinal: 200; Data: ( $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $FF, $FF, $FF, $FF ) ),
     ( Ordinal: 205; Data: ( $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $FF, $FF, $FF, $FF ) ),
     ( Ordinal: 201; Data: ( $0F, $0F, $0F, $0F, $0F, $0F, $0F, $0F, $0F, $0F, $0F, $0F, $0F, $FF, $FF, $FF, $FF ) )
@@ -274,10 +278,11 @@ const
 
   { UI objects constants }
   kTitleBarHeight           = 1;
+  kKeyValueItemHeight       = 1;
   kEditHeight               = 1;
   kFrameHeight              = 1;
 
-  kFrameGlyphs: array[TFrameType] of array[TFrameGlyphs] of Char = (
+  kFrameGlyphs: packed array[TFrameType] of array[TFrameGlyphs] of Char = (
     ( 'Ú', '³', 'À', 'Ä', '¿', '³', 'Ù', 'Ä' ),
     ( 'Û', 'Ý', 'È', 'Û', 'Û', 'Þ', 'É', 'Í' )
   );
@@ -295,14 +300,14 @@ const
   kMessageBoxTitlePadding   = 1;
   kMessageBoxButtonPadding  = 2;
 
-  sMessageBoxButtons: array[TMessageBoxButton] of PChar = (
+  sMessageBoxButtons: packed array[TMessageBoxButton] of PChar = (
     sMessageBoxCancel,
     sMessageBoxClose,
     sMessageBoxYes,
     sMessageBoxNo
   );
 
-  kMessageBoxResults: array[TMessageBoxButton] of TMessageBoxResult = (
+  kMessageBoxResults: packed array[TMessageBoxButton] of TMessageBoxResult = (
     mrCancel,
     mrClose,
     mrYes,
@@ -317,10 +322,8 @@ const
   cSliderRightBar           = 'Ü';
 
 var
-  IGHaltOnErrors: Boolean;
-
-  IGWindowFrameBorders: array[TWindowFrameBorder] of TWindowFrameBorderGlyph;
-  IGVGAPalette: array[kVGAPaletteStart..kVGAPaletteEnd] of TPaletteColor;
+  IGWindowFrameBorders: packed array[TWindowFrameBorder] of TWindowFrameBorderGlyph;
+  IGVGAPalette: packed array[kVGAPaletteStart..kVGAPaletteEnd] of TPaletteColor;
 
 { private and public declarations }
 
@@ -417,14 +420,6 @@ begin
   VideoSetPaletteColor(clVGAPaletteYellow, kVVYellow);
 end;
 
-procedure SetHaltOnErrors(const AValue: Boolean);
-begin
-  if IGHaltOnErrors <> AValue then
-  begin
-    IGHaltOnErrors := AValue;
-  end;
-end;
-
 procedure ScreenWriteActionIf(const AMessage: String; const AAction, ACondition: Boolean);
 var
   LPositionX: Byte;
@@ -473,12 +468,9 @@ begin
     VideoWriteNewln;
   end;
 
-  if IGHaltOnErrors and not AAction then
+  if not AAction then
   begin
-    VideoWriteNewln;
-    VideoWriteln(sHardwareInitError);
-
-    Halt(kHardwareInitError);
+    ErrorWriteHalt;
   end;
 end;
 
@@ -524,12 +516,38 @@ begin
   );
 end;
 
+procedure ScreenKeyValueClearValue(const AKeyValueData: TKeyValueData);
+begin
+  VideoWriteRegion(
+    AKeyValueData.ValueX,
+    AKeyValueData.PositionY,
+    AKeyValueData.Width,
+    kKeyValueItemHeight,
+    cSpace,
+    VideoAttribute(
+      AKeyValueData.Colors.Foreground,
+      AKeyValueData.Colors.Background
+    )
+  );
+end;
+
+procedure ScreenKeyValueDrawValue(const AKeyValueData: TKeyValueData);
+begin
+  VideoWriteStringAt(
+    AKeyValueData.ValueX,
+    AKeyValueData.PositionY,
+    AKeyValueData.Value,
+    AKeyValueData.Colors.Foreground,
+    AKeyValueData.Colors.Background
+  );
+end;
+
 procedure ScreenKeyValueDraw(const AKeyValueData: TKeyValueData);
 begin
   VideoWriteStringAt(
-    AKeyValueData.NameX,
+    AKeyValueData.KeyX,
     AKeyValueData.PositionY,
-    AKeyValueData.Name,
+    AKeyValueData.Key,
     AKeyValueData.Colors.Foreground,
     AKeyValueData.Colors.Background
   );
@@ -544,13 +562,17 @@ begin
     )
   );
 
-  VideoWriteStringAt(
-    AKeyValueData.ValueX,
-    AKeyValueData.PositionY,
-    AKeyValueData.Value,
-    AKeyValueData.Colors.Foreground,
-    AKeyValueData.Colors.Background
-  );
+  ScreenKeyValueDrawValue(AKeyValueData);
+end;
+
+procedure ScreenKeyValueSetValue(var AKeyValueData: TKeyValueData; const AValue: String);
+begin
+  if AKeyValueData.Value <> AValue then
+  begin
+    AKeyValueData.Value := AValue;
+    ScreenKeyValueClearValue(AKeyValueData);
+    ScreenKeyValueDrawValue(AKeyValueData);
+  end;
 end;
 
 procedure EditUpdate(const AEditData: TEditData);
@@ -845,8 +867,10 @@ begin
   );
 end;
 
-procedure ScreenProgressBarReset(const AProgressBarData: TProgressBarData);
+procedure ScreenProgressBarReset(var AProgressBarData: TProgressBarData; const AValue: Word);
 begin
+  AProgressBarData.Progress := AValue;
+
   VideoWriteRegion(
     Succ(AProgressBarData.PositionX),
     AProgressBarData.PositionY + 2,
@@ -860,6 +884,15 @@ begin
   );
 
   ScreenProgressBarUpdate(AProgressBarData);
+end;
+
+procedure ScreenProgressBarSetProgress(var AProgressBarData: TProgressBarData; AValue: Word);
+begin
+  if AProgressBarData.Progress <> AValue then
+  begin
+    AProgressBarData.Progress := AValue;
+    ScreenProgressBarUpdate(AProgressBarData);
+  end;
 end;
 
 procedure ScreenButtonDraw(const AButtonData: TButtonData);
@@ -993,7 +1026,7 @@ begin
   LPaddedTextLength := Length(LPaddedText);
 
   LLeft := ALeft - LPaddedTextLength - ALeftOffset;
-  ALeftOffset := Succ(LPaddedTextLength);
+  Inc(ALeftOffset, Succ(LPaddedTextLength));
 
   AButtonsData^[AButtonIndex].PositionX := LLeft;
   AButtonsData^[AButtonIndex].PositionY := ATop;
@@ -1163,6 +1196,15 @@ begin
   end;
 end;
 
+procedure ScreenMessageBoxPrepare(var AMessageBoxData: TMessageBoxData; const ATitle, AText: String;
+  const AButtons: TMessageBoxButtons; const ADefaultButton: TMessageBoxButton);
+begin
+  AMessageBoxData.Title := ATitle;
+  AMessageBoxData.Text := AText;
+  AMessageBoxData.Buttons := AButtons;
+  AMessageBoxData.DefaultButton := ADefaultButton;
+end;
+
 function ScreenMessageBoxDraw(const AMessageBoxData: TMessageBoxData): TMessageBoxResult;
 var
   I: Byte;
@@ -1319,7 +1361,7 @@ end;
 procedure StereoSliderDrawBar(const ASliderData: TStereoSliderData; const APosition, APositionY: Byte;
   const AChannelText: String; const AChar: Char);
 var
-  I: Byte;
+  LPosition: Byte;
   LAttribute: Byte;
 
 begin
@@ -1331,14 +1373,14 @@ begin
     ASliderData.Colors.Background
   );
 
-  for I := 0 to APosition do
+  for LPosition := 0 to APosition do
   begin
     VideoWriteCharAttrAt(
-      ASliderData.PositionX + I + kMixerSlidersTipX,
+      ASliderData.PositionX + LPosition + kMixerSlidersTipX,
       ASliderData.PositionY + APositionY,
       AChar,
       VideoAttribute(
-        StereoSliderGetBarColor(I, ASliderData.Colors),
+        StereoSliderGetBarColor(LPosition, ASliderData.Colors),
         ASliderData.Colors.Background
       )
     );
@@ -1351,10 +1393,10 @@ begin
 
   if APosition < ASliderData.Max then
   begin
-    for I := Succ(APosition) to ASliderData.Max do
+    for LPosition := Succ(APosition) to ASliderData.Max do
     begin
       VideoWriteCharAttrAt(
-        ASliderData.PositionX + I + kMixerSlidersTipX,
+        ASliderData.PositionX + LPosition + kMixerSlidersTipX,
         ASliderData.PositionY + APositionY,
         AChar,
         LAttribute

@@ -63,7 +63,7 @@ const
 
   kMIXER_COMMAND_RESET                = $FF;
 
-  kDeviceTypes: array[TSBMixerDeviceType] of Byte = (
+  kDeviceTypes: packed array[TSBMixerDeviceType] of Byte = (
     kMIXER_REGISTER_MASTER_VOLUME,
     kMIXER_REGISTER_MICROPHONE_VOLUME,
     kMIXER_REGISTER_CD_VOLUME,

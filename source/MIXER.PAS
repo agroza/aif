@@ -49,19 +49,19 @@ type
     moOutputsEnabled
   );
 
-  TMixerOptionData = record
+  TMixerOptionData = packed record
     PositionY: Byte;
     Enabled: Boolean;
   end;
 
 var
   IGMixerConfigChanged: Boolean;
-  IGStereoSliders: array[TStereoSlider] of TStereoSliderData;
-  IGMixerOptions: array[TMixerOption] of TMixerOptionData;
+  IGStereoSliders: packed array[TStereoSlider] of TStereoSliderData;
+  IGMixerOptions: packed array[TMixerOption] of TMixerOptionData;
   IGMessageBox: TMessageBoxData;
 
 const
-  kUIStatCommands: array[0..5] of TUICommand = (
+  kUIStatCommands: packed array[0..kMixerStatCmdCount] of TUICommand = (
     ( Y: 4; Accelerator: sMixerCmdF8; Name: sMixerCmdDefaultConfig ),
     ( Y: 5; Accelerator: sMixerCmdF9; Name: sMixerCmdReloadConfig ),
     ( Y: 6; Accelerator: sMixerCmdF10; Name: sMixerCmdSaveExit ),
@@ -70,7 +70,7 @@ const
     ( Y: 12; Accelerator: sMixerCmdLeftRight; Name: sMixerCmdModifyVolume )
   );
 
-  kUIDynCommands: array[0..6] of TUICommand = (
+  kUIDynCommands: packed array[0..kMixerDynCmdCount] of TUICommand = (
     ( Y: 16; Accelerator: sMixerCmd1; Name: sMixerCmdLineIn ),
     ( Y: 17; Accelerator: sMixerCmd2; Name: sMixerCmdFMAUXIn ),
     ( Y: 18; Accelerator: sMixerCmd3; Name: sMixerCmdMicrophone ),
@@ -176,10 +176,14 @@ begin
   IGMessageBox.Colors.BtnHighForeground := clMessageBoxBtnHighFore;
   IGMessageBox.Colors.BtnHighBackground := clMessageBoxBtnHighBack;
   IGMessageBox.Colors.BtnHighAccelerator := clMessageBoxBtnHighAccel;
-  IGMessageBox.Title := sMessageBoxQuestion;
-  IGMessageBox.Text := sMixerConfigChanged;
-  IGMessageBox.Buttons := [mbYes, mbNo];
-  IGMessageBox.DefaultButton := mbNo;
+
+  ScreenMessageBoxPrepare(
+    IGMessageBox,
+    sMessageBoxQuestion,
+    sMixerConfigChanged,
+    [mbYes, mbNo],
+    mbNo
+  );
 end;
 
 procedure DrawComponents;
@@ -205,7 +209,7 @@ end;
 
 procedure DrawCommands;
 var
-  I: Byte;
+  LUIStatCommand: Byte;
 
 begin
   VideoWriteRegion(
@@ -236,16 +240,16 @@ begin
     clStatCmdBack
   );
 
-  for I := Low(kUIStatCommands) to High(kUIStatCommands) do
+  for LUIStatCommand := Low(kUIStatCommands) to High(kUIStatCommands) do
   begin
     ScreenCommandDraw(
       kMixerCmdX,
-      kUIStatCommands[I].Y,
+      kUIStatCommands[LUIStatCommand].Y,
       clMixerCmdHigh,
       clStatCmdFore,
       clStatCmdBack,
-      StrPas(kUIStatCommands[I].Accelerator),
-      StrPas(kUIStatCommands[I].Name)
+      StrPas(kUIStatCommands[LUIStatCommand].Accelerator),
+      StrPas(kUIStatCommands[LUIStatCommand].Name)
     );
   end;
 end;
@@ -300,7 +304,7 @@ end;
 
 procedure DrawOptions;
 var
-  I: Byte;
+  LUIDynCommand: Byte;
 
 begin
   VideoWriteRegion(
@@ -331,16 +335,16 @@ begin
     clDynCmdBack
   );
 
-  for I := Low(kUIDynCommands) to High(kUIDynCommands) do
+  for LUIDynCommand := Low(kUIDynCommands) to High(kUIDynCommands) do
   begin
     ScreenCommandDraw(
       kMixerCmdX,
-      kUIDynCommands[I].Y,
+      kUIDynCommands[LUIDynCommand].Y,
       clMixerCmdHigh,
       clDynCmdFore,
       clDynCmdBack,
-      StrPas(kUIDynCommands[I].Accelerator),
-      StrPas(kUIDynCommands[I].Name)
+      StrPas(kUIDynCommands[LUIDynCommand].Accelerator),
+      StrPas(kUIDynCommands[LUIDynCommand].Name)
     );
   end;
 end;

@@ -12,6 +12,7 @@ program aif;
 
 uses
   Consts,
+  Error,
   Init,
   Mixer,
   Routines,
@@ -71,8 +72,12 @@ begin
       end;
     end;
 
-    ProcessParameters := GParameters.Setup or GParameters.PnPSetup or
-      GParameters.Mixer or GParameters.Status or GParameters.LineOut or
+    ProcessParameters :=
+      GParameters.Setup or
+      GParameters.PnPSetup or
+      GParameters.Mixer or
+      GParameters.Status or
+      GParameters.LineOut or
       (GParameters.InitMode <> imInvalid);
   end else
   begin
@@ -140,7 +145,7 @@ begin
   begin
     if ProcessParameters then
     begin
-      SetHaltOnErrors(False);
+      ErrorSetHaltOnErrors(False);
 
       GPConfigLoaded := SetupLoadConfig;
       ScreenWriteActionIf(sLoadingConfiguration, GPConfigLoaded, not GParameters.Quiet);
@@ -158,7 +163,7 @@ begin
         Exit;
       end;
 
-      SetHaltOnErrors(True);
+      ErrorSetHaltOnErrors(True);
 
       InitAIFBasic;
 

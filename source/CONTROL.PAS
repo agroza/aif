@@ -15,7 +15,7 @@ uses
   Types;
 
 type
-  TControllerConfig = record
+  TControllerConfig = packed record
     { Mode Control Register 1 Bits }
     BitMOD: TBitStatus;
     BitPDN: TBitStatus;
@@ -206,9 +206,7 @@ end;
 
 function ControllerRead(const APort: Word): Byte;
 begin
-  asm
-    cli
-  end;
+  DisableInterrupts;
 
   case GAIFDetectionMode of
     dmPnP:
@@ -225,16 +223,12 @@ begin
 
   end;
 
-  asm
-    sti
-  end;
+  EnableInterrupts;
 end;
 
 procedure ControllerWrite(const APort: Word; const AValue: Byte);
 begin
-  asm
-    cli
-  end;
+  DisableInterrupts;
 
   case GAIFDetectionMode of
     dmPnP:
@@ -251,9 +245,7 @@ begin
 
   end;
 
-  asm
-    sti
-  end;
+  EnableInterrupts;
 end;
 
 procedure SetRegisterBit(const ARegister: Word; const ABit: Byte; const AValue: Boolean);

@@ -22,14 +22,36 @@ uses
   Types,
   Video;
 
+type
+  TOperation = (
+    opEraseFast,
+    opEraseSlow,
+    opRead,
+    opWrite
+  );
+
 const
-  kUICommands: array[0..5] of TUICommand = (
+  kUICommands: packed array[0..kPnPSetupCmdCount] of TUICommand = (
     ( Y: 4; Accelerator: sPnPSetupCmdF4; Name: sPnPSetupCmdEditFilename ),
     ( Y: 6; Accelerator: sPnPSetupCmdF5; Name: sPnPSetupCmdEraseEEPROMF ),
     ( Y: 7; Accelerator: sPnPSetupCmdF6; Name: sPnPSetupCmdEraseEEPROMS ),
     ( Y: 8; Accelerator: sPnPSetupCmdF7; Name: sPnPSetupCmdReadEEPROM ),
     ( Y: 9; Accelerator: sPnPSetupCmdF8; Name: sPnPSetupCmdWriteEEPROM ),
     ( Y: 11; Accelerator: sPnPSetupCmdESC; Name: sPnPSetupCmdExit )
+  );
+
+  kUIKeyValues: packed array[0..kPnPSetupKeyValueCount] of TUIKeyValue = (
+    ( Y: 3; Key: sPnPSetupFilename; Value: cMinus ),
+    ( Y: 4; Key: sPnPSetupOperation; Value: cMinus ),
+    ( Y: 5; Key: sPnPSetupStatus; Value: cMinus ),
+    ( Y: 6; Key: sPnPSetupEEPROM; Value: sPnPSetup93C56A )
+  );
+
+  sOperations: packed array[TOperation] of String[Length(sPnPSetupEraseFast)] = (
+    sPnPSetupEraseFast,
+    sPnPSetupEraseSlow,
+    sPnPSetupRead,
+    sPnPSetupWrite
   );
 
 var
@@ -42,8 +64,7 @@ var
 
 procedure UpdateProgressBar(const ABytes: Word; const AByte: Byte); far;
 begin
-  IGProgressBar.Progress := ABytes;
-  ScreenProgressBarUpdate(IGProgressBar);
+  ScreenProgressBarSetProgress(IGProgressBar, ABytes);
 
   VideoWriteCharAttrAt(
     kPnPSetupRawDataX + 2 + (ABytes mod kPnPSetupRawDataLength),
@@ -60,11 +81,10 @@ procedure ResetProgressBar;
 begin
   Routines.Delay(kPnPSetupOperationDelay);
 
-  IGProgressBar.Progress := 0;
-  ScreenProgressBarReset(IGProgressBar);
+  ScreenProgressBarReset(IGProgressBar, kPnPSetupProgressBarMin);
 end;
 
-procedure ResetOperationStatus(const AOperation: TEEPROMOperation);
+procedure ResetOperationStatus(const AOperation: TOperation);
 begin
   VideoWriteRegion(
     kPnPSetupOperationX,
@@ -81,7 +101,7 @@ begin
   VideoWriteStringAt(
     kPnPSetupOperationX,
     kPnPSetupOperationY,
-    sEEPROMOperation[AOperation],
+    sOperations[AOperation],
     clPnPSetupFore,
     clPnPSetupBack
   );
@@ -110,42 +130,6 @@ begin
   );
 
   ResetProgressBar;
-end;
-
-procedure DrawOption(const APositionY: Byte; const AName, AValue: String);
-var
-  LKeyValueData: TKeyValueData;
-
-begin
-  LKeyValueData.NameX := kPnPSetupNameX;
-  LKeyValueData.ValueX := kPnPSetupValueX;
-  LKeyValueData.PositionY := APositionY;
-  LKeyValueData.Colors.Foreground := clPnPSetupFore;
-  LKeyValueData.Colors.Background := clPnPSetupBack;
-  LKeyValueData.Name := AName;
-  LKeyValueData.Value := AValue;
-
-  ScreenKeyValueDraw(LKeyValueData);
-end;
-
-procedure DrawOptions;
-begin
-  VideoWriteRegion(
-    kPnPSetupOptionsLeft,
-    kPnPSetupOptionsTop,
-    kPnPSetupOptionsWidth,
-    kPnPSetupOptionsHeight,
-    cSpace,
-    VideoAttribute(
-      clPnPSetupFore,
-      clPnPSetupBack
-    )
-  );
-
-  DrawOption(3, sPnPSetupFilename, IGEdit.Text);
-  DrawOption(4, sPnPSetupOperation, cMinus);
-  DrawOption(5, sPnPSetupStatus, cMinus);
-  DrawOption(6, sPnPSetupEEPROM, sPnPSetup93C56A);
 end;
 
 procedure CreateComponents;
@@ -190,7 +174,37 @@ begin
 end;
 
 procedure DrawComponents;
+var
+  LUIKeyValue: Byte;
+  LKeyValueData: TKeyValueData;
+
 begin
+  VideoWriteRegion(
+    kPnPSetupComponentsLeft,
+    kPnPSetupComponentsTop,
+    kPnPSetupComponentsWidth,
+    kPnPSetupComponentsHeight,
+    cSpace,
+    VideoAttribute(
+      clPnPSetupFore,
+      clPnPSetupBack
+    )
+  );
+
+  for LUIKeyValue := Low(kUIKeyValues) to High(kUIKeyValues) do
+  begin
+    LKeyValueData.KeyX := kPnPSetupKeyX;
+    LKeyValueData.ValueX := kPnPSetupValueX;
+    LKeyValueData.PositionY := kUIKeyValues[LUIKeyValue].Y;
+    LKeyValueData.Width := kPnPSetupKeyValueWidth;
+    LKeyValueData.Colors.Foreground := clPnPSetupFore;
+    LKeyValueData.Colors.Background := clPnPSetupBack;
+    LKeyValueData.Key := StrPas(kUIKeyValues[LUIKeyValue].Key);
+    LKeyValueData.Value := StrPas(kUIKeyValues[LUIKeyValue].Value);
+
+    ScreenKeyValueDraw(LKeyValueData);
+  end;
+
   ScreenEditDraw(IGEdit);
 
   ScreenProgressBarDraw(IGProgressBar);
@@ -200,7 +214,7 @@ end;
 
 procedure DrawCommands;
 var
-  I: Byte;
+  LUICommand: Byte;
 
 begin
   VideoWriteRegion(
@@ -223,16 +237,16 @@ begin
     clPnPSetupCmdBack
   );
 
-  for I := Low(kUICommands) to High(kUICommands) do
+  for LUICommand := Low(kUICommands) to High(kUICommands) do
   begin
     ScreenCommandDraw(
       kPnPSetupCmdX,
-      kUICommands[I].Y,
+      kUICommands[LUICommand].Y,
       clPnPSetupCmdHigh,
       clPnPSetupCmdFore,
       clPnPSetupCmdBack,
-      StrPas(kUICommands[I].Accelerator),
-      StrPas(kUICommands[I].Name)
+      StrPas(kUICommands[LUICommand].Accelerator),
+      StrPas(kUICommands[LUICommand].Name)
     );
   end;
 end;
@@ -243,7 +257,6 @@ begin
 
   CreateComponents;
 
-  DrawOptions;
   DrawComponents;
   DrawCommands;
 end;
@@ -270,26 +283,29 @@ begin
 
             kKeyF5:
               begin
-                ResetOperationStatus(eoEraseFast);
+                ResetOperationStatus(opEraseFast);
                 DrawResult(ControllerEraseEEPROM(cemFast, UpdateProgressBar));
               end;
 
             kKeyF6:
               begin
-                ResetOperationStatus(eoEraseSlow);
+                ResetOperationStatus(opEraseSlow);
                 DrawResult(ControllerEraseEEPROM(cemSlow, UpdateProgressBar));
               end;
 
             kKeyF7:
               begin
-                ResetOperationStatus(eoRead);
+                ResetOperationStatus(opRead);
 
                 if FileExists(IGEdit.Text) then
                 begin
-                  IGMessageBox.Title := sMessageBoxQuestion;
-                  IGMessageBox.Text := sPnPSetupFileExists;
-                  IGMessageBox.Buttons := [mbYes, mbNo];
-                  IGMessageBox.DefaultButton := mbYes;
+                  ScreenMessageBoxPrepare(
+                    IGMessageBox,
+                    sMessageBoxQuestion,
+                    sPnPSetupFileExists,
+                    [mbYes, mbNo],
+                    mbYes
+                  );
 
                   if ScreenMessageBoxDraw(IGMessageBox) <> mrYes then
                   begin
@@ -304,17 +320,20 @@ begin
 
             kKeyF8:
               begin
-                ResetOperationStatus(eoWrite);
+                ResetOperationStatus(opWrite);
 
                 if FileExists(IGEdit.Text) then
                 begin
                   DrawResult(ControllerWriteEEPROM(IGEdit.Text, UpdateProgressBar));
                 end else
                 begin
-                  IGMessageBox.Title := sMessageBoxError;
-                  IGMessageBox.Text := sPnPSetupFileNotExists;
-                  IGMessageBox.Buttons := [mbClose];
-                  IGMessageBox.DefaultButton := mbClose;
+                  ScreenMessageBoxPrepare(
+                    IGMessageBox,
+                    sMessageBoxError,
+                    sPnPSetupFileNotExists,
+                    [mbClose],
+                    mbClose
+                  );
 
                   ScreenMessageBoxDraw(IGMessageBox);
 

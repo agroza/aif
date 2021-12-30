@@ -19,7 +19,7 @@ const
   sCRLF                     = #13#10;
 
   { program stringtable }
-  sProgramTitle             = 'AUDIO INTERFACE  VER. 3.0 REV. C';
+  sProgramTitle             = 'AUDIO INTERFACE  VER. 3.0 REV. D';
   sProgramCopyright         = 'Copyright (C) 1998-2021 Microprogramming TECHNIQUES';
   sProgramAuthor            = 'Programming/PC Code: Alexandru Groza';
   sProgramRights            = 'All rights reserved.';
@@ -62,6 +62,7 @@ const
   sSettingMixerConfig       = 'Setting Audio Codec Mixer Configuration';
   sSettingSBMode            = 'Setting Sound Controller in Sound Blaster Mode';
   sSettingWSSMode           = 'Setting Sound Controller in Windows Sound System Mode';
+  sDetectingMSCDEXPresence  = 'Detecting CD-ROM extensions driver presence';
 
   sAIInitializedSBMode      = 'Audio Interface initialized in Sound Blaster (SB) mode.';
   sAIInitializedWSSMode     = 'Audio Interface initialized in Windows Sound System (WSS) mode.';
@@ -70,74 +71,83 @@ const
 
   sHardwareInitError        = 'Hardware initialization error.' + #13#10 +
                               'Audio Interface is either not present or it is faulty.';
+  sControllerReinitError    = 'Controller reinitialization error.' + #13#10 +
+                              'Audio Interface is faulty.';
 
   sMode                     = 'mode';
+  sPnP                      = 'PnP';
+  snonPnP                   = 'non-PnP';
+
+  sAIFSoundBlaster          = 'Sound Blaster';
+  sAIFWindowsSoundSystem    = 'Windows Sound System';
 
   sHz                       = 'Hz';
-  sOPL3                     = 'OPL3';
+
+  s8bit                     = '8-bit';
+  s16bit                    = '16-bit';
+
+  sMono                     = 'Mono';
+  sStereo                   = 'Stereo';
 
   s8bitUlaw                 = '8-bit æ-law';
   s8bitAlaw                 = '8-bit A-law';
   s8bitPCM                  = '8-bit PCM';
   s16bitPCM                 = '16-bit PCM';
 
+  sSBDSPVersion21           = '2.1';
+  sSBDSPVersion15           = '1.5';
+  sSBDSPVersion32           = '3.2';
+  sSBDSPVersion44           = '4.4';
+
+  sOPL3                     = 'OPL3';
+
+  sAudioCodecAD1848orCS4248 = 'AD1848 / CS4248';
+  sAudioCodecAD1845orCS4231 = 'AD1845 / CS4231';
+
+  sCrystal16and24MHz        = '16/24 MHz';
+  sCrystal16MHz             = '16 MHz';
+
+  sVolumeControlAutomatic   = 'Automatic';
+  sVolumeControlNormal      = 'Normal';
+
   sNA                       = 'N/A';
 
-  sFAILEDOK: array[Boolean] of String[6] = (
-    'FAILED',
-    'OK'
+  sFAILED                   = 'FAILED';
+  sOK                       = 'OK';
+
+  sDisabled                 = 'Disabled';
+  sEnabled                  = 'Enabled';
+
+  sFAILEDOK: packed array[Boolean] of String[Length(sFAILED)] = (
+    sFAILED,
+    sOK
   );
 
-  sAIFDetectionMode: array[TAIFDetectionMode] of String[7] = (
-    'PnP',
-    'non-PnP'
+  sAIFMode: packed array[TBitStatus] of String[Length(sAIFWindowsSoundSystem)] = (
+    sAIFSoundBlaster,
+    sAIFWindowsSoundSystem
   );
 
-  sAIFMode: array[TBitStatus] of String[20] = (
-    'Sound Blaster',
-    'Windows Sound System'
+  sDisabledEnabled: packed array[Boolean] of String[Length(sDisabled)] = (
+    sDisabled,
+    sEnabled
   );
 
-  sDisabledEnabled: array[Boolean] of String[8] = (
-    'Disabled',
-    'Enabled'
+  sBitDepth: packed array[TCodecBitDepth] of String[Length(s16bit)] = (
+    s8bit,
+    s16bit
   );
 
-  sBSDisabledEnabled: array[TBitStatus] of String[8] = (
-    'Disabled',
-    'Enabled'
+  sSoundOutput: packed array[TCodecSoundOutput] of String[Length(sStereo)] = (
+    sMono,
+    sStereo
   );
 
-  sBitDepth: array[TCodecBitDepth] of String[6] = (
-    '8-bit',
-    '16-bit'
-  );
-
-  sSoundOutput: array[TCodecSoundOutput] of String[6] = (
-    'Mono',
-    'Stereo'
-  );
-
-  sSBDSPVersions: array[TCodecSBDSPVersion] of String[3] = (
-    '2.1',
-    '1.5',
-    '3.2',
-    '4.4'
-  );
-
-  sCFIX: array[TBitStatus] of String[16] = (
-    'AD1848 / CS4248',
-    'AD1845 / CS4231'
-  );
-
-  sFMAP: array[TBitStatus] of String[9] = (
-    '16/24 MHz',
-    '16 MHz'
-  );
-
-  sAVC: array[TBitStatus] of String[9] = (
-    'Automatic',
-    'Normal'
+  sSBDSPVersions: packed array[TCodecSBDSPVersion] of String[Length(sSBDSPVersion21)] = (
+    sSBDSPVersion21,
+    sSBDSPVersion15,
+    sSBDSPVersion32,
+    sSBDSPVersion44
   );
 
   { single character constants }
@@ -170,7 +180,7 @@ const
   pOff                      = 'off';
 
   { program commandline parameters help }
-  kHelpParameters: array[0..9] of PChar = (
+  kHelpParameters: packed array[0..9] of PChar = (
     sHelpParamHelp,
     sHelpParamSetup,
     sHelpParamPnPSetup,
@@ -200,6 +210,9 @@ const
   fmWriteOnly               = 1;
   fmReadWrite               = 2;
 
+  { file record size }
+  frsBinaryFileRecordSize   = 1;
+
   { general constants }
   kMaxByte                  = 255;
 
@@ -209,7 +222,7 @@ const
   clNormal                  = clLightGray;
   clHighlight               = clWhite;
 
-  clFAILEDOK: array[Boolean] of Byte = (
+  clFAILEDOK: packed array[Boolean] of Byte = (
     clError,
     clSuccess
   );
@@ -228,9 +241,6 @@ const
   clMessageBoxBtnHighAccel  = clBlack;
 
   { program constants }
-  kHardwareInitError        = 1;
-  kControllerReinitError    = 2;
-
   kOKFailedXPosition        = 60;
 
   { keyboard codes }
@@ -312,20 +322,26 @@ const
   { Setup program constants }
   kSetupStartupDelay        = 500;
 
-  kSetupNameX               = 2;
+  kSetupKeyX                = 2;
   kSetupValueX              = 25;
+  kSetupKeyValueWidth       = 26;
 
   kSetupCommandsLeft        = 50;
   kSetupCommandsTop         = 2;
   kSetupCommandsWidth       = 31;
-  kSetupCommandsHeight      = 25;
+  kSetupCommandsHeight      = 24;
 
   kSetupCmdX                = 52;
+
+  kSetupCmdCount            = 5;
+
+  kSetupSoundControllerY    = 23;
+  kSetupOPTi82c924Y         = 24;
 
   kSetupOptionsLeft         = 1;
   kSetupOptionsTop          = 2;
   kSetupOptionsWidth        = 49;
-  kSetupOptionsHeight       = 25;
+  kSetupOptionsHeight       = 24;
 
   kSetupOptionX             = 1;
   kSetupOptionWidth         = 23;
@@ -400,12 +416,10 @@ const
   sPnPSetupProgress         = 'Progress';
   sPnPSetupRawData          = 'Raw Data';
 
-  sEEPROMOperation: array[TEEPROMOperation] of String[12] = (
-    'erase (fast)',
-    'erase (slow)',
-    'read',
-    'write'
-  );
+  sPnPSetupEraseFast        = 'erase (fast)';
+  sPnPSetupEraseSlow        = 'erase (slow)';
+  sPnPSetupRead             = 'read';
+  sPnPSetupWrite            = 'write';
 
   sPnPSetupFileExists       = 'A file with this name already exists.' + #13#10 +
                               'Overwrite file?';
@@ -453,19 +467,27 @@ const
   kPnPSetupStartupDelay     = 500;
   kPnPSetupOperationDelay   = 500;
 
-  kPnPSetupNameX            = 2;
+  kPnPSetupComponentsLeft   = 1;
+  kPnPSetupComponentsTop    = 2;
+  kPnPSetupComponentsWidth  = 49;
+  kPnPSetupComponentsHeight = 24;
+
+  kPnPSetupKeyX             = 2;
   kPnPSetupValueX           = 15;
+  kPnPSetupKeyValueWidth    = 26;
+
+  kPnPSetupKeyValueCount    = 3;
 
   kPnPSetupEditX            = kPnPSetupValueX;
   kPnPSetupEditY            = 3;
   kPnPSetupEditWidth        = 34;
 
-  kPnPSetupProgressBarX     = kPnPSetupNameX;
+  kPnPSetupProgressBarX     = kPnPSetupKeyX;
   kPnPSetupProgressBarY     = 8;
   kPnPSetupProgressBarWidth = 47;
-  kPnPSetupProgressBarMin   = 47;
+  kPnPSetupProgressBarMin   = 0;
 
-  kPnPSetupRawDataX         = kPnPSetupNameX;
+  kPnPSetupRawDataX         = kPnPSetupKeyX;
   kPnPSetupRawDataY         = 12;
   kPnPSetupRawDataWidth     = 47;
   kPnPSetupRawDataHeight    = 13;
@@ -481,14 +503,11 @@ const
   kPnPSetupCommandsLeft     = 50;
   kPnPSetupCommandsTop      = 2;
   kPnPSetupCommandsWidth    = 31;
-  kPnPSetupCommandsHeight   = 25;
+  kPnPSetupCommandsHeight   = 24;
 
   kPnPSetupCmdX             = 52;
 
-  kPnPSetupOptionsLeft      = 1;
-  kPnPSetupOptionsTop       = 2;
-  kPnPSetupOptionsWidth     = 49;
-  kPnPSetupOptionsHeight    = 25;
+  kPnPSetupCmdCount         = 5;
 
   { Mixer program stringtable }
   sMixerTitle               = 'AUDIO INTERFACE MIXER';
@@ -571,7 +590,7 @@ const
   kMixerSlidersLeft         = 1;
   kMixerSlidersTop          = 2;
   kMixerSlidersWidth        = 49;
-  kMixerSlidersHeight       = 25;
+  kMixerSlidersHeight       = 24;
   kMixerSlidersLeftY        = 1;
   kMixerSlidersRightY       = 3;
   kMixerSlidersTipX         = 7;
@@ -595,10 +614,13 @@ const
 
   kMixerCmdX                = 52;
 
+  kMixerStatCmdCount        = 5;
+  kMixerDynCmdCount         = 6;
+
   kMixerOptionsLeft         = 50;
   kMixerOptionsTop          = 14;
   kMixerOptionsWidth        = 31;
-  kMixerOptionsHeight       = 25;
+  kMixerOptionsHeight       = 12;
 
   kMixerOptionX             = 57;
   kMixerOptionWidth         = 21;
@@ -628,19 +650,10 @@ const
   sStatusOutputFormat       = 'Audio Output Format';
   sStatusLineOutRelay       = 'Line Out Relay';
 
-  sControllerReinitError    = 'Controller reinitialization error.';
-
   { Status program constants }
   kStatusItemX              = 1;
   kStatusSemicolonX         = 23;
   kStatusValueX             = 25;
-
-  kSBDSPVersions: array[TCodecSBDSPVersion] of Byte = (
-    2,
-    1,
-    3,
-    4
-  );
 
 implementation
 

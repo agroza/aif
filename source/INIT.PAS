@@ -29,6 +29,7 @@ uses
   Codec,
   Consts,
   Control,
+  Error,
   Mixer,
   MPU,
   Routines,
@@ -39,6 +40,18 @@ uses
 
 const
   kVolumeNorm = 4.28;
+
+  kSBDSPVersions: packed array[TCodecSBDSPVersion] of Byte = (
+    2,
+    1,
+    3,
+    4
+  );
+
+  sAIFDetectionMode: packed array[TAIFDetectionMode] of String[Length(snonPnP)] = (
+    sPnP,
+    snonPnP
+  );
 
 var
   GINewChip: Boolean;
@@ -252,6 +265,8 @@ var
   LString: String;
 
 begin
+  ErrorSetProgramError(peHardwareInit);
+
   LValue := AIControllerDetect(LString);
   ScreenWriteActionIf(sDetecting82c924 + LString, LValue, not GParameters.Quiet);
 
