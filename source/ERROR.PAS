@@ -35,7 +35,7 @@ var
   IGHaltOnErrors: Boolean;
   IGProgramError: TProgramError;
 
-{ private and public declarations }
+{ public declarations }
 
 procedure ErrorSetHaltOnErrors(const AValue: Boolean);
 begin

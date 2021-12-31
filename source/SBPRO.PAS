@@ -1,7 +1,7 @@
 { --------------------------------------------------------------------------- }
 { - Audio Interface - Sound Blaster Pro Interface (sbpro.pas)               - }
 { - Copyright (C) 2000 Jan Knipperts                                        - }
-{ - Improvements (C) 2020-2021 Alexandru Groza                              - }
+{ - Improvements (C) 2020-2022 Alexandru Groza                              - }
 { - All rights reserved.                                                    - }
 { --------------------------------------------------------------------------- }
 { - License: GNU General Public License v3.0                                - }
@@ -169,7 +169,7 @@ function SBDSPGetVersion: Byte;
 begin
   DSPWrite(kDSP_COMMAND_DSP_VERSION);
 
-  SBDSPGetVersion := DSPRead or DSPRead shl $04;
+  SBDSPGetVersion := DSPRead or (DSPRead shl $04);
 end;
 
 procedure SBDSPEnableSpeaker(const AValue: Boolean);
@@ -190,25 +190,25 @@ end;
 
 function SBMixerGetVolume(const ADeviceType: TSBMixerDeviceType; const AChannel: TCodecSoundChannel): Byte;
 var
-  Volume: Byte;
+  LVolume: Byte;
 
 begin
-  Volume := MixerRead(kDeviceTypes[ADeviceType]);
+  LVolume := MixerRead(kDeviceTypes[ADeviceType]);
 
   if (AChannel = scLeft) and (ADeviceType <> mdtMicrophone) then
   begin
-    SBMixerGetVolume := Volume shr $05;
+    SBMixerGetVolume := LVolume shr $05;
   end;
 
   if (AChannel = scRight) or (ADeviceType = mdtMicrophone) then
   begin
-    SBMixerGetVolume := (Volume and $0F) shr $01;
+    SBMixerGetVolume := (LVolume and $0F) shr $01;
   end;
 end;
 
 procedure SBMixerSetVolume(const ADeviceType: TSBMixerDeviceType; const AChannel: TCodecSoundChannel; AVolume: Byte);
 var
-  Volume: Byte;
+  LVolume: Byte;
 
 begin
   if ADeviceType = mdtMicrophone then
@@ -218,7 +218,7 @@ begin
       AVolume := 3;
     end;
 
-    Volume := AVolume shl $01;
+    LVolume := AVolume shl $01;
   end else
   begin
     if AVolume > 7 then
@@ -228,18 +228,18 @@ begin
 
     case AChannel of
       scLeft:
-        Volume := (SBMixerGetVolume(ADeviceType, scRight) shl $01) or (AVolume shl $05);
+        LVolume := (SBMixerGetVolume(ADeviceType, scRight) shl $01) or (AVolume shl $05);
 
       scRight:
-        Volume := (AVolume shl $01) or (SBMixerGetVolume(ADeviceType, scLeft) shl $05);
+        LVolume := (AVolume shl $01) or (SBMixerGetVolume(ADeviceType, scLeft) shl $05);
 
       scLeftRight:
-        Volume := (AVolume shl $01) or (AVolume shl $05);
+        LVolume := (AVolume shl $01) or (AVolume shl $05);
 
     end;
   end;
 
-  MixerWrite(kDeviceTypes[ADeviceType], Volume);
+  MixerWrite(kDeviceTypes[ADeviceType], LVolume);
 end;
 
 procedure SBMixerSetOutput(const AStereo, AFilter: Boolean);

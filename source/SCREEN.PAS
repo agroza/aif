@@ -869,8 +869,6 @@ end;
 
 procedure ScreenProgressBarReset(var AProgressBarData: TProgressBarData; const AValue: Word);
 begin
-  AProgressBarData.Progress := AValue;
-
   VideoWriteRegion(
     Succ(AProgressBarData.PositionX),
     AProgressBarData.PositionY + 2,
@@ -883,7 +881,7 @@ begin
     )
   );
 
-  ScreenProgressBarUpdate(AProgressBarData);
+  ScreenProgressBarSetProgress(AProgressBarData, AValue);
 end;
 
 procedure ScreenProgressBarSetProgress(var AProgressBarData: TProgressBarData; AValue: Word);

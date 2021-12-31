@@ -41,7 +41,7 @@ const
   MPU_CMD_RESET           = $FF; { total reset }
 
   { MPU-401 system exclusive messages }
-  kGMResetSysEx: array[0..5] of Byte = ( $F0, $7E, $7F, $09, $01, $F7 );
+  kGMResetSysEx: packed array[0..5] of Byte = ( $F0, $7E, $7F, $09, $01, $F7 );
 
 var
   IGDataPort: Word;

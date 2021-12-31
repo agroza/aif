@@ -38,6 +38,7 @@ type
     Quiet: Boolean;
     LineOut: Boolean;
     LineOutRelay: Boolean;
+    CDPlayer: Boolean;
   end;
 
   TBitStatus = (

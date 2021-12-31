@@ -1,6 +1,6 @@
 { --------------------------------------------------------------------------- }
 { - Audio Interface - Constants (consts.pas)                                - }
-{ - Copyright (C) 1998-2021 Alexandru Groza of Microprogramming TECHNIQUES  - }
+{ - Copyright (C) 1998-2022 Alexandru Groza of Microprogramming TECHNIQUES  - }
 { - All rights reserved.                                                    - }
 { --------------------------------------------------------------------------- }
 { - License: GNU General Public License v3.0                                - }
@@ -19,8 +19,8 @@ const
   sCRLF                     = #13#10;
 
   { program stringtable }
-  sProgramTitle             = 'AUDIO INTERFACE  VER. 3.0 REV. D';
-  sProgramCopyright         = 'Copyright (C) 1998-2021 Microprogramming TECHNIQUES';
+  sProgramTitle             = 'AUDIO INTERFACE  VER. 3.1 REV. A';
+  sProgramCopyright         = 'Copyright (C) 1998-2022 Microprogramming TECHNIQUES';
   sProgramAuthor            = 'Programming/PC Code: Alexandru Groza';
   sProgramRights            = 'All rights reserved.';
 
@@ -31,7 +31,7 @@ const
 
   sHelpUsage                = 'Usage is:' + #13#10 +
                               '  aif.exe [-help] [-setup] [-pnpsetup] [-mixer] [-init | -wss | -sb]' + #13#10 +
-                              '    [-quiet] [-status] [-lineout=on|off]' + #13#10;
+                              '    [-quiet] [-status] [-lineout=on|off] [-cdplayer]' + #13#10;
 
   sHelpWhere                = 'Where:';
 
@@ -62,7 +62,6 @@ const
   sSettingMixerConfig       = 'Setting Audio Codec Mixer Configuration';
   sSettingSBMode            = 'Setting Sound Controller in Sound Blaster Mode';
   sSettingWSSMode           = 'Setting Sound Controller in Windows Sound System Mode';
-  sDetectingMSCDEXPresence  = 'Detecting CD-ROM extensions driver presence';
 
   sAIInitializedSBMode      = 'Audio Interface initialized in Sound Blaster (SB) mode.';
   sAIInitializedWSSMode     = 'Audio Interface initialized in Windows Sound System (WSS) mode.';
