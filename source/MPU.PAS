@@ -1,7 +1,7 @@
 { --------------------------------------------------------------------------- }
 { - Audio Interface - MPU Interface (mpu.pas)                               - }
-{ - Copyright (C) 2000 Jan Knipperts                                        - }
-{ - Improvements (C) 2020 Alexandru Groza                                   - }
+{ - Copyright (C) 1998-2021 Alexandru Groza of Microprogramming TECHNIQUES  - }
+{ - Portions Copyright (C) 2000 Jan Knipperts                               - }
 { - All rights reserved.                                                    - }
 { --------------------------------------------------------------------------- }
 { - License: GNU General Public License v3.0                                - }
@@ -14,7 +14,7 @@ interface
 type
   TMPUResetMode = (
     mrmPowerOnDefaults,
-    mrmDumbUART
+    mrmUARTMode
   );
 
 procedure MPUSetPorts(const ABasePort: Word);
@@ -27,104 +27,87 @@ uses
   Routines;
 
 const
-  { Status Port Bits }
-  DRR                     = $40; { MPU-401 'Ready to receive' mask }
-  DSR                     = $80; { MPU-401 'Ready to send' mask }
-
-  { MPU Commands }
-  CMD_UART                = $3F; { Become a dumb UART }
-  CMD_RESET               = $FF; { Reset to default state }
-  CMD_ACK                 = $FE; { MPU's acknowledement of a command }
-
-  { Data Communication }
+  { general MPU-401 related constants }
   kDataCommunicationDelay = 10;
+  kStatusPortReadRetries  = $FF;
+
+  { MPU-401 bit masks }
+  MPU_MASK_DRR            = $40; { data read register }
+  MPU_MASK_DSR            = $80; { data set ready }
+
+  { MPU-401 commands }
+  MPU_CMD_UART_MODE       = $3F; { dumb UART mode }
+  MPU_CMD_ACK             = $FE; { acknowledge response }
+  MPU_CMD_RESET           = $FF; { total reset }
+
+  { MPU-401 system exclusive messages }
+  kGMResetSysEx: array[0..5] of Byte = ( $F0, $7E, $7F, $09, $01, $F7 );
 
 var
-  IGCommandPort: Word;
-  IGStatusPort: Word;
   IGDataPort: Word;
+  IGStatusPort: Word;
+  IGCommandPort: Word;
 
 { private declarations }
 
-procedure SendData(const AData: Byte);
-begin
-  repeat
-  until (Port[IGStatusPort] and DRR) = $00;
+function SendDataWaitStatus(const APort: Word; const AData, AMask: Byte): Boolean;
+var
+  LByte: Byte;
+  LRetries: Byte;
 
-  Port[IGDataPort] := AData;
+begin
+  Port[APort] := AData;
 
   Routines.Delay(kDataCommunicationDelay);
+
+  LByte := Port[APort];
+
+  LRetries := kStatusPortReadRetries;
+
+  while ((Port[IGStatusPort] and AMask) <> 0) and (LRetries > 0) do
+  begin
+    Dec(LRetries);
+  end;
+
+  SendDataWaitStatus := LRetries > 0;
 end;
 
 { public declarations }
 
 procedure MPUSetPorts(const ABasePort: Word);
 begin
-  IGCommandPort := ABasePort + 1;
-  IGStatusPort := ABasePort + 1;
   IGDataPort := ABasePort;
+  IGStatusPort := Succ(ABasePort);
+  IGCommandPort := Succ(ABasePort);
 end;
 
 function MPUReset(const AMPUResetMode: TMPUResetMode): Boolean;
 var
-  LRetries: Word;
+  LByte: Byte;
 
 begin
-  Port[IGCommandPort] := CMD_RESET;
+  MPUReset := False;
 
-  if AMPUResetMode = mrmDumbUART then
+  if not SendDataWaitStatus(IGCommandPort, MPU_CMD_RESET, MPU_MASK_DRR) then
   begin
-    Routines.Delay(kDataCommunicationDelay);
+    Exit;
+  end;
 
-    LRetries := $FF;
-
-    while ((Port[IGStatusPort] and DSR) <> 0) and (LRetries > 0) do
+  if AMPUResetMode = mrmUARTMode then
+  begin
+    if not SendDataWaitStatus(IGCommandPort, MPU_CMD_UART_MODE, MPU_MASK_DSR) then
     begin
-      Dec(LRetries);
-    end;
-
-    if (Port[IGDataPort] <> CMD_ACK) or (LRetries = 0) then
-    begin
-      MPUReset := False;
-
-      Exit;
-    end;
-
-    Routines.Delay(kDataCommunicationDelay);
-
-    if (Port[IGStatusPort] and DRR) <> 0 then
-    begin
-      MPUReset := False;
-
-      Exit;
-    end;
-
-    Port[IGCommandPort] := CMD_UART;
-
-    Routines.Delay(kDataCommunicationDelay);
-
-    LRetries := $FF;
-
-    while ((Port[IGStatusPort] and DSR) <> 0) and (LRetries > 0) do
-    begin
-      Dec(LRetries);
-    end;
-
-    if (Port[IGDataPort] <> CMD_ACK) or (LRetries = 0) then
-    begin
-      MPUReset := False;
-
       Exit;
     end;
   end;
 
-  { Some devices need an additional "GM-Reset" sysex }
-  SendData($F0);
-  SendData($7E);
-  SendData($7F);
-  SendData($09);
-  SendData($01);
-  SendData($F7);
+  for LByte := Low(kGMResetSysEx) to High(kGMResetSysEx) do
+  begin
+    if not SendDataWaitStatus(IGDataPort, kGMResetSysEx[LByte], MPU_MASK_DRR) then
+    begin
+      Exit;
+    end;
+  end;
 
   MPUReset := True;
 end;
