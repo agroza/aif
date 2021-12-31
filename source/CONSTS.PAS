@@ -31,7 +31,7 @@ const
 
   sHelpUsage                = 'Usage is:' + #13#10 +
                               '  aif.exe [-help] [-setup] [-pnpsetup] [-mixer] [-init | -wss | -sb]' + #13#10 +
-                              '    [-quiet] [-status] [-lineout=on|off] [-cdplayer]' + #13#10;
+                              '    [-quiet] [-status] [-lineout=on|off]' + #13#10;
 
   sHelpWhere                = 'Where:';
 
