@@ -42,7 +42,7 @@ Usage is:
 
 Where:
   -help     shows this screen; all other parameters are ignored
-  -setup    starts the setup program; all other parameters are ignored
+  -setup    starts the setup program
   -pnpsetup starts the PnP setup program; some parameters are ignored
   -mixer    starts the volume mixer program
   -init     initializes the audio interface to preset mode
