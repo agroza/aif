@@ -40,6 +40,12 @@ procedure SBMixerGetOutput(var AStereo, AFilter: Boolean);
 implementation
 
 const
+  { general mixer and DSP related constants }
+  kMixerCommunicationDelay            = 1;
+  kDSPCommunicationDelay              = 10;
+  kDSPReadRetries                     = $FFFF;
+  kDSPWriteRetries                    = $FF;
+
   kPORT_DSP_RESET_OFFSET              = $06;
   kPORT_DSP_READ_DATA_OFFSET          = $0A;
   kPORT_DSP_READ_BUFFER_STATUS_OFFSET = $0E;
@@ -72,10 +78,6 @@ const
     kMIXER_REGISTER_FM_VOLUME
   );
 
-  { Data Communication }
-  kMixerCommunicationDelay            = 1;
-  kDSPCommunicationDelay              = 10;
-
 var
   IGSBPort: Word;
 
@@ -86,7 +88,7 @@ var
   LRetries: Word;
 
 begin
-  LRetries := $FFFF;
+  LRetries := kDSPReadRetries;
 
   while (Port[IGSBPort + kPORT_DSP_READ_BUFFER_STATUS_OFFSET] and $80 = $00) and (LRetries > 0) do
   begin
@@ -107,7 +109,7 @@ var
   LRetries: Word;
 
 begin
-  LRetries := $FF;
+  LRetries := kDSPWriteRetries;
 
   while (Port[IGSBPort + kPORT_DSP_WRITE_COMMAND_DATA_OFFSET] and $80 <> $00) and (LRetries > 0) do
   begin

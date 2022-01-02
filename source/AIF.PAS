@@ -1,6 +1,6 @@
 { --------------------------------------------------------------------------- }
 { - Audio Interface - Program (aif.pas)                                     - }
-{ - Copyright (C) 1998-2021 Alexandru Groza of Microprogramming TECHNIQUES  - }
+{ - Copyright (C) 1998-2022 Alexandru Groza of Microprogramming TECHNIQUES  - }
 { - All rights reserved.                                                    - }
 { --------------------------------------------------------------------------- }
 { - License: GNU General Public License v3.0                                - }
@@ -132,6 +132,12 @@ begin
   VideoWriteln(sTypeHelp);
 end;
 
+procedure WriteConfigChanged;
+begin
+  VideoWriteNewln;
+  VideoWriteln(sHardwareConfigChanged);
+end;
+
 var
   GPConfigLoaded: Boolean;
 
@@ -158,9 +164,15 @@ begin
 
       if GParameters.Setup or not GPConfigLoaded then
       begin
-        SetupStart;
+        if SetupStart then
+        begin
+          WriteConfigChanged;
 
-        Exit;
+          if GParameters.InitMode = imInvalid then
+          begin
+            Exit;
+          end;
+        end;
       end;
 
       ErrorSetHaltOnErrors(True);
@@ -188,7 +200,10 @@ begin
 
       if GParameters.Mixer then
       begin
-        MixerStart;
+        if MixerStart and (GParameters.InitMode = imInvalid) then
+        begin
+          WriteConfigChanged;
+        end;
       end;
 
       if GParameters.InitMode <> imInvalid then

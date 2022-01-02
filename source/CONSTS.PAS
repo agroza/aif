@@ -19,7 +19,7 @@ const
   sCRLF                     = #13#10;
 
   { program stringtable }
-  sProgramTitle             = 'AUDIO INTERFACE  VER. 3.1 REV. A';
+  sProgramTitle             = 'AUDIO INTERFACE  VER. 3.1 REV. B';
   sProgramCopyright         = 'Copyright (C) 1998-2022 Microprogramming TECHNIQUES';
   sProgramAuthor            = 'Programming/PC Code: Alexandru Groza';
   sProgramRights            = 'All rights reserved.';
@@ -36,7 +36,7 @@ const
   sHelpWhere                = 'Where:';
 
   sHelpParamHelp            = '  -help     shows this screen; all other parameters are ignored';
-  sHelpParamSetup           = '  -setup    starts the setup program; all other parameters are ignored';
+  sHelpParamSetup           = '  -setup    starts the setup program';
   sHelpParamPnPSetup        = '  -pnpsetup starts the PnP setup program; some parameters are ignored';
   sHelpParamMixer           = '  -mixer    starts the volume mixer program';
   sHelpParamInit            = '  -init     initializes the audio interface to preset mode';
@@ -72,6 +72,9 @@ const
                               'Audio Interface is either not present or it is faulty.';
   sControllerReinitError    = 'Controller reinitialization error.' + #13#10 +
                               'Audio Interface is faulty.';
+
+  sHardwareConfigChanged    = 'Hardware configuration has changed.' + #13#10 +
+                              'Please initialize the audio interface.';
 
   sMode                     = 'mode';
   sPnP                      = 'PnP';
@@ -531,7 +534,7 @@ const
   sMixerCmdUpDown           = '/';
   sMixerCmdSelectDevice     = 'Select Device';
   sMixerCmdLeftRight        = #27'/'#26;
-  sMixerCmdModifyVolume     = 'Modify Volume';
+  sMixerCmdModifyVolume     = 'Modify Volume +SFT=L/R';
 
   sMixerCmdInputDeviceCmds  = 'INPUT DEVICE COMMANDS';
   sMixerCmd1                = '1';

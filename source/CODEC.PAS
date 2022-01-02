@@ -1,6 +1,6 @@
 { --------------------------------------------------------------------------- }
 { - Audio Interface - Audio Codec Interface (codec.pas)                     - }
-{ - Copyright (C) 1998-2021 Alexandru Groza of Microprogramming TECHNIQUES  - }
+{ - Copyright (C) 1998-2022 Alexandru Groza of Microprogramming TECHNIQUES  - }
 { - Portions Copyright (C) 2019 Jan Knipperts                               - }
 { - All rights reserved.                                                    - }
 { --------------------------------------------------------------------------- }
@@ -112,17 +112,18 @@ type
   end;
 
 const
-  { General Codec Related Constants }
+  { general codec related constants }
+  kCodecCommunicationDelay            = 1;
   kRetries                            = $FFFF;
 
-  { Codec Direct Registers }
+  { codec direct registers }
   kREGISTER_CODEC_WSS_ID_OFFSET       = $03;
   kREGISTER_CODEC_INDEX_OFFSET        = $04;
   kREGISTER_CODEC_INDEXED_DATA_OFFSET = $05;
   kREGISTER_CODEC_STATUS_OFFSET       = $06;
   kREGISTER_CODEC_DIRECT_DATA_OFFSET  = $07;
 
-  { Codec Indirect Registers }
+  { codec indirect registers }
   kREGISTER_LEFT_INPUT_CONTROL        = $00;
   kREGISTER_RIGHT_INPUT_CONTROL       = $01;
   kREGISTER_LEFT_AUX1_INPUT_CONTROL   = $02;
@@ -141,55 +142,55 @@ const
   kREGISTER_LOWER_BASE_COUNT          = $0F;
   kREGISTER_ALT_FEAT_ENABLE           = $10;
 
-  { Index Register Bits }
+  { Index Register bits }
   kBitMCE                             = 6;
 
-  { Left Input Control Register Bits }
+  { Left Input Control Register bits }
   kBitLMGE                            = 5;
 
-  { Right Input Control Register }
+  { Right Input Control Register bits }
   kBitRMGE                            = 5;
 
-  { Left Auxiliary #1 Input Control Register }
+  { Left Auxiliary #1 Input Control Register bits }
   kBitLMX1                            = 7;
 
-  { Right Auxiliary #1 Input Control Register }
+  { Right Auxiliary #1 Input Control Register bits }
   kBitRMX1                            = 7;
 
-  { Left Auxiliary #2 Input Control Register }
+  { Left Auxiliary #2 Input Control Register bits }
   kBitLMX2                            = 7;
 
-  { Right Auxiliary #2 Input Control Register }
+  { Right Auxiliary #2 Input Control Register bits }
   kBitRMX2                            = 7;
 
-  { Left DAC Control Register }
+  { Left DAC Control Register bits }
   kBitLDM                             = 7;
 
-  { Right DAC Control Register }
+  { Right DAC Control Register bits }
   kBitRDM                             = 7;
 
-  { Clock and Data Format Register }
+  { Clock and Data Format Register bits }
   kBitSM                              = 4;
   kBitCSS                             = 0;
 
-  { Interface Configuration Register }
+  { Interface Configuration Register bits }
   kBitACAL                            = 3;
   kBitSDC                             = 2;
   kBitCEN                             = 1;
   kBitPEN                             = 0;
 
-  { Pin Control Register }
+  { Pin Control Register bits }
   kBitXCTL1                           = 7;
   kBitXCTL0                           = 6;
   kBitIEN                             = 1;
 
-  { Test and Initialization Register }
+  { Test and Initialization Register bits }
   kBitACI                             = 5;
 
-  { Miscellaneous Information Register }
+  { Miscellaneous Information Register bits }
   kBitMODE2                           = 6;
 
-  { Digital Mix Control Register }
+  { Digital Mix Control Register bits }
   kBitDME                             = 0;
 
   kRegisterResetValue: packed array[0..15] of Byte = (
@@ -210,9 +211,6 @@ const
     $00, { Upper Base Count Register }
     $00  { Lower Base Count Register }
   );
-
-  { Codec Communication }
-  kCodecCommunicationDelay            = 1;
 
   kDeviceTypes: packed array[TCodecDeviceType] of Byte = (
     kREGISTER_LEFT_AUX1_INPUT_CONTROL,

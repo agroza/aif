@@ -1,6 +1,6 @@
 { --------------------------------------------------------------------------- }
 { - Audio Interface - Setup Subprogram (setup.pas)                          - }
-{ - Copyright (C) 1998-2021 Alexandru Groza of Microprogramming TECHNIQUES  - }
+{ - Copyright (C) 1998-2022 Alexandru Groza of Microprogramming TECHNIQUES  - }
 { - All rights reserved.                                                    - }
 { --------------------------------------------------------------------------- }
 { - License: GNU General Public License v3.0                                - }
@@ -28,7 +28,7 @@ procedure SetupDefaultConfig;
 
 function SetupGetInitMode: TAIFInitMode;
 
-procedure SetupStart;
+function SetupStart: Boolean;
 
 implementation
 
@@ -912,20 +912,15 @@ begin
                 Continue;
 
               mrNo:
-                Break;
+                IGSetupConfigChanged := False;
 
               mrYes:
-                begin
-                  ExitAndSave;
-
-                  Break;
-                end;
+                ExitAndSave;
 
             end;
-          end else
-          begin
-            Break;
           end;
+
+          Break;
         end;
 
     end;
@@ -1073,7 +1068,7 @@ begin
   end;
 end;
 
-procedure SetupStart;
+function SetupStart: Boolean;
 var
   LPositionY: Byte;
   LVideoRAMData: PVideoRAMData;
@@ -1089,6 +1084,8 @@ begin
 
   ScreenFinalize;
   VideoFinalize(LPositionY, LVideoRAMData);
+
+  SetupStart := IGSetupConfigChanged;
 end;
 
 end.

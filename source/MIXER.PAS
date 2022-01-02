@@ -1,6 +1,6 @@
 { --------------------------------------------------------------------------- }
 { - Audio Interface - Mixer Subprogram (mixer.pas)                          - }
-{ - Copyright (C) 1998-2021 Alexandru Groza of Microprogramming TECHNIQUES  - }
+{ - Copyright (C) 1998-2022 Alexandru Groza of Microprogramming TECHNIQUES  - }
 { - All rights reserved.                                                    - }
 { --------------------------------------------------------------------------- }
 { - License: GNU General Public License v3.0                                - }
@@ -17,7 +17,7 @@ function MixerSetConfig(const AInitMode: TAIFInitMode): Boolean;
 
 procedure MixerDefaultConfig;
 
-procedure MixerStart;
+function MixerStart: Boolean;
 
 implementation
 
@@ -564,20 +564,15 @@ begin
                 Continue;
 
               mrNo:
-                Break;
+                IGMixerConfigChanged := False;
 
               mrYes:
-                begin
-                  ExitAndSave;
-
-                  Break;
-                end;
+                ExitAndSave;
 
             end;
-          end else
-          begin
-            Break;
           end;
+
+          Break;
         end;
 
       sMixerCmd1:
@@ -668,7 +663,7 @@ begin
   GCodecMixerConfig.OutputsEnabled := kMixerOutputsEnDefault;
 end;
 
-procedure MixerStart;
+function MixerStart: Boolean;
 var
   LPositionY: Byte;
   LVideoRAMData: PVideoRAMData;
@@ -684,6 +679,8 @@ begin
 
   ScreenFinalize;
   VideoFinalize(LPositionY, LVideoRAMData);
+
+  MixerStart := IGMixerConfigChanged;
 end;
 
 end.

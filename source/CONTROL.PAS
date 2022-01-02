@@ -1,6 +1,6 @@
 { --------------------------------------------------------------------------- }
 { - Audio Interface - Sound Controller Interface (control.pas)              - }
-{ - Copyright (C) 1998-2021 Alexandru Groza of Microprogramming TECHNIQUES  - }
+{ - Copyright (C) 1998-2022 Alexandru Groza of Microprogramming TECHNIQUES  - }
 { - Portions Copyright (C) 2018 Jan Knipperts                               - }
 { - All rights reserved.                                                    - }
 { --------------------------------------------------------------------------- }
@@ -16,26 +16,26 @@ uses
 
 type
   TControllerConfig = packed record
-    { Mode Control Register 1 Bits }
+    { Mode Control Register 1 bits }
     BitMOD: TBitStatus;
     BitPDN: TBitStatus;
     BitGPEN: TBitStatus;
 
-    { Mode Control Register 2 Bits }
+    { Mode Control Register 2 bits }
     BitOPL4: TBitStatus;
 
-    { Mode Control Register 3 Bits }
+    { Mode Control Register 3 bits }
     BitFMAP: TBitStatus;
     BitCMDPAS: TBitStatus;
 
-    { Mode Control Register 4 Bits }
+    { Mode Control Register 4 bits }
     BitADPCMEN: TBitStatus;
     BitGPOUT: TBitStatus;
     BitPNPMODE: TBitStatus;
     BitFMCLK: TBitStatus;
     BitSILENCE: TBitStatus;
 
-    { Mode Control Register 5 Bits }
+    { Mode Control Register 5 bits }
     BitAVCEN: TBitStatus;
     BitOPL5: TBitStatus;
     BitSHPASS: TBitStatus;
@@ -44,7 +44,7 @@ type
     BitEPEN: TBitStatus;
     BitCFIX: TBitStatus;
 
-    { Mode Control Register 6 Bits }
+    { Mode Control Register 6 bits }
     BitMPU401: TBitStatus;
     BitDRQTMEN: TBitStatus;
     BitAUDIOEN: TBitStatus;
@@ -98,10 +98,10 @@ uses
   Routines;
 
 const
-  { General Controller Related Constants }
+  { general controller related constants }
   kRegisterPassword          = $E5;
 
-  { Controller Registers }
+  { controller registers }
   kREGISTER_MC1              = $0F8D;
   kREGISTER_MC2              = $0F8E;
   kREGISTER_MC3              = $0F8F;
@@ -115,7 +115,7 @@ const
 
   kREGISTER_PASSWORD         = $0F8F;
 
-  { Controller Registers Default Values }
+  { controller registers default values }
   kREGISTER_MC1_Default      = $00;
   kREGISTER_MC2_Default      = $03;
   kREGISTER_MC3_Default      = $F2;
@@ -123,21 +123,21 @@ const
   kREGISTER_MC5_Default      = $2F;
   kREGISTER_MC6_Default      = $83;
 
-  { Mode Control Register 1 Bits }
+  { Mode Control Register 1 bits }
   kBitMOD                    = 7;
   kBitPDN                    = 6;
   kBitGPEN                   = 0;
 
-  { Mode Control Register 2 Bits }
+  { Mode Control Register 2 bits }
   kBitOPL4                   = 5;
 
-  { Mode Control Register 3 Bits }
+  { Mode Control Register 3 bits }
   kBitFMAP                   = 3;
   kBitDABASE                 = 2;
   kBitWRSROM                 = 1;
   kBitCMDPAS                 = 0;
 
-  { Mode Control Register 4 Bits }
+  { Mode Control Register 4 bits }
   kBitADPCMEN                = 7;
   kBitGPOUT                  = 6;
   kBitACKSIMEN               = 5;
@@ -145,7 +145,7 @@ const
   kBitFMCLK                  = 3;
   kBitSILENCE                = 2;
 
-  { Mode Control Register 5 Bits }
+  { Mode Control Register 5 bits }
   kBitAVCEN                  = 7;
   kBitOPL5                   = 6;
   kBitSHPASS                 = 5;
@@ -155,25 +155,25 @@ const
   kBitCFIX                   = 1;
   kBitCDFTOEN                = 0;
 
-  { Mode Control Register 6 Bits }
+  { Mode Control Register 6 bits }
   kBitMPU401                 = 7;
   kBitDRQTMEN                = 2;
   kBitAUDIOEN                = 1;
   kBitATTNEN                 = 0;
 
-  { Mode Control Register 7 Bits }
+  { Mode Control Register 7 bits }
   kBitSROMCS                 = 2;
   kBitSROMCLK                = 1;
   kBitROMDOUT                = 0;
 
-  { Mode Control Register 9 Bits }
+  { Mode Control Register 9 bits }
   kBitROMIN                  = 5;
 
-  { WSS Configuration Register Bits }
+  { WSS Configuration Register bits }
   kWSSConfigBitRes           = 7;
   kBitISS                    = 6;
 
-  { EEPROM Communication }
+  { EEPROM communication }
   kEEPROMCommandEWDS         = $0800;
   kEEPROMCommandEWEN         = $0980;
   kEEPROMCommandERAL         = $0900;
