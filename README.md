@@ -3,7 +3,7 @@
 Audio Interface Program
 
 ## Synopsis
-This repository contains the MS-DOS driver source code for my DIY [ISA Audio Interface](http://www.alexandrugroza.ro/microelectronics/system-design/isa-audio-interface/index.html) card that you cand find on the [Microelectronics](http://www.alexandrugroza.ro/microelectronics/index.html) page on my site.
+This repository contains the MS-DOS driver source code for my DIY [ISA Audio Interface](http://www.alexandrugroza.ro/microelectronics/system-design/isa-audio-interface/index.html) card that you can find on the [Microelectronics](http://www.alexandrugroza.ro/microelectronics/index.html) page on my site.
 
 The program allows the setup and initialization of the audio interface hardware while also providing a stereo volume mixer. I programmed all this into one single MS-DOS executable file of roughly 45 Kb. If this file is further compressed, then its size decreases to about 20 Kb. Which is pretty much awesome.
 
@@ -42,7 +42,7 @@ Usage is:
 
 Where:
   -help     shows this screen; all other parameters are ignored
-  -setup    starts the setup program
+  -setup    starts the setup program; some parameters might be ignored
   -pnpsetup starts the PnP setup program; some parameters are ignored
   -mixer    starts the volume mixer program
   -init     initializes the audio interface to preset mode
