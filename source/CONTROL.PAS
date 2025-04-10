@@ -755,7 +755,7 @@ var
   LWSSData: Byte;
 
 begin
-  FillChar(AControllerConfig, SizeOf(AControllerConfig), $00);
+  FillChar(AControllerConfig, SizeOf(TControllerConfig), $00);
 
   { Mode Control Register 1 }
 

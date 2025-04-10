@@ -10,178 +10,75 @@
 
 program aif;
 
+{$I cdefines.inc}
+
 uses
+  ConMsg,
   Consts,
   Error,
   Init,
   Mixer,
-  Routines,
+  Params,
   Screen,
   Setup,
   PnPSetup,
+  ROMSetup,
   Status,
-  Types,
-  Video;
+  Types;
 
-function ProcessParameters: Boolean;
 var
-  LParameterLineOut: String;
+  GConfigLoaded: Boolean;
 
 begin
-  FillChar(GParameters, SizeOf(GParameters), $00);
+  ConMsgWriteProgramHeader;
 
-  if ParamCount > 0 then
+  if ErrorNotEnoughMemory then
   begin
-    GParameters.Setup := FindSimpleParameter(pSetup);
-    GParameters.PnPSetup := FindSimpleParameter(pPnPSetup);
-    GParameters.Mixer := FindSimpleParameter(pMixer);
-
-    if FindSimpleParameter(pInit) then
-    begin
-      GParameters.InitMode := imSetup;
-    end else
-    if FindSimpleParameter(pWSS) then
-    begin
-      GParameters.InitMode := imWSS;
-    end else
-    if FindSimpleParameter(pSB) then
-    begin
-      GParameters.InitMode := imSB;
-    end else
-    begin
-      GParameters.InitMode := imInvalid;
-    end;
-
-    GParameters.Quiet := FindSimpleParameter(pQuiet);
-    GParameters.Status := FindSimpleParameter(pStatus);
-
-    GParameters.LineOut := FindComplexParameter(pLineOut, LParameterLineOut);
-
-    if GParameters.LineOut then
-    begin
-      if FindComplexParameterValue(LParameterLineOut, pOn) then
-      begin
-        GParameters.LineOutRelay := True;
-      end else
-      if FindComplexParameterValue(LParameterLineOut, pOff) then
-      begin
-        GParameters.LineOutRelay := False;
-      end else
-      begin
-        GParameters.LineOut := False;
-      end;
-    end;
-
-    ProcessParameters :=
-      GParameters.Setup or
-      GParameters.PnPSetup or
-      GParameters.Mixer or
-      GParameters.Status or
-      GParameters.LineOut or
-      (GParameters.InitMode <> imInvalid);
-  end else
-  begin
-    ProcessParameters := False;
-  end;
-end;
-
-procedure WriteProgramHeader;
-begin
-  VideoWriteNewln;
-
-  VideoSetBackground(clBlack);
-
-  VideoSetForeground(clHighlight);
-  VideoWriteln(sProgramTitle);
-
-  VideoSetForeground(clNormal);
-  VideoWriteln(sProgramCopyright);
-  VideoWriteln(sProgramAuthor);
-  VideoWriteln(sProgramRights);
-
-  VideoWriteNewln;
-end;
-
-procedure WriteHelp;
-var
-  LHelpParameter: Byte;
-
-begin
-  VideoSetForeground(clNormal);
-  VideoSetBackground(clBlack);
-
-  VideoWriteln(sHelpUsage);
-  VideoWriteln(sHelpWhere);
-
-  for LHelpParameter := Low(kHelpParameters) to High(kHelpParameters) do
-  begin
-    VideoWriteln(StrPas(kHelpParameters[LHelpParameter]));
+    Exit;
   end;
 
-  VideoWriteNewln;
-  VideoWriteln(sHelpExamples);
-end;
-
-procedure WriteParameterError;
-begin
-  VideoSetForeground(clNormal);
-  VideoSetBackground(clBlack);
-
-  VideoWriteln(sParameterMissing);
-  VideoWriteNewln;
-  VideoWriteln(sTypeHelp);
-end;
-
-procedure WriteConfigChanged;
-begin
-  VideoWriteNewln;
-  VideoWriteln(sHardwareConfigChanged);
-end;
-
-var
-  GPConfigLoaded: Boolean;
-
-begin
-  WriteProgramHeader;
-
-  if (ParamCount > 0) and FindSimpleParameter(pHelp) then
+  if (ParamCount > 0) and (FindSimpleParameter(pHelpAlt) or FindSimpleParameter(pHelp)) then
   begin
-    WriteHelp;
+    ConMsgWriteHelp;
   end else
   begin
     if ProcessParameters then
     begin
       ErrorSetHaltOnErrors(False);
 
-      GPConfigLoaded := SetupLoadConfig;
-      ScreenWriteActionIf(sLoadingConfiguration, GPConfigLoaded, not GParameters.Quiet);
+      GConfigLoaded := SetupLoadConfig;
+      ScreenWriteStatusOf(sLoadingAIFConfig, GConfigLoaded, not GParameters.Quiet);
 
-      if not GPConfigLoaded then
+      if not GConfigLoaded then
       begin
         SetupDefaultConfig;
         MixerDefaultConfig;
+
+        ScreenWriteStatusOf(sLoadingAIFConfigDefault, True, not GParameters.Quiet);
       end;
 
-      if GParameters.Setup or not GPConfigLoaded then
+      if GParameters.Setup or not GConfigLoaded then
       begin
         if SetupStart then
         begin
-          WriteConfigChanged;
-
-          if GParameters.InitMode = imInvalid then
-          begin
-            Exit;
-          end;
+          ConMsgWriteConfigChanged(sAIFConfig, GParameters.InitMode = imInvalid);
         end;
       end;
 
       ErrorSetHaltOnErrors(True);
 
       InitAIFBasic;
-
+{$IFDEF PNPSETUP}
       if GParameters.PnPSetup then
       begin
         PnPSetupStart;
+
+        Exit;
+      end;
+{$ENDIF}
+      if GParameters.ROMSetup then
+      begin
+        ROMSetupStart;
 
         Exit;
       end;
@@ -200,9 +97,9 @@ begin
 
       if GParameters.Mixer then
       begin
-        if MixerStart and (GParameters.InitMode = imInvalid) then
+        if MixerStart then
         begin
-          WriteConfigChanged;
+          ConMsgWriteConfigChanged(sMixerConfig, GParameters.InitMode = imInvalid);
         end;
       end;
 
@@ -217,7 +114,7 @@ begin
       end;
     end else
     begin
-      WriteParameterError;
+      ConMsgWriteParameterMissing;
     end;
   end;
 end.

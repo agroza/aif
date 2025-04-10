@@ -50,6 +50,8 @@ var
 
 { private declarations }
 
+function SendDataWaitStatus(const APort: Word; const AData, AMask: Byte): Boolean; forward;
+
 function SendDataWaitStatus(const APort: Word; const AData, AMask: Byte): Boolean;
 var
   LByte: Byte;

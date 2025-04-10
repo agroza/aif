@@ -1,12 +1,14 @@
 { --------------------------------------------------------------------------- }
 { - Audio Interface - Types (types.pas)                                     - }
-{ - Copyright (C) 1998-2022 Alexandru Groza of Microprogramming TECHNIQUES  - }
+{ - Copyright (C) 1998-2025 Alexandru Groza of Microprogramming TECHNIQUES  - }
 { - All rights reserved.                                                    - }
 { --------------------------------------------------------------------------- }
 { - License: GNU General Public License v3.0                                - }
 { --------------------------------------------------------------------------- }
 
 unit Types;
+
+{$I cdefines.inc}
 
 interface
 
@@ -31,7 +33,10 @@ type
 
   TParameters = packed record
     Setup: Boolean;
+{$IFDEF PNPSETUP}
     PnPSetup: Boolean;
+{$ENDIF}
+    ROMSetup: Boolean;
     Mixer: Boolean;
     InitMode: TAIFInitMode;
     Status: Boolean;
@@ -49,6 +54,8 @@ type
 
   PStrings = ^TStrings;
   TStrings = packed array[0..0] of String;
+
+  TFileSignature = packed array[0..7] of Char;
 
   { codec types }
   TCodecSampleRate = (

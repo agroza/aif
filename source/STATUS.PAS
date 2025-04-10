@@ -42,7 +42,9 @@ type
 
 { private declarations }
 
-procedure WriteItem(const AItem, AValue: String);
+procedure UIWriteItem(const AItem, AValue: String); forward;
+
+procedure UIWriteItem(const AItem, AValue: String);
 var
   LPositionY: Byte;
 
@@ -64,7 +66,7 @@ var
   LFrequency: Word;
   LOutputFormat: TCodecOutputFormat;
   LSoundOutput: TCodecSoundOutput;
-  LFormat: String;
+  LFormat: PChar;
   LStereo: Boolean;
   LFilter: Boolean;
 
@@ -76,7 +78,7 @@ begin
   VideoWriteln(sStatusAIFModel);
   VideoWriteNewln;
 
-  FillChar(LStatusItems, SizeOf(LStatusItems), $00);
+  FillChar(LStatusItems, SizeOf(TStatusItems), $00);
 
   LControllerMode := ControllerGetMode;
 
@@ -107,7 +109,7 @@ begin
         LStatusItems.DSP := False;
         LStatusItems.OutputFormat :=
           AddSizeSeparator(IntToStr(LFrequency) + cSpace + sHz, True) +
-          cSpace + LFormat + cSpace + sSoundOutput[LSoundOutput];
+          cSpace + StrPas(LFormat) + cSpace + sSoundOutput[LSoundOutput];
       end;
 
     cmSB:
@@ -135,16 +137,16 @@ begin
   LStatusItems.LineOutRelay := CodecGetOutputsEnabled;
   ControllerDisallowCodecAccess;
 
-  WriteItem(sStatusAIFMode, sAIFMode[LStatusItems.BitMOD]);
-  WriteItem(sStatusBASE, IntToHex(LStatusItems.Address));
-  WriteItem(sStatusIRQ, IfThenElse(LStatusItems.IRQ < $FF, IntToStr(LStatusItems.IRQ), sDisabledEnabled[False]));
-  WriteItem(sStatusDRQ, IfThenElse(LStatusItems.DRQ < $FF, IntToStr(LStatusItems.DRQ), sDisabledEnabled[False]));
-  WriteItem(sStatusDSP, IfThenElse(LStatusItems.DSP, sSBDSPVersions[GControllerConfig.SBDSPVersion], sNA));
-  WriteItem(sStatusFM, IfThenElse(LStatusItems.FM, sOPL3, sNA));
-  WriteItem(sStatusMPU401, IfThenElse(LStatusItems.MPU401, IntToHex(GControllerConfig.MPUBASE), sDisabledEnabled[False]));
-  WriteItem(sStatusGamePort, IfThenElse(LStatusItems.GamePort, sDisabledEnabled[True], sDisabledEnabled[False]));
-  WriteItem(sStatusOutputFormat, LStatusItems.OutputFormat);
-  WriteItem(sStatusLineOutRelay, sDisabledEnabled[LStatusItems.LineOutRelay]);
+  UIWriteItem(sStatusAIFMode, sAIFMode[LStatusItems.BitMOD]);
+  UIWriteItem(sStatusBASE, IntToHex(LStatusItems.Address));
+  UIWriteItem(sStatusIRQ, IfThenElse(LStatusItems.IRQ < $FF, IntToStr(LStatusItems.IRQ), sDisabledEnabled[False]));
+  UIWriteItem(sStatusDRQ, IfThenElse(LStatusItems.DRQ < $FF, IntToStr(LStatusItems.DRQ), sDisabledEnabled[False]));
+  UIWriteItem(sStatusDSP, IfThenElse(LStatusItems.DSP, sSBDSPVersions[GControllerConfig.SBDSPVersion], sNA));
+  UIWriteItem(sStatusFM, IfThenElse(LStatusItems.FM, sOPL3, sNA));
+  UIWriteItem(sStatusMPU401, IfThenElse(LStatusItems.MPU401, IntToHex(GControllerConfig.MPUBASE), sDisabledEnabled[False]));
+  UIWriteItem(sStatusGamePort, IfThenElse(LStatusItems.GamePort, sDisabledEnabled[True], sDisabledEnabled[False]));
+  UIWriteItem(sStatusOutputFormat, LStatusItems.OutputFormat);
+  UIWriteItem(sStatusLineOutRelay, sDisabledEnabled[LStatusItems.LineOutRelay]);
 
   if not InitAIFController(LControllerMode) then
   begin

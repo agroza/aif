@@ -1,7 +1,7 @@
 { --------------------------------------------------------------------------- }
 { - VersaVision Screen Routines (screen.pas)                                - }
 { - Integrant part of VersaVision Framework                                 - }
-{ - Copyright (C) 1998-2021 Alexandru Groza of Microprogramming TECHNIQUES  - }
+{ - Copyright (C) 1998-2025 Alexandru Groza of Microprogramming TECHNIQUES  - }
 { - All rights reserved.                                                    - }
 { --------------------------------------------------------------------------- }
 { - License: GNU General Public License v3.0                                - }
@@ -15,6 +15,12 @@ uses
   Types;
 
 type
+  TCharacterCase = (
+    ccNormal,
+    ccLowerCase,
+    ccUpperCase
+  );
+
   TKeyValueColors = packed record
     Foreground: Byte;
     Background: Byte;
@@ -41,6 +47,8 @@ type
     PositionX: Byte;
     PositionY: Byte;
     Width: Byte;
+    MaxLength: Byte;
+    CharacterCase: TCharacterCase;
     Colors: TEditColors;
     Text: String;
   end;
@@ -86,11 +94,22 @@ type
     Progress: Byte;
   end;
 
+  TProgressBarDrawMode = (
+    dmUpdate,
+    dmRepaint
+  );
+
+  TProgressBarDirection = (
+    dirAscending,
+    dirDescending
+  );
+
   TProgressBarData = packed record
     PositionX: Byte;
     PositionY: Byte;
     Width: Byte;
     Colors: TProgressBarColors;
+    DrawMode: TProgressBarDrawMode;
     Min: Word;
     Max: Word;
     Progress: Word;
@@ -197,7 +216,8 @@ procedure ScreenStoreColors;
 procedure ScreenRestoreColors;
 procedure ScreenSetVVColors;
 
-procedure ScreenWriteActionIf(const AMessage: String; const AAction, ACondition: Boolean);
+procedure ScreenWriteStatus(const AMessage, AStatus: String; AColor: Byte; const ACondition: Boolean);
+procedure ScreenWriteStatusOf(const AMessage: String; const AStatus, ACondition: Boolean);
 
 procedure ScreenTitleBarDraw(const AForeground, ABackground, ATextColor: Byte; const ACaption: String);
 
@@ -214,7 +234,8 @@ procedure ScreenFrameDraw(const AFrameData: TFrameData);
 procedure ScreenFramedAreaDraw(const AFramedAreaData: TFramedAreaData);
 
 procedure ScreenProgressBarDraw(const AProgressBarData: TProgressBarData);
-procedure ScreenProgressBarUpdate(const AProgressBarData: TProgressBarData);
+procedure ScreenProgressBarUpdate(const AProgressBarData: TProgressBarData;
+  const AProgressBarDirection: TProgressBarDirection);
 procedure ScreenProgressBarReset(var AProgressBarData: TProgressBarData; const AValue: Word);
 procedure ScreenProgressBarSetProgress(var AProgressBarData: TProgressBarData; AValue: Word);
 
@@ -289,6 +310,11 @@ const
 
   cProgressBarEmpty         = '°';
   cProgressBarFill          = 'Û';
+
+  cProgressBarGlyph: packed array[TProgressBarDirection] of Char = (
+    cProgressBarFill,
+    cProgressBarEmpty
+  );
 
   kProgressBarHeight        = 3;
   kProgressBarInternHeight  = 1;
@@ -387,23 +413,23 @@ end;
 
 procedure ScreenStoreColors;
 var
-  I: Byte;
+  LVGAColor: Byte;
 
 begin
-  for I := kVGAPaletteStart to kVGAPaletteEnd do
+  for LVGAColor := kVGAPaletteStart to kVGAPaletteEnd do
   begin
-    VideoGetPaletteColor(kVGAPaletteIndex[I], IGVGAPalette[I]);
+    VideoGetPaletteColor(kVGAPaletteIndex[LVGAColor], IGVGAPalette[LVGAColor]);
   end;
 end;
 
 procedure ScreenRestoreColors;
 var
-  I: Byte;
+  LVGAColor: Byte;
 
 begin
-  for I := kVGAPaletteStart to kVGAPaletteEnd do
+  for LVGAColor := kVGAPaletteStart to kVGAPaletteEnd do
   begin
-    VideoSetPaletteColor(kVGAPaletteIndex[I], IGVGAPalette[I]);
+    VideoSetPaletteColor(kVGAPaletteIndex[LVGAColor], IGVGAPalette[LVGAColor]);
   end;
 end;
 
@@ -420,7 +446,7 @@ begin
   VideoSetPaletteColor(clVGAPaletteYellow, kVVYellow);
 end;
 
-procedure ScreenWriteActionIf(const AMessage: String; const AAction, ACondition: Boolean);
+procedure ScreenWriteStatus(const AMessage, AStatus: String; AColor: Byte; const ACondition: Boolean);
 var
   LPositionX: Byte;
   LPositionY: Byte;
@@ -452,12 +478,12 @@ begin
     VideoWriteStringAt(
       LPositionX,
       LPositionY,
-      sFAILEDOK[AAction],
-      clFAILEDOK[AAction],
+      AStatus,
+      AColor,
       clBlack
     );
 
-    Inc(LPositionX, Succ(Length(sFAILEDOK[AAction])));
+    Inc(LPositionX, Succ(Length(AStatus)));
 
     VideoWriteCharAt(
       LPositionX,
@@ -467,8 +493,13 @@ begin
 
     VideoWriteNewln;
   end;
+end;
 
-  if not AAction then
+procedure ScreenWriteStatusOf(const AMessage: String; const AStatus, ACondition: Boolean);
+begin
+  ScreenWriteStatus(AMessage, sFAILEDOK[AStatus], clFAILEDOK[AStatus], ACondition);
+
+  if not AStatus then
   begin
     ErrorWriteHalt;
   end;
@@ -684,8 +715,20 @@ begin
 
       cFullStop, cSemicolon, cBackslash, '0'..'9', 'a'..'z', 'A'..'Z':
         begin
-          if Length(LInput) < AEditData.Width then
+          if Length(LInput) < MinByte(AEditData.MaxLength, AEditData.Width) then
           begin
+            case AEditData.CharacterCase of
+              ccNormal:
+                ;
+
+              ccLowerCase:
+                LKey := LoCase(LKey);
+
+              ccUpperCase:
+                LKey := UpCase(LKey);
+
+            end;
+
             LInput := LInput + LKey;
 
             VideoWriteCharAttrAt(
@@ -710,7 +753,7 @@ end;
 
 procedure ScreenFrameDraw(const AFrameData: TFrameData);
 var
-  I: Byte;
+  LHeight: Byte;
   LGeneralAttribute: Byte;
 
 begin
@@ -765,18 +808,18 @@ begin
     LGeneralAttribute
   );
 
-  for I := 2 to Pred(AFrameData.Height) do
+  for LHeight := 2 to Pred(AFrameData.Height) do
   begin
     VideoWriteCharAttrAt(
       AFrameData.PositionX,
-      AFrameData.PositionY + I,
+      AFrameData.PositionY + LHeight,
       kFrameGlyphs[AFrameData.FrameType][fgLeft],
       LGeneralAttribute
     );
 
     VideoWriteCharAttrAt(
       Pred(AFrameData.PositionX + AFrameData.Width),
-      AFrameData.PositionY + I,
+      AFrameData.PositionY + LHeight,
       kFrameGlyphs[AFrameData.FrameType][fgRight],
       LGeneralAttribute
     );
@@ -835,22 +878,26 @@ begin
     )
   );
 
-  ScreenProgressBarUpdate(AProgressBarData);
+  ScreenProgressBarUpdate(AProgressBarData, dirAscending);
 end;
 
-procedure ScreenProgressBarUpdate(const AProgressBarData: TProgressBarData);
+procedure ScreenProgressBarUpdate(const AProgressBarData: TProgressBarData;
+  const AProgressBarDirection: TProgressBarDirection);
 var
   LProgress: Real;
+  LProgressWidth: Word;
 
-begin
-  LProgress := AProgressBarData.Progress / AProgressBarData.Max;
-
-  if AProgressBarData.Progress > 0 then
+  procedure InternalUpdate;
   begin
+    if LProgressWidth = AProgressBarData.Width - 2 then
+    begin
+      Dec(LProgressWidth);
+    end;
+
     VideoWriteCharAttrAt(
-      Succ(AProgressBarData.PositionX) + Round(LProgress * (AProgressBarData.Width - 3)),
+      Succ(AProgressBarData.PositionX) + LProgressWidth,
       AProgressBarData.PositionY + 2,
-      cProgressBarFill,
+      cProgressBarGlyph[AProgressBarDirection],
       VideoAttribute(
         AProgressBarData.Colors.Progress,
         AProgressBarData.Colors.Background
@@ -858,13 +905,59 @@ begin
     );
   end;
 
-  VideoWriteStringAt(
-    AProgressBarData.PositionX + AProgressBarData.Width - 5,
-    AProgressBarData.PositionY,
-    PadPercent(Round(LProgress * 100)),
-    AProgressBarData.Colors.Foreground,
-    AProgressBarData.Colors.Background
-  );
+  procedure InternalRepaint;
+  var
+    LPositionX: Byte;
+
+  begin
+    LPositionX := Succ(AProgressBarData.PositionX);
+
+    if AProgressBarDirection = dirDescending then
+    begin
+      Inc(LPositionX, LProgressWidth);
+      LProgressWidth := AProgressBarData.Width - 2 - LProgressWidth;
+    end;
+
+    VideoWriteRegion(
+      LPositionX,
+      AProgressBarData.PositionY + 2,
+      LProgressWidth,
+      kProgressBarInternHeight,
+      cProgressBarGlyph[AProgressBarDirection],
+      VideoAttribute(
+        AProgressBarData.Colors.Progress,
+        AProgressBarData.Colors.Background
+      )
+    );
+  end;
+
+begin
+  if AProgressBarData.Max > 0 then
+  begin
+    LProgress := AProgressBarData.Progress / AProgressBarData.Max;
+
+    if AProgressBarData.Progress > 0 then
+    begin
+      LProgressWidth := Round(LProgress * (AProgressBarData.Width - 2));
+
+      case AProgressBarData.DrawMode of
+        dmUpdate:
+          InternalUpdate;
+
+        dmRepaint:
+          InternalRepaint;
+
+      end;
+    end;
+
+    VideoWriteStringAt(
+      AProgressBarData.PositionX + AProgressBarData.Width - 5,
+      AProgressBarData.PositionY,
+      PadPercent(Round(LProgress * 100)),
+      AProgressBarData.Colors.Foreground,
+      AProgressBarData.Colors.Background
+    );
+  end;
 end;
 
 procedure ScreenProgressBarReset(var AProgressBarData: TProgressBarData; const AValue: Word);
@@ -885,11 +978,17 @@ begin
 end;
 
 procedure ScreenProgressBarSetProgress(var AProgressBarData: TProgressBarData; AValue: Word);
+var
+  LDirection: TProgressBarDirection;
+
 begin
   if AProgressBarData.Progress <> AValue then
   begin
+    LDirection := TProgressBarDirection(AProgressBarData.Progress >= AValue);
+
     AProgressBarData.Progress := AValue;
-    ScreenProgressBarUpdate(AProgressBarData);
+
+    ScreenProgressBarUpdate(AProgressBarData, LDirection);
   end;
 end;
 
@@ -1205,7 +1304,7 @@ end;
 
 function ScreenMessageBoxDraw(const AMessageBoxData: TMessageBoxData): TMessageBoxResult;
 var
-  I: Byte;
+  LIndex: Byte;
   LStringsCount: Byte;
   LStringsSize: Word;
   LStrings: PStrings;
@@ -1264,12 +1363,12 @@ begin
     )
   );
 
-  for I := 0 to LStringsCount do
+  for LIndex := 0 to LStringsCount do
   begin
     VideoWriteStringAt(
       LVideoArea.PositionX + 2,
-      LVideoArea.PositionY + 3 + I,
-      LStrings^[I],
+      LVideoArea.PositionY + 3 + LIndex,
+      LStrings^[LIndex],
       AMessageBoxData.Colors.Foreground,
       AMessageBoxData.Colors.Background
     );

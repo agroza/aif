@@ -1,6 +1,6 @@
 { --------------------------------------------------------------------------- }
 { - Audio Interface - Routines (routines.pas)                               - }
-{ - Copyright (C) 1998-2021 Alexandru Groza of Microprogramming TECHNIQUES  - }
+{ - Copyright (C) 1998-2025 Alexandru Groza of Microprogramming TECHNIQUES  - }
 { - All rights reserved.                                                    - }
 { --------------------------------------------------------------------------- }
 { - License: GNU General Public License v3.0                                - }
@@ -31,15 +31,14 @@ procedure SetBit(var AByte: Byte; const ABit: Byte; const AValue: Boolean);
 function LocateByte(const AValue: Byte; const AArray: array of Byte): Byte;
 function LocateWord(const AValue: Word; const AArray: array of Word): Word;
 
-function FindSimpleParameter(const AParameter: String): Boolean;
-function FindComplexParameter(const AParameter: String; var AValue: String): Boolean;
-function FindComplexParameterValue(const AParameter, AValue: String): Boolean;
-
 function SecondElapsed(var ACurrentSecond: Byte): Boolean;
+
+function MinByte(const AValue1, AValue2: Byte): Byte;
 
 function IntToHex(const AInteger: Integer): String;
 function StrToIntDef(const AString: String; const ADefault: Longint): Longint;
 function AddSizeSeparator(const AString: String; const AUnitPresent: Boolean): String;
+function LoCase(const AChar: Char): Char;
 function LowerCase(const AString: String): String;
 function ReplicateChar(const ACharacter: Char; const ATimes: Byte): String;
 function StrPas(const APChar: PChar): String;
@@ -186,55 +185,6 @@ begin
   end;
 end;
 
-function FindSimpleParameter(const AParameter: String): Boolean;
-var
-  LIndex: Integer;
-
-begin
-  FindSimpleParameter := False;
-
-  for LIndex := 1 to ParamCount do
-  begin
-    if LowerCase(ParamStr(LIndex)) = AParameter then
-    begin
-      FindSimpleParameter := True;
-
-      Break;
-    end;
-  end;
-end;
-
-function FindComplexParameter(const AParameter: String; var AValue: String): Boolean;
-var
-  LIndex: Integer;
-
-begin
-  FindComplexParameter := False;
-
-  for LIndex := 1 to ParamCount do
-  begin
-    AValue := ParamStr(LIndex);
-
-    if Pos(AParameter, LowerCase(AValue)) <> 0 then
-    begin
-      FindComplexParameter := True;
-
-      Break;
-    end;
-  end;
-end;
-
-function FindComplexParameterValue(const AParameter, AValue: String): Boolean;
-begin
-  FindComplexParameterValue := LowerCase(
-    Copy(
-      AParameter,
-      Succ(Pos(cEqual, AParameter)),
-      Length(AValue)
-    )
-  ) = LowerCase(AValue);
-end;
-
 function SecondElapsed(var ACurrentSecond: Byte): Boolean;
 var
   LHours: Byte;
@@ -252,6 +202,17 @@ begin
   end else
   begin
     SecondElapsed := False;
+  end;
+end;
+
+function MinByte(const AValue1, AValue2: Byte): Byte;
+begin
+  if AValue1 < AValue2 then
+  begin
+    MinByte := AValue1;
+  end else
+  begin
+    MinByte := AValue2;
   end;
 end;
 
@@ -326,6 +287,20 @@ begin
   end;
 
   AddSizeSeparator := LSeparatedString;
+end;
+
+function LoCase(const AChar: Char): Char; assembler;
+asm
+  mov al,AChar
+
+  cmp al,'A'
+  jb @exit
+  cmp al,'Z'
+  ja @exit
+  add al,20h
+
+@exit:
+
 end;
 
 function LowerCase(const AString: String): String; assembler;

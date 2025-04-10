@@ -13,6 +13,8 @@ interface
 uses
   Types;
 
+function ErrorNotEnoughMemory: Boolean;
+
 procedure ErrorSetHaltOnErrors(const AValue: Boolean);
 procedure ErrorSetProgramError(const AValue: TProgramError);
 
@@ -36,6 +38,19 @@ var
   IGProgramError: TProgramError;
 
 { public declarations }
+
+function ErrorNotEnoughMemory: Boolean;
+begin
+  if MaxAvail < kRequiredMemory then
+  begin
+    VideoWriteln(sNotEnoughMemory);
+
+    ErrorNotEnoughMemory := True;
+  end else
+  begin
+    ErrorNotEnoughMemory := False;
+  end;
+end;
 
 procedure ErrorSetHaltOnErrors(const AValue: Boolean);
 begin

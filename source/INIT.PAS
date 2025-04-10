@@ -1,6 +1,6 @@
 { --------------------------------------------------------------------------- }
 { - Audio Interface - Initialization Subprogram (init.pas)                  - }
-{ - Copyright (C) 1998-2022 Alexandru Groza of Microprogramming TECHNIQUES  - }
+{ - Copyright (C) 1998-2025 Alexandru Groza of Microprogramming TECHNIQUES  - }
 { - All rights reserved.                                                    - }
 { --------------------------------------------------------------------------- }
 { - License: GNU General Public License v3.0                                - }
@@ -12,9 +12,6 @@ interface
 
 uses
   Types;
-
-var
-  GParameters: TParameters;
 
 function InitAIFController(const AControllerMode: TControllerMode): Boolean;
 
@@ -32,6 +29,7 @@ uses
   Error,
   Mixer,
   MPU,
+  Params,
   Routines,
   SBPro,
   Screen,
@@ -57,6 +55,16 @@ var
   GINewChip: Boolean;
 
 { private declarations }
+
+procedure AISetAudioOutputFormat(const ACodecAudioConfig: TCodecAudioConfig); forward;
+function AISetWSSMode: Boolean; forward;
+function AISetSBMode: Boolean; forward;
+function AIControllerDetect(var AOutputString: String): Boolean; forward;
+function AIControllerInitialize: Boolean; forward;
+function AICodecDetect(var AOutputString: String): Boolean; forward;
+function AICodecInitialize: Boolean; forward;
+function AIMPUInitialize: Boolean; forward;
+procedure AISetMode(const AParameters: TParameters); forward;
 
 procedure AISetAudioOutputFormat(const ACodecAudioConfig: TCodecAudioConfig);
 var
@@ -199,22 +207,22 @@ begin
     imWSS:
       begin
         LAction := AISetWSSMode;
-        ScreenWriteActionIf(sSettingWSSMode, LAction, not AParameters.Quiet);
+        ScreenWriteStatusOf(sSettingWSSMode, LAction, not AParameters.Quiet);
 
         if LAction and AParameters.Quiet then
         begin
-          VideoWriteln(sAIInitializedWSSMode);
+          VideoWriteln(sAIFInitializedWSSMode);
         end;
       end;
 
     imSB:
       begin
         LAction := AISetSBMode;
-        ScreenWriteActionIf(sSettingSBMode, LAction, not AParameters.Quiet);
+        ScreenWriteStatusOf(sSettingSBMode, LAction, not AParameters.Quiet);
 
         if LAction and AParameters.Quiet then
         begin
-          VideoWriteln(sAIInitializedSBMode);
+          VideoWriteln(sAIFInitializedSBMode);
         end;
       end;
 
@@ -257,22 +265,24 @@ begin
   ErrorSetProgramError(peHardwareInit);
 
   LValue := AIControllerDetect(LString);
-  ScreenWriteActionIf(sDetecting82c924 + LString, LValue, not GParameters.Quiet);
+  ScreenWriteStatusOf(sDetecting82c924 + LString, LValue, not GParameters.Quiet);
 
   LValue := AICodecDetect(LString);
-  ScreenWriteActionIf(LString, LValue, not GParameters.Quiet);
+  ScreenWriteStatusOf(LString, LValue, not GParameters.Quiet);
 end;
 
 procedure InitAIFComplete;
 begin
-  ScreenWriteActionIf(sInitializing82c924, AIControllerInitialize, not GParameters.Quiet);
-  ScreenWriteActionIf(IfThenElse(GINewChip, sInitializingAD1845, sInitializingAD1848),
+  ScreenWriteStatusOf(sInitializing82c924, AIControllerInitialize, not GParameters.Quiet);
+  ScreenWriteStatusOf(IfThenElse(GINewChip, sInitializingAD1845, sInitializingAD1848),
     AICodecInitialize, not GParameters.Quiet);
 
-  ScreenWriteActionIf(sInitializingMPU, AIMPUInitialize, not GParameters.Quiet);
-  ScreenWriteActionIf(sSettingMixerConfig, MixerSetConfig(GParameters.InitMode), not GParameters.Quiet);
+  ScreenWriteStatusOf(sInitializingMPU, AIMPUInitialize, not GParameters.Quiet);
+  ScreenWriteStatusOf(sSettingMixerConfig, MixerSetConfig(GParameters.InitMode), not GParameters.Quiet);
 
   AISetMode(GParameters);
+
+  ScreenWriteStatusOf(sAIFInitialization, True, not GParameters.Quiet);
 end;
 
 end.

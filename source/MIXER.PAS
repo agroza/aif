@@ -82,20 +82,29 @@ const
 
 { private declarations }
 
-procedure SetVolumes;
-begin
-  GCodecMixerConfig.DACLeft := IGStereoSliders[ssDACStereoSlider].LeftPosition;
-  GCodecMixerConfig.DACRight := IGStereoSliders[ssDACStereoSlider].RightPosition;
-  GCodecMixerConfig.AUX1Left := IGStereoSliders[ssAUX1StereoSlider].LeftPosition;
-  GCodecMixerConfig.AUX1Right := IGStereoSliders[ssAUX1StereoSlider].RightPosition;
-  GCodecMixerConfig.AUX2Left := IGStereoSliders[ssAUX2StereoSlider].LeftPosition;
-  GCodecMixerConfig.AUX2Right := IGStereoSliders[ssAUX2StereoSlider].RightPosition;
-  GCodecMixerConfig.InputGainLeft := IGStereoSliders[ssInputGainStereoSlider].LeftPosition div 2;
-  GCodecMixerConfig.InputGainRight := IGStereoSliders[ssInputGainStereoSlider].RightPosition div 2;
-  GCodecMixerConfig.DMELeftRight := IGStereoSliders[ssDMEStereoSlider].LeftPosition * 4;
-end;
+procedure UIInitSlider(const AStereoSlider: TStereoSlider; const APositionY: Byte;
+  const ATitle: String; const ALocked: Boolean; const ALeftPosition, ARightPosition: Byte); forward;
 
-procedure InitSlider(const AStereoSlider: TStereoSlider; const APositionY: Byte;
+procedure UICreateComponents; forward;
+procedure UIDrawComponents; forward;
+procedure UIDrawCommands; forward;
+procedure UIInitOption(var AOptionData: TMixerOptionData; const APositionY: Byte;
+  const AEnabled: Boolean); forward;
+procedure UIInitOptions; forward;
+procedure UIDrawOptions; forward;
+procedure UIHighlightOption(const AOption: TMixerOption); forward;
+procedure UIHighlightOptions; forward;
+procedure UIToggleHighlightOption(const AOption: TMixerOption); forward;
+procedure UIDrawConfig; forward;
+procedure UIDraw; forward;
+procedure UILoop; forward;
+
+procedure MixerSetVolumes; forward;
+procedure MixerSetInputConfigOptions; forward;
+
+procedure MixerExitAndSave; forward;
+
+procedure UIInitSlider(const AStereoSlider: TStereoSlider; const APositionY: Byte;
   const ATitle: String; const ALocked: Boolean; const ALeftPosition, ARightPosition: Byte);
 begin
   IGStereoSliders[AStereoSlider].PositionX := kMixerSliderX;
@@ -121,9 +130,9 @@ begin
   IGStereoSliders[AStereoSlider].RightPosition := ARightPosition;
 end;
 
-procedure CreateComponents;
+procedure UICreateComponents;
 begin
-  InitSlider(
+  UIInitSlider(
     ssDACStereoSlider,
     kMixerDACSliderY,
     sMixerVolumeDAC,
@@ -132,7 +141,7 @@ begin
     GCodecMixerConfig.DACRight
   );
 
-  InitSlider(
+  UIInitSlider(
     ssAUX1StereoSlider,
     kMixerAUX1SliderY,
     sMixerVolumeFMAUXIn,
@@ -141,7 +150,7 @@ begin
     GCodecMixerConfig.AUX1Right
   );
 
-  InitSlider(
+  UIInitSlider(
     ssAUX2StereoSlider,
     kMixerAUX2SliderY,
     sMixerVolumeCDROMLineIn,
@@ -150,7 +159,7 @@ begin
     GCodecMixerConfig.AUX2Right
   );
 
-  InitSlider(
+  UIInitSlider(
     ssInputGainStereoSlider,
     kMixerInputGainSliderY,
     sMixerVolumeADCInputGain,
@@ -159,7 +168,7 @@ begin
     GCodecMixerConfig.InputGainRight
   );
 
-  InitSlider(
+  UIInitSlider(
     ssDMEStereoSlider,
     kMixerDMESliderY,
     sMixerVolumeDME,
@@ -186,7 +195,7 @@ begin
   );
 end;
 
-procedure DrawComponents;
+procedure UIDrawComponents;
 begin
   VideoWriteRegion(
     kMixerSlidersLeft,
@@ -207,7 +216,7 @@ begin
   ScreenStereoSliderDraw(IGStereoSliders[ssDMEStereoSlider]);
 end;
 
-procedure DrawCommands;
+procedure UIDrawCommands;
 var
   LUIStatCommand: Byte;
 
@@ -219,8 +228,8 @@ begin
     kMixerCommandsHeight,
     cSpace,
     VideoAttribute(
-      clStatCmdFore,
-      clStatCmdBack
+      clMixerStatCmdFore,
+      clMixerStatCmdBack
     )
   );
 
@@ -228,16 +237,16 @@ begin
     kMixerCmdX,
     3,
     sMixerCmdProgramCmds,
-    clStatCmdHeader,
-    clStatCmdBack
+    clMixerStatCmdHeader,
+    clMixerStatCmdBack
   );
 
   VideoWriteStringAt(
     kMixerCmdX,
     10,
     sMixerCmdVolumeCmds,
-    clStatCmdHeader,
-    clStatCmdBack
+    clMixerStatCmdHeader,
+    clMixerStatCmdBack
   );
 
   for LUIStatCommand := Low(kUIStatCommands) to High(kUIStatCommands) do
@@ -245,64 +254,34 @@ begin
     ScreenCommandDraw(
       kMixerCmdX,
       kUIStatCommands[LUIStatCommand].Y,
-      clMixerCmdHigh,
-      clStatCmdFore,
-      clStatCmdBack,
+      clMixerStatCmdHigh,
+      clMixerStatCmdFore,
+      clMixerStatCmdBack,
       StrPas(kUIStatCommands[LUIStatCommand].Accelerator),
       StrPas(kUIStatCommands[LUIStatCommand].Name)
     );
   end;
 end;
 
-procedure SetInputConfigOptions;
-begin
-  if IGMixerOptions[moLineIn].Enabled then
-  begin
-    GCodecMixerConfig.InputDeviceLeft := cidtLineIn;
-    GCodecMixerConfig.InputDeviceRight := cidtLineIn;
-  end else
-  if IGMixerOptions[moFMAUXIn].Enabled then
-  begin
-    GCodecMixerConfig.InputDeviceLeft := cidtAUX1In;
-    GCodecMixerConfig.InputDeviceRight := cidtAUX1In;
-  end else
-  if IGMixerOptions[moMicrophone].Enabled then
-  begin
-    GCodecMixerConfig.InputDeviceLeft := cidtMicrophone;
-    GCodecMixerConfig.InputDeviceRight := cidtMicrophone;
-  end else
-  if IGMixerOptions[moPostMixedDAC].Enabled then
-  begin
-    GCodecMixerConfig.InputDeviceLeft := cidtPostMixedDAC;
-    GCodecMixerConfig.InputDeviceRight := cidtPostMixedDAC;
-  end;
-
-  GCodecMixerConfig.MicGainLeft := IGMixerOptions[moMicrophoneGain].Enabled;
-  GCodecMixerConfig.MicGainRight := IGMixerOptions[moMicrophoneGain].Enabled;
-
-  GCodecMixerConfig.DigitalMix := IGMixerOptions[moDigitalMix].Enabled;
-
-  GCodecMixerConfig.OutputsEnabled := IGMixerOptions[moOutputsEnabled].Enabled;
-end;
-
-procedure InitOption(var AOptionData: TMixerOptionData; const APositionY: Byte; const AEnabled: Boolean);
+procedure UIInitOption(var AOptionData: TMixerOptionData; const APositionY: Byte;
+  const AEnabled: Boolean);
 begin
   AOptionData.PositionY := APositionY;
   AOptionData.Enabled := AEnabled;
 end;
 
-procedure InitOptions;
+procedure UIInitOptions;
 begin
-  InitOption(IGMixerOptions[moLineIn], 16, GCodecMixerConfig.InputDeviceLeft = cidtLineIn);
-  InitOption(IGMixerOptions[moFMAUXIn], 17, GCodecMixerConfig.InputDeviceLeft = cidtAUX1In);
-  InitOption(IGMixerOptions[moMicrophone], 18, GCodecMixerConfig.InputDeviceLeft = cidtMicrophone);
-  InitOption(IGMixerOptions[moPostMixedDAC], 19, GCodecMixerConfig.InputDeviceLeft = cidtPostMixedDAC);
-  InitOption(IGMixerOptions[moMicrophoneGain], 22, GCodecMixerConfig.MicGainLeft or GCodecMixerConfig.MicGainRight);
-  InitOption(IGMixerOptions[moDigitalMix], 23, GCodecMixerConfig.DigitalMix);
-  InitOption(IGMixerOptions[moOutputsEnabled], 24, GCodecMixerConfig.OutputsEnabled);
+  UIInitOption(IGMixerOptions[moLineIn], 16, GCodecMixerConfig.InputDeviceLeft = cidtLineIn);
+  UIInitOption(IGMixerOptions[moFMAUXIn], 17, GCodecMixerConfig.InputDeviceLeft = cidtAUX1In);
+  UIInitOption(IGMixerOptions[moMicrophone], 18, GCodecMixerConfig.InputDeviceLeft = cidtMicrophone);
+  UIInitOption(IGMixerOptions[moPostMixedDAC], 19, GCodecMixerConfig.InputDeviceLeft = cidtPostMixedDAC);
+  UIInitOption(IGMixerOptions[moMicrophoneGain], 22, GCodecMixerConfig.MicGainLeft or GCodecMixerConfig.MicGainRight);
+  UIInitOption(IGMixerOptions[moDigitalMix], 23, GCodecMixerConfig.DigitalMix);
+  UIInitOption(IGMixerOptions[moOutputsEnabled], 24, GCodecMixerConfig.OutputsEnabled);
 end;
 
-procedure DrawOptions;
+procedure UIDrawOptions;
 var
   LUIDynCommand: Byte;
 
@@ -314,8 +293,8 @@ begin
     kMixerOptionsHeight,
     cSpace,
     VideoAttribute(
-      clDynCmdFore,
-      clDynCmdBack
+      clMixerDynCmdFore,
+      clMixerDynCmdBack
     )
   );
 
@@ -323,16 +302,16 @@ begin
     kMixerCmdX,
     15,
     sMixerCmdInputDeviceCmds,
-    clDynCmdHeader,
-    clDynCmdBack
+    clMixerDynCmdHeader,
+    clMixerDynCmdBack
   );
 
   VideoWriteStringAt(
     kMixerCmdX,
     21,
     sMixerCmdAdditionalCmds,
-    clDynCmdHeader,
-    clDynCmdBack
+    clMixerDynCmdHeader,
+    clMixerDynCmdBack
   );
 
   for LUIDynCommand := Low(kUIDynCommands) to High(kUIDynCommands) do
@@ -340,26 +319,26 @@ begin
     ScreenCommandDraw(
       kMixerCmdX,
       kUIDynCommands[LUIDynCommand].Y,
-      clMixerCmdHigh,
-      clDynCmdFore,
-      clDynCmdBack,
+      clMixerStatCmdHigh,
+      clMixerDynCmdFore,
+      clMixerDynCmdBack,
       StrPas(kUIDynCommands[LUIDynCommand].Accelerator),
       StrPas(kUIDynCommands[LUIDynCommand].Name)
     );
   end;
 end;
 
-procedure HighlightOption(const AOption: TMixerOption);
+procedure UIHighlightOption(const AOption: TMixerOption);
 var
   LAttribute: Byte;
 
 begin
   if IGMixerOptions[AOption].Enabled then
   begin
-    LAttribute := VideoAttribute(clLightGreen, clDynCmdBack);
+    LAttribute := VideoAttribute(clLightGreen, clMixerDynCmdBack);
   end else
   begin
-    LAttribute := VideoAttribute(clDynCmdFore, clDynCmdBack);
+    LAttribute := VideoAttribute(clMixerDynCmdFore, clMixerDynCmdBack);
   end;
 
   VideoHighlightRegion(
@@ -371,26 +350,26 @@ begin
   );
 end;
 
-procedure HighlightOptions;
+procedure UIHighlightOptions;
 var
   LOption: TMixerOption;
 
 begin
   for LOption := Low(TMixerOption) to High(TMixerOption) do
   begin
-    HighlightOption(LOption);
+    UIHighlightOption(LOption);
   end;
 end;
 
-procedure ToggleHighlightOption(const AOption: TMixerOption);
+procedure UIToggleHighlightOption(const AOption: TMixerOption);
 begin
   IGMixerConfigChanged := True;
 
   IGMixerOptions[AOption].Enabled := not IGMixerOptions[AOption].Enabled;
-  HighlightOption(AOption);
+  UIHighlightOption(AOption);
 end;
 
-procedure HighlightInputDevice(const AOption: TMixerOption);
+procedure UIHighlightInputDevice(const AOption: TMixerOption);
 var
   LOption: TMixerOption;
 
@@ -400,36 +379,29 @@ begin
   for LOption := moLineIn to moPostMixedDAC do
   begin
     IGMixerOptions[LOption].Enabled := False;
-    HighlightOption(LOption);
+    UIHighlightOption(LOption);
   end;
 
   IGMixerOptions[AOption].Enabled := True;
-  HighlightOption(AOption);
+  UIHighlightOption(AOption);
 end;
 
-procedure DrawConfig;
+procedure UIDrawConfig;
 begin
-  CreateComponents;
-  DrawComponents;
+  UICreateComponents;
+  UIDrawComponents;
 
-  InitOptions;
-  DrawOptions;
-  HighlightOptions;
+  UIInitOptions;
+  UIDrawOptions;
+  UIHighlightOptions;
 end;
 
 procedure UIDraw;
 begin
   ScreenTitleBarDraw(clInterfaceFore, clInterfaceBack, clInterfaceFore, sMixerTitle);
 
-  DrawCommands;
-  DrawConfig;
-end;
-
-procedure ExitAndSave;
-begin
-  SetVolumes;
-  SetInputConfigOptions;
-  SetupSaveConfig;
+  UIDrawCommands;
+  UIDrawConfig;
 end;
 
 procedure UILoop;
@@ -460,7 +432,7 @@ begin
                 IGMixerConfigChanged := True;
 
                 MixerDefaultConfig;
-                DrawConfig;
+                UIDrawConfig;
 
                 ScreenStereoSliderHighlight(IGStereoSliders[LStereoSlider], LSoundChannel, True);
               end;
@@ -471,7 +443,7 @@ begin
                 begin
                   IGMixerConfigChanged := True;
 
-                  DrawConfig;
+                  UIDrawConfig;
                 end;
 
                 ScreenStereoSliderHighlight(IGStereoSliders[LStereoSlider], LSoundChannel, True);
@@ -479,7 +451,7 @@ begin
 
             kKeyF10:
               begin
-                ExitAndSave;
+                MixerExitAndSave;
 
                 Break;
               end;
@@ -567,7 +539,7 @@ begin
                 IGMixerConfigChanged := False;
 
               mrYes:
-                ExitAndSave;
+                MixerExitAndSave;
 
             end;
           end;
@@ -576,28 +548,80 @@ begin
         end;
 
       sMixerCmd1:
-        HighlightInputDevice(moLineIn);
+        UIHighlightInputDevice(moLineIn);
 
       sMixerCmd2:
-        HighlightInputDevice(moFMAUXIn);
+        UIHighlightInputDevice(moFMAUXIn);
 
       sMixerCmd3:
-        HighlightInputDevice(moMicrophone);
+        UIHighlightInputDevice(moMicrophone);
 
       sMixerCmd4:
-        HighlightInputDevice(moPostMixedDAC);
+        UIHighlightInputDevice(moPostMixedDAC);
 
       sMixerCmd5:
-        ToggleHighlightOption(moMicrophoneGain);
+        UIToggleHighlightOption(moMicrophoneGain);
 
       sMixerCmd6:
-        ToggleHighlightOption(moDigitalMix);
+        UIToggleHighlightOption(moDigitalMix);
 
       sMixerCmd7:
-        ToggleHighlightOption(moOutputsEnabled);
+        UIToggleHighlightOption(moOutputsEnabled);
 
     end;
   end;
+end;
+
+procedure MixerSetVolumes;
+begin
+  GCodecMixerConfig.DACLeft := IGStereoSliders[ssDACStereoSlider].LeftPosition;
+  GCodecMixerConfig.DACRight := IGStereoSliders[ssDACStereoSlider].RightPosition;
+  GCodecMixerConfig.AUX1Left := IGStereoSliders[ssAUX1StereoSlider].LeftPosition;
+  GCodecMixerConfig.AUX1Right := IGStereoSliders[ssAUX1StereoSlider].RightPosition;
+  GCodecMixerConfig.AUX2Left := IGStereoSliders[ssAUX2StereoSlider].LeftPosition;
+  GCodecMixerConfig.AUX2Right := IGStereoSliders[ssAUX2StereoSlider].RightPosition;
+  GCodecMixerConfig.InputGainLeft := IGStereoSliders[ssInputGainStereoSlider].LeftPosition div 2;
+  GCodecMixerConfig.InputGainRight := IGStereoSliders[ssInputGainStereoSlider].RightPosition div 2;
+  GCodecMixerConfig.DMELeftRight := IGStereoSliders[ssDMEStereoSlider].LeftPosition * 4;
+end;
+
+procedure MixerSetInputConfigOptions;
+begin
+  if IGMixerOptions[moLineIn].Enabled then
+  begin
+    GCodecMixerConfig.InputDeviceLeft := cidtLineIn;
+    GCodecMixerConfig.InputDeviceRight := cidtLineIn;
+  end else
+  if IGMixerOptions[moFMAUXIn].Enabled then
+  begin
+    GCodecMixerConfig.InputDeviceLeft := cidtAUX1In;
+    GCodecMixerConfig.InputDeviceRight := cidtAUX1In;
+  end else
+  if IGMixerOptions[moMicrophone].Enabled then
+  begin
+    GCodecMixerConfig.InputDeviceLeft := cidtMicrophone;
+    GCodecMixerConfig.InputDeviceRight := cidtMicrophone;
+  end else
+  if IGMixerOptions[moPostMixedDAC].Enabled then
+  begin
+    GCodecMixerConfig.InputDeviceLeft := cidtPostMixedDAC;
+    GCodecMixerConfig.InputDeviceRight := cidtPostMixedDAC;
+  end;
+
+  GCodecMixerConfig.MicGainLeft := IGMixerOptions[moMicrophoneGain].Enabled;
+  GCodecMixerConfig.MicGainRight := IGMixerOptions[moMicrophoneGain].Enabled;
+
+  GCodecMixerConfig.DigitalMix := IGMixerOptions[moDigitalMix].Enabled;
+
+  GCodecMixerConfig.OutputsEnabled := IGMixerOptions[moOutputsEnabled].Enabled;
+end;
+
+procedure MixerExitAndSave;
+begin
+  MixerSetVolumes;
+  MixerSetInputConfigOptions;
+
+  SetupSaveConfig;
 end;
 
 { public declarations }

@@ -83,6 +83,11 @@ var
 
 { private declarations }
 
+function DSPRead: Byte; forward;
+procedure DSPWrite(const AValue: Byte); forward;
+function MixerRead(const AIndex: Byte): Byte; forward;
+procedure MixerWrite(const AIndex, AValue: Byte); forward;
+
 function DSPRead: Byte;
 var
   LRetries: Word;

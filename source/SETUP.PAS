@@ -41,8 +41,6 @@ uses
   Video;
 
 type
-  TFileSignature = packed array[0..7] of Char;
-
   TArrayAdvance = (
     aaPrevious,
     aaNext
@@ -113,34 +111,30 @@ type
     AVC: TBitStatus;
   end;
 
-{$F+}
-
-function GSVAIFMode(const AIndex: Byte; const ASetValue: Boolean): String; forward;
-function GSVWSSBASE(const AIndex: Byte; const ASetValue: Boolean): String; forward;
-function GSVWSSIRQ(const AIndex: Byte; const ASetValue: Boolean): String; forward;
-function GSVWSSDRQ(const AIndex: Byte; const ASetValue: Boolean): String; forward;
-function GSVSBBASE(const AIndex: Byte; const ASetValue: Boolean): String; forward;
-function GSVSBIRQ(const AIndex: Byte; const ASetValue: Boolean): String; forward;
-function GSVSBDRQ(const AIndex: Byte; const ASetValue: Boolean): String; forward;
-function GSVMPU401(const AIndex: Byte; const ASetValue: Boolean): String; forward;
-function GSVMPUBASE(const AIndex: Byte; const ASetValue: Boolean): String; forward;
-function GSVMPUIRQ(const AIndex: Byte; const ASetValue: Boolean): String; forward;
-function GSVGamePort(const AIndex: Byte; const ASetValue: Boolean): String; forward;
-function GSVIDECDROM(const AIndex: Byte; const ASetValue: Boolean): String; forward;
-function GSVCFIX(const AIndex: Byte; const ASetValue: Boolean): String; forward;
-function GSVFMAP(const AIndex: Byte; const ASetValue: Boolean): String; forward;
-function GSVWSSSampleRate(const AIndex: Byte; const ASetValue: Boolean): String; forward;
-function GSVWSSBitDepth(const AIndex: Byte; const ASetValue: Boolean): String; forward;
-function GSVWSSSoundOutput(const AIndex: Byte; const ASetValue: Boolean): String; forward;
-function GSVSBSampleRate(const AIndex: Byte; const ASetValue: Boolean): String; forward;
-function GSVSBBitDepth(const AIndex: Byte; const ASetValue: Boolean): String; forward;
-function GSVSBSoundOutput(const AIndex: Byte; const ASetValue: Boolean): String; forward;
-function GSVSBDSPVersion(const AIndex: Byte; const ASetValue: Boolean): String; forward;
-function GSVSBADPCM(const AIndex: Byte; const ASetValue: Boolean): String; forward;
-function GSVCFIFO(const AIndex: Byte; const ASetValue: Boolean): String; forward;
-function GSVAVC(const AIndex: Byte; const ASetValue: Boolean): String; forward;
-
-{$F-}
+function GSVAIFMode(const AIndex: Byte; const ASetValue: Boolean): String; far; forward;
+function GSVWSSBASE(const AIndex: Byte; const ASetValue: Boolean): String; far; forward;
+function GSVWSSIRQ(const AIndex: Byte; const ASetValue: Boolean): String; far; forward;
+function GSVWSSDRQ(const AIndex: Byte; const ASetValue: Boolean): String; far; forward;
+function GSVSBBASE(const AIndex: Byte; const ASetValue: Boolean): String; far; forward;
+function GSVSBIRQ(const AIndex: Byte; const ASetValue: Boolean): String; far; forward;
+function GSVSBDRQ(const AIndex: Byte; const ASetValue: Boolean): String; far; forward;
+function GSVMPU401(const AIndex: Byte; const ASetValue: Boolean): String; far; forward;
+function GSVMPUBASE(const AIndex: Byte; const ASetValue: Boolean): String; far; forward;
+function GSVMPUIRQ(const AIndex: Byte; const ASetValue: Boolean): String; far; forward;
+function GSVGamePort(const AIndex: Byte; const ASetValue: Boolean): String; far; forward;
+function GSVIDECDROM(const AIndex: Byte; const ASetValue: Boolean): String; far; forward;
+function GSVCFIX(const AIndex: Byte; const ASetValue: Boolean): String; far; forward;
+function GSVFMAP(const AIndex: Byte; const ASetValue: Boolean): String; far; forward;
+function GSVWSSSampleRate(const AIndex: Byte; const ASetValue: Boolean): String; far; forward;
+function GSVWSSBitDepth(const AIndex: Byte; const ASetValue: Boolean): String; far; forward;
+function GSVWSSSoundOutput(const AIndex: Byte; const ASetValue: Boolean): String; far; forward;
+function GSVSBSampleRate(const AIndex: Byte; const ASetValue: Boolean): String; far; forward;
+function GSVSBBitDepth(const AIndex: Byte; const ASetValue: Boolean): String; far; forward;
+function GSVSBSoundOutput(const AIndex: Byte; const ASetValue: Boolean): String; far; forward;
+function GSVSBDSPVersion(const AIndex: Byte; const ASetValue: Boolean): String; far; forward;
+function GSVSBADPCM(const AIndex: Byte; const ASetValue: Boolean): String; far; forward;
+function GSVCFIFO(const AIndex: Byte; const ASetValue: Boolean): String; far; forward;
+function GSVAVC(const AIndex: Byte; const ASetValue: Boolean): String; far; forward;
 
 const
   kFileSignature: TFileSignature = 'AG86.BIN';
@@ -217,63 +211,20 @@ var
 
 { private declarations }
 
-procedure ApplyConfig;
-begin
-  GControllerConfig.BitMOD := IGSetupConfig.AIFMode;
-  GControllerConfig.WSSBASE := IGSetupConfig.WSSBASE;
-  GControllerConfig.WSSIRQ := IGSetupConfig.WSSIRQ;
-  GControllerConfig.WSSDRQ := IGSetupConfig.WSSDRQ;
-  GControllerConfig.SBBASE := IGSetupConfig.SBBASE;
-  GControllerConfig.SBIRQ := IGSetupConfig.SBIRQ;
-  GControllerConfig.SBDRQ := IGSetupConfig.SBDRQ;
-  GControllerConfig.BitMPU401 := IGSetupConfig.MPU401;
-  GControllerConfig.MPUBASE := IGSetupConfig.MPUBASE;
-  GControllerConfig.MPUIRQ := IGSetupConfig.MPUIRQ;
-  GControllerConfig.BitGPEN := IGSetupConfig.GamePort;
-  GControllerConfig.IDECDROM := IGSetupConfig.IDECDROM;
-  GControllerConfig.BitCFIX := IGSetupConfig.CFIX;
-  GControllerConfig.BitFMAP := IGSetupConfig.FMAP;
-  GWSSAudioConfig.SampleRate := IGSetupConfig.WSSSampleRate;
-  GWSSAudioConfig.BitDepth := IGSetupConfig.WSSBitDepth;
-  GWSSAudioConfig.SoundOutput := IGSetupConfig.WSSSoundOutput;
-  GSBAudioConfig.SampleRate := IGSetupConfig.SBSampleRate;
-  GSBAudioConfig.BitDepth := IGSetupConfig.SBBitDepth;
-  GSBAudioConfig.SoundOutput := IGSetupConfig.SBSoundOutput;
-  GControllerConfig.SBDSPVersion := IGSetupConfig.SBDSPVersion;
-  GControllerConfig.BitADPCMEN := IGSetupConfig.SBADPCM;
-  GControllerConfig.BitCFIFO := IGSetupConfig.CFIFO;
-  GControllerConfig.BitAVCEN := IGSetupConfig.AVC;
-end;
+procedure ApplyConfig; forward;
+procedure InitConfig; forward;
+procedure InitOptionVector(const ASetupOption: TSetupOption; const AHigh, AIndex: Byte); forward;
+procedure InitOptionVectors; forward;
 
-procedure InitConfig;
-begin
-  IGSetupConfig.AIFMode := GControllerConfig.BitMOD;
-  IGSetupConfig.WSSBASE := GControllerConfig.WSSBASE;
-  IGSetupConfig.WSSIRQ := GControllerConfig.WSSIRQ;
-  IGSetupConfig.WSSDRQ := GControllerConfig.WSSDRQ;
-  IGSetupConfig.SBBASE := GControllerConfig.SBBASE;
-  IGSetupConfig.SBIRQ := GControllerConfig.SBIRQ;
-  IGSetupConfig.SBDRQ := GControllerConfig.SBDRQ;
-  IGSetupConfig.MPU401 := GControllerConfig.BitMPU401;
-  IGSetupConfig.MPUBASE := GControllerConfig.MPUBASE;
-  IGSetupConfig.MPUIRQ := GControllerConfig.MPUIRQ;
-  IGSetupConfig.GamePort := GControllerConfig.BitGPEN;
-  IGSetupConfig.IDECDROM := GControllerConfig.IDECDROM;
-  IGSetupConfig.CFIX := GControllerConfig.BitCFIX;
-  IGSetupConfig.FMAP := GControllerConfig.BitFMAP;
-  IGSetupConfig.WSSSampleRate := GWSSAudioConfig.SampleRate;
-  IGSetupConfig.WSSBitDepth := GWSSAudioConfig.BitDepth;
-  IGSetupConfig.WSSSoundOutput := GWSSAudioConfig.SoundOutput;
-  IGSetupConfig.SBSampleRate := GSBAudioConfig.SampleRate;
-  IGSetupConfig.SBBitDepth := GSBAudioConfig.BitDepth;
-  IGSetupConfig.SBSoundOutput := GSBAudioConfig.SoundOutput;
-  IGSetupConfig.SBDSPVersion := GControllerConfig.SBDSPVersion;
-  IGSetupConfig.SBADPCM := GControllerConfig.BitADPCMEN;
-  IGSetupConfig.CFIFO := GControllerConfig.BitCFIFO;
-  IGSetupConfig.AVC := GControllerConfig.BitAVCEN;
-end;
-
-{$F+}
+procedure UIDrawOptions; forward;
+procedure UIHighlightOption(const ASetupOption: TSetupOption; const AValue: Boolean); forward;
+procedure UIEditOption(const ASetupOption: TSetupOption; const AArrayAdvance: TArrayAdvance); forward;
+procedure UICreateComponents; forward;
+procedure UIDrawCommands; forward;
+procedure UIDrawRevision; forward;
+procedure UIDrawConfig; forward;
+procedure UIExitAndSave; forward;
+procedure UILoop; forward;
 
 function GSVAIFMode(const AIndex: Byte; const ASetValue: Boolean): String;
 begin
@@ -535,7 +486,61 @@ begin
   GSVAVC := sAVC[TBitStatus(AIndex)];
 end;
 
-{$F-}
+procedure ApplyConfig;
+begin
+  GControllerConfig.BitMOD := IGSetupConfig.AIFMode;
+  GControllerConfig.WSSBASE := IGSetupConfig.WSSBASE;
+  GControllerConfig.WSSIRQ := IGSetupConfig.WSSIRQ;
+  GControllerConfig.WSSDRQ := IGSetupConfig.WSSDRQ;
+  GControllerConfig.SBBASE := IGSetupConfig.SBBASE;
+  GControllerConfig.SBIRQ := IGSetupConfig.SBIRQ;
+  GControllerConfig.SBDRQ := IGSetupConfig.SBDRQ;
+  GControllerConfig.BitMPU401 := IGSetupConfig.MPU401;
+  GControllerConfig.MPUBASE := IGSetupConfig.MPUBASE;
+  GControllerConfig.MPUIRQ := IGSetupConfig.MPUIRQ;
+  GControllerConfig.BitGPEN := IGSetupConfig.GamePort;
+  GControllerConfig.IDECDROM := IGSetupConfig.IDECDROM;
+  GControllerConfig.BitCFIX := IGSetupConfig.CFIX;
+  GControllerConfig.BitFMAP := IGSetupConfig.FMAP;
+  GWSSAudioConfig.SampleRate := IGSetupConfig.WSSSampleRate;
+  GWSSAudioConfig.BitDepth := IGSetupConfig.WSSBitDepth;
+  GWSSAudioConfig.SoundOutput := IGSetupConfig.WSSSoundOutput;
+  GSBAudioConfig.SampleRate := IGSetupConfig.SBSampleRate;
+  GSBAudioConfig.BitDepth := IGSetupConfig.SBBitDepth;
+  GSBAudioConfig.SoundOutput := IGSetupConfig.SBSoundOutput;
+  GControllerConfig.SBDSPVersion := IGSetupConfig.SBDSPVersion;
+  GControllerConfig.BitADPCMEN := IGSetupConfig.SBADPCM;
+  GControllerConfig.BitCFIFO := IGSetupConfig.CFIFO;
+  GControllerConfig.BitAVCEN := IGSetupConfig.AVC;
+end;
+
+procedure InitConfig;
+begin
+  IGSetupConfig.AIFMode := GControllerConfig.BitMOD;
+  IGSetupConfig.WSSBASE := GControllerConfig.WSSBASE;
+  IGSetupConfig.WSSIRQ := GControllerConfig.WSSIRQ;
+  IGSetupConfig.WSSDRQ := GControllerConfig.WSSDRQ;
+  IGSetupConfig.SBBASE := GControllerConfig.SBBASE;
+  IGSetupConfig.SBIRQ := GControllerConfig.SBIRQ;
+  IGSetupConfig.SBDRQ := GControllerConfig.SBDRQ;
+  IGSetupConfig.MPU401 := GControllerConfig.BitMPU401;
+  IGSetupConfig.MPUBASE := GControllerConfig.MPUBASE;
+  IGSetupConfig.MPUIRQ := GControllerConfig.MPUIRQ;
+  IGSetupConfig.GamePort := GControllerConfig.BitGPEN;
+  IGSetupConfig.IDECDROM := GControllerConfig.IDECDROM;
+  IGSetupConfig.CFIX := GControllerConfig.BitCFIX;
+  IGSetupConfig.FMAP := GControllerConfig.BitFMAP;
+  IGSetupConfig.WSSSampleRate := GWSSAudioConfig.SampleRate;
+  IGSetupConfig.WSSBitDepth := GWSSAudioConfig.BitDepth;
+  IGSetupConfig.WSSSoundOutput := GWSSAudioConfig.SoundOutput;
+  IGSetupConfig.SBSampleRate := GSBAudioConfig.SampleRate;
+  IGSetupConfig.SBBitDepth := GSBAudioConfig.BitDepth;
+  IGSetupConfig.SBSoundOutput := GSBAudioConfig.SoundOutput;
+  IGSetupConfig.SBDSPVersion := GControllerConfig.SBDSPVersion;
+  IGSetupConfig.SBADPCM := GControllerConfig.BitADPCMEN;
+  IGSetupConfig.CFIFO := GControllerConfig.BitCFIFO;
+  IGSetupConfig.AVC := GControllerConfig.BitAVCEN;
+end;
 
 procedure InitOptionVector(const ASetupOption: TSetupOption; const AHigh, AIndex: Byte);
 begin
@@ -571,7 +576,7 @@ begin
   InitOptionVector(soAVC, Byte(High(sBSDisabledEnabled)), Byte(IGSetupConfig.AVC));
 end;
 
-procedure DrawOptions;
+procedure UIDrawOptions;
 var
   LSetupOption: TSetupOption;
   LSetupOptionData: TSetupOptionData;
@@ -607,7 +612,7 @@ begin
   end;
 end;
 
-procedure HighlightOption(const ASetupOption: TSetupOption; const AValue: Boolean);
+procedure UIHighlightOption(const ASetupOption: TSetupOption; const AValue: Boolean);
 var
   LAttribute: Byte;
   LEditAttribute: Byte;
@@ -640,7 +645,7 @@ begin
   );
 end;
 
-procedure EditOption(const ASetupOption: TSetupOption; const AArrayAdvance: TArrayAdvance);
+procedure UIEditOption(const ASetupOption: TSetupOption; const AArrayAdvance: TArrayAdvance);
 var
   LSetupOptionData: TSetupOptionData;
   LIndex: Byte;
@@ -699,7 +704,7 @@ begin
   kSetupOptions[ASetupOption].Index := LIndex;
 end;
 
-procedure CreateComponents;
+procedure UICreateComponents;
 begin
   IGMessageBox.Colors.Foreground := clMessageBoxFore;
   IGMessageBox.Colors.Background := clMessageBoxBack;
@@ -719,7 +724,7 @@ begin
   );
 end;
 
-procedure DrawCommands;
+procedure UIDrawCommands;
 var
   LUICommand: Byte;
 
@@ -766,7 +771,7 @@ begin
   end;
 end;
 
-procedure DrawRevision;
+procedure UIDrawRevision;
 var
   LControllerRevision: Byte;
 
@@ -790,25 +795,25 @@ begin
   );
 end;
 
-procedure DrawConfig;
+procedure UIDrawConfig;
 begin
   InitConfig;
   InitOptionVectors;
-  DrawOptions;
+  UIDrawOptions;
 end;
 
 procedure UIDraw;
 begin
   ScreenTitleBarDraw(clInterfaceFore, clInterfaceBack, clInterfaceFore, sSetupTitle);
 
-  CreateComponents;
+  UICreateComponents;
 
-  DrawConfig;
-  DrawCommands;
-  DrawRevision;
+  UIDrawConfig;
+  UIDrawCommands;
+  UIDrawRevision;
 end;
 
-procedure ExitAndSave;
+procedure UIExitAndSave;
 begin
   ApplyConfig;
   SetupSaveConfig;
@@ -824,13 +829,13 @@ begin
   IGSetupConfigChanged := False;
 
   LSetupOption := Low(TSetupOption);
-  HighlightOption(LSetupOption, True);
+  UIHighlightOption(LSetupOption, True);
 
   while True do
   begin
     LScanCode := GetScanCode;
     LKey := UpCase(GetStandardKey(LScanCode));
-  
+
     case LKey of
       kKeyExtended:
         begin
@@ -840,9 +845,9 @@ begin
                 IGSetupConfigChanged := True;
 
                 SetupDefaultConfig;
-                DrawConfig;
+                UIDrawConfig;
 
-                HighlightOption(LSetupOption, True);
+                UIHighlightOption(LSetupOption, True);
               end;
 
             kKeyF9:
@@ -851,22 +856,22 @@ begin
                 begin
                   IGSetupConfigChanged := True;
 
-                  DrawConfig;
+                  UIDrawConfig;
                 end;
 
-                HighlightOption(LSetupOption, True);
+                UIHighlightOption(LSetupOption, True);
               end;
 
             kKeyF10:
               begin
-                ExitAndSave;
+                UIExitAndSave;
 
                 Break;
               end;
 
             kKeyUp:
               begin
-                HighlightOption(LSetupOption, False);
+                UIHighlightOption(LSetupOption, False);
 
                 if LSetupOption > Low(TSetupOption) then
                 begin
@@ -876,12 +881,12 @@ begin
                   LSetupOption := High(TSetupOption);
                 end;
 
-                HighlightOption(LSetupOption, True);
+                UIHighlightOption(LSetupOption, True);
               end;
 
             kKeyDown:
               begin
-                HighlightOption(LSetupOption, False);
+                UIHighlightOption(LSetupOption, False);
 
                 if LSetupOption < High(TSetupOption) then
                 begin
@@ -891,14 +896,14 @@ begin
                   LSetupOption := Low(TSetupOption);
                 end;
 
-                HighlightOption(LSetupOption, True);
+                UIHighlightOption(LSetupOption, True);
               end;
 
             kKeyLeft:
-              EditOption(LSetupOption, aaPrevious);
+              UIEditOption(LSetupOption, aaPrevious);
 
             kKeyRight:
-              EditOption(LSetupOption, aaNext);
+              UIEditOption(LSetupOption, aaNext);
 
           end;
         end;
@@ -915,7 +920,7 @@ begin
                 IGSetupConfigChanged := False;
 
               mrYes:
-                ExitAndSave;
+                UIExitAndSave;
 
             end;
           end;
@@ -940,24 +945,23 @@ begin
 
   LFileName := FileReplaceExt(FExpand(ParamStr(0)), fmBINFiles);
 
-  if not FileExists(LFileName) then
-    Exit;
-
-  FillChar(GControllerConfig, SizeOf(GControllerConfig), $00);
-
+  if FileExists(LFileName) then
+  begin
+    FillChar(GControllerConfig, SizeOf(TControllerConfig), $00);
 {$I-}
-  Assign(LFile, LFileName);
-  FileMode := fmReadOnly;
-  Reset(LFile, frsBinaryFileRecordSize);
+    Assign(LFile, LFileName);
+    FileMode := fmReadOnly;
+    Reset(LFile, frsBinaryFileRecordSize);
 
-  BlockRead(LFile, LFileSignature, SizeOf(kFileSignature));
-  BlockRead(LFile, GControllerConfig, SizeOf(GControllerConfig));
-  BlockRead(LFile, GWSSAudioConfig, SizeOf(GWSSAudioConfig));
-  BlockRead(LFile, GSBAudioConfig, SizeOf(GSBAudioConfig));
-  BlockRead(LFile, GCodecMixerConfig, SizeOf(GCodecMixerConfig));
+    BlockRead(LFile, LFileSignature, SizeOf(kFileSignature));
+    BlockRead(LFile, GControllerConfig, SizeOf(TControllerConfig));
+    BlockRead(LFile, GWSSAudioConfig, SizeOf(TCodecAudioConfig));
+    BlockRead(LFile, GSBAudioConfig, SizeOf(TCodecAudioConfig));
+    BlockRead(LFile, GCodecMixerConfig, SizeOf(TCodecMixerConfig));
 
-  Close(LFile);
+    Close(LFile);
 {$I+}
+  end;
 
   SetupLoadConfig := (IOResult = 0) and (LFileSignature = kFileSignature);
 end;
@@ -971,21 +975,19 @@ begin
   SetupSaveConfig := False;
 
   LFileName := FileReplaceExt(FExpand(ParamStr(0)), fmBINFiles);
-
 {$I-}
   Assign(LFile, LFileName);
   FileMode := fmReadWrite;
   Rewrite(LFile, frsBinaryFileRecordSize);
 
   BlockWrite(LFile, kFileSignature, SizeOf(kFileSignature));
-  BlockWrite(LFile, GControllerConfig, SizeOf(GControllerConfig));
-  BlockWrite(LFile, GWSSAudioConfig, SizeOf(GWSSAudioConfig));
-  BlockWrite(LFile, GSBAudioConfig, SizeOf(GSBAudioConfig));
-  BlockWrite(LFile, GCodecMixerConfig, SizeOf(GCodecMixerConfig));
+  BlockWrite(LFile, GControllerConfig, SizeOf(TControllerConfig));
+  BlockWrite(LFile, GWSSAudioConfig, SizeOf(TCodecAudioConfig));
+  BlockWrite(LFile, GSBAudioConfig, SizeOf(TCodecAudioConfig));
+  BlockWrite(LFile, GCodecMixerConfig, SizeOf(TCodecMixerConfig));
 
   Close(LFile);
 {$I+}
-
   SetupSaveConfig := IOResult = 0;
 end;
 
