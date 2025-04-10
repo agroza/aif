@@ -37,20 +37,21 @@ The following lines are taken directly from the commandline help screen.
 
 ```
 Usage is:
-  aif.exe [-help] [-setup] [-pnpsetup] [-mixer] [-init | -wss | -sb]
-    [-quiet] [-status] [-lineout=on|off]
+  aif.exe [-?|-help] [-setup] [-pnpsetup] [-romsetup] [-mixer]
+    [-init|-wss|-sb] [-quiet] [-status] [-lineout=on|off]
 
 Where:
-  -help     shows this screen; all other parameters are ignored
+  -?|-help  shows this screen; all other parameters are ignored
   -setup    starts the setup program; some parameters might be ignored
   -pnpsetup starts the PnP setup program; some parameters are ignored
+  -romsetup starts the (EEP)ROM setup program; some parameters are ignored
   -mixer    starts the volume mixer program
   -init     initializes the audio interface to preset mode
   -wss      initializes the audio interface to Windows Sound System mode
   -sb       initializes the audio interface to Sound Blaster mode
   -quiet    reduces text verbosity
   -status   displays the current audio interface configuration
-  -lineout  enables or disabled line out; some parameters are ignored
+  -lineout  enables or disables line out relay; some parameters are ignored
 
 Examples:
   aif.exe -init
