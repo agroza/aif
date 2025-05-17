@@ -7,6 +7,8 @@
 { - License: GNU General Public License v3.0                                - }
 { --------------------------------------------------------------------------- }
 
+{$G+}
+
 unit Video;
 
 interface
@@ -191,30 +193,30 @@ asm
   push bp
   push ds
 
-  les di,[AGlyphData]
+  les di, [AGlyphData]
 
   push es
   push di
 
-  xor ah,ah
-  mov al,AIndex
+  xor ah, ah
+  mov al, AIndex
 
   push ax
 
-  mov ax,1130h
-  mov bh,06h
+  mov ax, 1130h
+  mov bh, 06h
   int 10h
 
   pop ax
 
-  mov bx,cx
+  mov bx, cx
   mul bx
 
   push es
   pop ds
 
-  mov si,bp
-  add si,ax
+  mov si, bp
+  add si, ax
 
   pop di
   pop es
@@ -231,15 +233,15 @@ procedure VideoSetGlyphData(const AIndex: Byte; const AGlyphData: TGlyphData); a
 asm
   push bp
 
-  mov ax,1100h
-  mov bh,kVGAChHeight
-  xor bl,bl
-  mov cx,01h
-  xor dh,dh
-  mov dl,AIndex
+  mov ax, 1100h
+  mov bh, kVGAChHeight
+  xor bl, bl
+  mov cx, 01h
+  xor dh, dh
+  mov dl, AIndex
 
-  les di,[AGlyphData]
-  mov bp,di
+  les di, [AGlyphData]
+  mov bp, di
   int 10h
 
   pop bp
@@ -247,22 +249,22 @@ end;
 
 procedure VideoGetPaletteColor(const AIndex: Byte; var APaletteColor: TPaletteColor); assembler;
 asm
-  mov dx,03C6h
-  mov al,0FFh
-  out dx,al
+  mov dx, 03C6h
+  mov al, 0FFh
+  out dx, al
 
-  mov dx,03C7h
-  mov al,AIndex
-  out dx,al
+  mov dx, 03C7h
+  mov al, AIndex
+  out dx, al
 
-  mov dx,03C9h
-  les di,[APaletteColor]
+  mov dx, 03C9h
+  les di, [APaletteColor]
 
-  mov cx,03h
+  mov cx, 03h
 
 @getColor:
-  in al,dx
-  mov es:[di],al
+  in al, dx
+  mov es:[di], al
   inc di
 
   loop @getColor
@@ -272,22 +274,22 @@ procedure VideoSetPaletteColor(const AIndex: Byte; const APaletteColor: TPalette
 asm
   push ds
 
-  mov dx,03C6h
-  mov al,0FFh
-  out dx,al
+  mov dx, 03C6h
+  mov al, 0FFh
+  out dx, al
 
-  mov dx,03C8h
-  mov al,AIndex
-  out dx,al
+  mov dx, 03C8h
+  mov al, AIndex
+  out dx, al
 
-  mov dx,03C9h
-  les si,[APaletteColor]
+  mov dx, 03C9h
+  les si, [APaletteColor]
 
-  mov cx,03h
+  mov cx, 03h
 
 @setColor:
-  mov al,es:[si]
-  out dx,al
+  mov al, es:[si]
+  out dx, al
   inc si
 
   loop @setColor
@@ -297,41 +299,41 @@ end;
 
 procedure VideoEnableHighColors; assembler;
 asm
-  mov ax,1003h
-  xor bx,bx
+  mov ax, 1003h
+  xor bx, bx
   int 10h
 end;
 
 procedure VideoDisableHighColors; assembler;
 asm
-  mov ax,1003h
-  mov bx,0001h
+  mov ax, 1003h
+  mov bx, 0001h
   int 10h
 end;
 
 procedure VideoEnableCursor; assembler;
 asm
-  mov ah,01h
-  mov cx,0607h
+  mov ah, 01h
+  mov cx, 0607h
   int 10h
 end;
 
 procedure VideoDisableCursor; assembler;
 asm
-  mov ah,01h
-  mov ch,20h
+  mov ah, 01h
+  mov ch, 20h
   int 10h
 end;
 
 procedure VideoClearScreen; assembler;
 asm
-  mov ax,kVGARAMAddress
-  mov es,ax
+  mov ax, kVGARAMAddress
+  mov es, ax
 
-  xor di,di
-  mov ah,caDefaultAttribute
-  mov al,kEmptySpace
-  mov cx,2000
+  xor di, di
+  mov ah, caDefaultAttribute
+  mov al, kEmptySpace
+  mov cx, 2000
 
   cld
 
@@ -416,100 +418,83 @@ end;
 
 function VideoAttribute(const AForeground, ABackground: Byte): Byte; assembler;
 asm
-  xor ah,ah
-  mov al,ABackground
-  mov cl,04h
-  shl al,cl
-  add al,AForeground
+  xor ah, ah
+  mov al, ABackground
+  mov cl, 04h
+  shl al, cl
+  add al, AForeground
 end;
 
 procedure VideoWriteAttrAt(const ALeft, ATop, AAttribute: Byte); assembler;
 asm
-  mov ax,kVGARAMAddress
-  mov es,ax
+  mov ax, kVGARAMAddress
+  mov es, ax
 
-  xor ah,ah
-  mov al,ATop
+  xor ah, ah
+  mov al, ATop
   dec al
 
-  xor bh,bh
-  mov bl,kVGAColumnCount
-  mul bx
+  xor bh, bh
+  mov bl, kVGAColumnCount
+  mul bl
 
-  shl ax,01h
+  mov bl, ALeft
+  dec bl
+  add ax, bx
+  shl ax, 01h
 
-  xor dh,dh
-  mov dl,ALeft
-  shl dx,01h
-  dec dx
+  mov di, ax
 
-  add ax,dx
-  mov di,ax
-
-  mov al,AAttribute
-
-  cld
-
-  stosb
+  mov al, AAttribute
+  mov es:[di + 1], al
 end;
 
 procedure VideoWriteCharAt(const ALeft, ATop: Byte; const ACharacter: Char); assembler;
 asm
-  mov ax,kVGARAMAddress
-  mov es,ax
+  mov ax, kVGARAMAddress
+  mov es, ax
 
-  xor ah,ah
-  mov al,ATop
+  xor ah, ah
+  mov al, ATop
   dec al
 
-  xor bh,bh
-  mov bl,kVGAColumnCount
-  mul bx
+  xor bh, bh
+  mov bl, kVGAColumnCount
+  mul bl
 
-  shl ax,01h
+  mov bl, ALeft
+  dec bl
+  add ax, bx
+  shl ax, 01h
 
-  xor dh,dh
-  mov dl,ALeft
-  shl dx,01h
-  dec dx
-  dec dx
+  mov di, ax
 
-  add ax,dx
-  mov di,ax
-
-  mov al,ACharacter
-
-  cld
-
-  stosb
+  mov al, ACharacter
+  mov es:[di], al
 end;
 
 procedure VideoWriteCharAttrAt(const ALeft, ATop: Byte; const ACharacter: Char; const AAttribute: Byte); assembler;
 asm
-  mov ax,kVGARAMAddress
-  mov es,ax
+  mov ax, kVGARAMAddress
+  mov es, ax
 
-  xor ah,ah
-  mov al,ATop
+  xor ah, ah
+  mov al, ATop
   dec al
 
-  xor bh,bh
-  mov bl,kVGAColumnCount
-  mul bx
+  xor bh, bh
+  mov bl, kVGAColumnCount
+  mul bl
 
-  shl ax,01h
+  mov bl, ALeft
+  dec bl
+  add ax, bx
+  shl ax, 01h
 
-  xor dh,dh
-  mov dl,ALeft
-  shl dx,01h
-  dec dx
-  dec dx
+  mov di, ax
 
-  add ax,dx
-  mov di,ax
-
-  mov ah,AAttribute
-  mov al,ACharacter
+  mov ah, AAttribute
+  mov al, ACharacter
 
   cld
 
@@ -519,97 +504,97 @@ end;
 procedure VideoWriteRegion(const ALeft, ATop, AWidth, AHeight: Byte; const ACharacter: Char;
   const AAttribute: Byte); assembler;
 asm
-  mov ax,kVGARAMAddress
-  mov es,ax
+  mov ax, kVGARAMAddress
+  mov es, ax
 
-  xor ch,ch
+  xor ch, ch
 
   cld
 
 @calculatePosition:
-  xor ah,ah
-  mov al,ATop
+  xor ah, ah
+  mov al, ATop
   dec al
-  add al,ch
+  add al, ch
 
-  xor bh,bh
-  mov bl,kVGAColumnCount
+  xor bh, bh
+  mov bl, kVGAColumnCount
   mul bx
 
-  shl ax,01h
+  shl ax, 01h
 
-  xor dh,dh
-  mov dl,ALeft
-  shl dx,01h
+  xor dh, dh
+  mov dl, ALeft
+  shl dx, 01h
   dec dx
   dec dx
 
-  add ax,dx
-  mov di,ax
+  add ax, dx
+  mov di, ax
 
-  mov ah,AAttribute
-  mov al,ACharacter
+  mov ah, AAttribute
+  mov al, ACharacter
 
   push cx
 
-  xor ch,ch
-  mov cl,AWidth
+  xor ch, ch
+  mov cl, AWidth
 
   rep stosw
 
   pop cx
 
   inc ch
-  cmp ch,AHeight
+  cmp ch, AHeight
   jnz @calculatePosition
 end;
 
 procedure VideoHighlightRegion(const ALeft, ATop, AWidth, AHeight: Byte; const AAttribute: Byte); assembler;
 asm
-  mov ax,kVGARAMAddress
-  mov es,ax
+  mov ax, kVGARAMAddress
+  mov es, ax
 
-  xor ch,ch
+  xor ch, ch
 
   cld
 
 @calculatePosition:
-  xor ah,ah
-  mov al,ATop
+  xor ah, ah
+  mov al, ATop
   dec al
-  add al,ch
+  add al, ch
 
-  xor bh,bh
-  mov bl,kVGAColumnCount
+  xor bh, bh
+  mov bl, kVGAColumnCount
   mul bx
 
-  shl ax,01h
+  shl ax, 01h
 
-  xor dh,dh
-  mov dl,ALeft
-  shl dx,01h
+  xor dh, dh
+  mov dl, ALeft
+  shl dx, 01h
   dec dx
   dec dx
 
-  add ax,dx
-  mov di,ax
+  add ax, dx
+  mov di, ax
 
-  mov ah,AAttribute
+  mov ah, AAttribute
 
-  mov cl,AWidth
+  mov cl, AWidth
 
 @nextPosition:
   dec cl
 
-  mov al,es:[di]
+  mov al, es:[di]
 
   stosw
 
-  or cl,cl
+  or cl, cl
   jnz @nextPosition
 
   inc ch
-  cmp ch,AHeight
+  cmp ch, AHeight
   jnz @calculatePosition
 end;
 
@@ -617,39 +602,39 @@ procedure VideoWriteStringAt(const ALeft, ATop: Byte; const AString: String; con
 asm
   push ds
 
-  xor ah,ah
-  mov al,ATop
+  xor ah, ah
+  mov al, ATop
   dec al
 
-  mov cl,05h
-  shl ax,cl
-  mov di,ax
-  mov cl,02h
-  shl ax,cl
-  add di,ax
+  mov cl, 05h
+  shl ax, cl
+  mov di, ax
+  mov cl, 02h
+  shl ax, cl
+  add di, ax
 
-  xor ah,ah
-  mov al,ALeft
+  xor ah, ah
+  mov al, ALeft
   dec al
-  shl al,01h
-  add di,ax
+  shl al, 01h
+  add di, ax
 
-  mov ax,kVGARAMAddress
-  mov es,ax
+  mov ax, kVGARAMAddress
+  mov es, ax
 
-  mov ah,ABackground
-  mov cl,04h
-  shl ah,cl
-  add ah,AForeground
+  mov ah, ABackground
+  mov cl, 04h
+  shl ah, cl
+  add ah, AForeground
 
-  lds si,[AString]
+  lds si, [AString]
 
   cld
 
   lodsb
 
-  xor ch,ch
-  mov cl,al
+  xor ch, ch
+  mov cl, al
   jcxz @exit
 
 @nextByte:
@@ -668,20 +653,20 @@ asm
   jmp @start
 
 @@moveCursor:
-  mov ah,02h
-  xor bh,bh
+  mov ah, 02h
+  xor bh, bh
   int 10h
 
   retn
 
 @start:
-  mov ah,03h
-  xor bh,bh
+  mov ah, 03h
+  xor bh, bh
   int 10h
 
-  xor dl,dl
+  xor dl, dl
 
-  cmp dh,kVGARowCount - 1
+  cmp dh, kVGARowCount - 1
   jz @scrollUp
   inc dh
 
@@ -692,16 +677,16 @@ asm
 @scrollUp:
   call @@moveCursor
 
-  mov ah,08h
+  mov ah, 08h
   int 10h
-  mov bh,ah
+  mov bh, ah
 
-  mov ah,06h
-  mov al,01h
-  xor cx,cx
-  mov dh,kVGARowCount
+  mov ah, 06h
+  mov al, 01h
+  xor cx, cx
+  mov dh, kVGARowCount
   dec dh
-  mov dl,kVGAColumnCount
+  mov dl, kVGAColumnCount
   dec dl
   int 10h
 
@@ -716,8 +701,8 @@ asm
 @@moveCursor:
   push ax
 
-  mov ah,02h
-  xor bh,bh
+  mov ah, 02h
+  xor bh, bh
   int 10h
 
   pop ax
@@ -729,20 +714,20 @@ asm
   push cx
   push dx
 
-  mov cx,dx
+  mov cx, dx
 
-  xor ah,ah
-  mov al,ch
-  xor bh,bh
-  mov bl,kVGAColumnCount
+  xor ah, ah
+  mov al, ch
+  xor bh, bh
+  mov bl, kVGAColumnCount
   mul bx
-  shl ax,01h
-  xor dh,dh
-  mov dl,cl
-  shl dx,01h
-  add ax,dx
+  shl ax, 01h
+  xor dh, dh
+  mov dl, cl
+  shl dx, 01h
+  add ax, dx
 
-  mov di,ax
+  mov di, ax
 
   pop dx
   pop cx
@@ -753,26 +738,26 @@ asm
 @start:
   push ds
 
-  mov ah,03h
-  xor bh,bh
+  mov ah, 03h
+  xor bh, bh
   int 10h
 
-  mov ax,kVGARAMAddress
-  mov es,ax
+  mov ax, kVGARAMAddress
+  mov es, ax
 
-  mov ah,IGBackground
-  mov cl,04h
-  shl ah,cl
-  add ah,IGForeground
+  mov ah, IGBackground
+  mov cl, 04h
+  shl ah, cl
+  add ah, IGForeground
 
-  lds si,[AString]
+  lds si, [AString]
 
   cld
 
   lodsb
 
-  xor ch,ch
-  mov cl,al
+  xor ch, ch
+  mov cl, al
   jmp @checkLastByte
 
 @getPosition:
@@ -786,9 +771,9 @@ asm
 @nextByte:
   lodsb
 
-  cmp al,13
+  cmp al, 13
   jz @carriageReturn
-  cmp al,10
+  cmp al, 10
   jz @lineFeed
 
   stosw
@@ -800,14 +785,14 @@ asm
   jmp @exit
 
 @carriageReturn:
-  xor dl,dl
+  xor dl, dl
 
   call @@moveCursor
 
   jmp @getPosition
 
 @lineFeed:
-  cmp dh,kVGARowCount - 1
+  cmp dh, kVGARowCount - 1
   jz @scrollUp
   inc dh
 
@@ -822,16 +807,16 @@ asm
   push cx
   push dx
 
-  mov ah,08h
+  mov ah, 08h
   int 10h
-  mov bh,ah
+  mov bh, ah
 
-  mov ah,06h
-  mov al,01h
-  xor cx,cx
-  mov dh,kVGARowCount
+  mov ah, 06h
+  mov al, 01h
+  xor cx, cx
+  mov dh, kVGARowCount
   dec dh
-  mov dl,kVGAColumnCount
+  mov dl, kVGAColumnCount
   dec dl
   int 10h
 
@@ -869,31 +854,31 @@ end;
 
 procedure VideoGotoXY(const APositionX, APositionY: Byte); assembler;
 asm
-  mov ah,02h
-  xor bh,bh
-  mov dl,APositionX
+  mov ah, 02h
+  xor bh, bh
+  mov dl, APositionX
   dec dl
-  mov dh,APositionY
+  mov dh, APositionY
   dec dh
   int 10h
 end;
 
 function VideoWhereX: Byte; assembler;
 asm
-  mov ah,03h
-  xor bh,bh
+  mov ah, 03h
+  xor bh, bh
   int 10h
   inc dl
-  mov al,dl
+  mov al, dl
 end;
 
 function VideoWhereY: Byte; assembler;
 asm
-  mov ah,03h
-  xor bh,bh
+  mov ah, 03h
+  xor bh, bh
   int 10h
   inc dh
-  mov al,dh
+  mov al, dh
 end;
 
 end.

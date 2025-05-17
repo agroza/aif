@@ -6,7 +6,11 @@
 { - License: GNU General Public License v3.0                                - }
 { --------------------------------------------------------------------------- }
 
+{$G+}
+
 unit Init;
+
+{$I cdefines.inc}
 
 interface
 
@@ -19,11 +23,15 @@ procedure InitLineOut;
 
 procedure InitAIFBasic;
 procedure InitAIFComplete;
-
+{$IFDEF CDPLAYER}
+procedure InitCDEXDriver;
+{$ENDIF}
 implementation
 
 uses
+  CDROM,
   Codec,
+  ConMsg,
   Consts,
   Control,
   Error,
@@ -207,7 +215,7 @@ begin
     imWSS:
       begin
         LAction := AISetWSSMode;
-        ScreenWriteStatusOf(sSettingWSSMode, LAction, not AParameters.Quiet);
+        ConMsgWriteStatus(sSettingWSSMode, LAction);
 
         if LAction and AParameters.Quiet then
         begin
@@ -218,7 +226,7 @@ begin
     imSB:
       begin
         LAction := AISetSBMode;
-        ScreenWriteStatusOf(sSettingSBMode, LAction, not AParameters.Quiet);
+        ConMsgWriteStatus(sSettingSBMode, LAction);
 
         if LAction and AParameters.Quiet then
         begin
@@ -247,13 +255,14 @@ procedure InitLineOut;
 begin
   GCodecMixerConfig.OutputsEnabled := GParameters.LineOutRelay;
 
-  InitAIFComplete;
-
-  VideoSetForeground(clNormal);
-  VideoSetBackground(clBlack);
-
-  VideoWriteNewln;
-  VideoWriteln(sLineOutRelay + LowerCase(sDisabledEnabled[GCodecMixerConfig.OutputsEnabled]) + cFullStop);
+  if not GParameters.Quiet then
+  begin
+    ScreenWriteStatus(
+      sSettingLineOutRelay,
+      sOFFON[GCodecMixerConfig.OutputsEnabled],
+      clOffOn[GCodecMixerConfig.OutputsEnabled]
+    );
+  end;
 end;
 
 procedure InitAIFBasic;
@@ -265,24 +274,39 @@ begin
   ErrorSetProgramError(peHardwareInit);
 
   LValue := AIControllerDetect(LString);
-  ScreenWriteStatusOf(sDetecting82c924 + LString, LValue, not GParameters.Quiet);
+  ConMsgWriteStatus(sDetecting82c924 + LString, LValue);
 
   LValue := AICodecDetect(LString);
-  ScreenWriteStatusOf(LString, LValue, not GParameters.Quiet);
+  ConMsgWriteStatus(LString, LValue);
 end;
 
 procedure InitAIFComplete;
 begin
-  ScreenWriteStatusOf(sInitializing82c924, AIControllerInitialize, not GParameters.Quiet);
-  ScreenWriteStatusOf(IfThenElse(GINewChip, sInitializingAD1845, sInitializingAD1848),
-    AICodecInitialize, not GParameters.Quiet);
+  ConMsgWriteStatus(sInitializing82c924, AIControllerInitialize);
+  ConMsgWriteStatus(
+    IfThenElse(
+      GINewChip,
+      sInitializingAD1845,
+      sInitializingAD1848
+    ),
+    AICodecInitialize
+  );
 
-  ScreenWriteStatusOf(sInitializingMPU, AIMPUInitialize, not GParameters.Quiet);
-  ScreenWriteStatusOf(sSettingMixerConfig, MixerSetConfig(GParameters.InitMode), not GParameters.Quiet);
+  ConMsgWriteStatus(sInitializingMPU, AIMPUInitialize);
+  ConMsgWriteStatus(sSettingMixerConfig, MixerConfigSet(GParameters.InitMode));
 
   AISetMode(GParameters);
 
-  ScreenWriteStatusOf(sAIFInitialization, True, not GParameters.Quiet);
+  ConMsgWriteStatus(sAIFInitialization, True);
 end;
+{$IFDEF CDPLAYER}
+procedure InitCDEXDriver;
+begin
+  CDROMInitData;
 
+  ErrorSetProgramError(peCDROMDriverInit);
+
+  ConMsgWriteStatus(sDetectingCDEXPresence, CDROMDetectCDEX and CDROMIsInit);
+end;
+{$ENDIF}
 end.

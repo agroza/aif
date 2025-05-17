@@ -6,6 +6,8 @@
 { - License: GNU General Public License v3.0                                - }
 { --------------------------------------------------------------------------- }
 
+{$G+}
+
 unit Routines;
 
 interface
@@ -16,7 +18,8 @@ uses
 procedure DisableInterrupts; inline ( $FA );
 procedure EnableInterrupts; inline ( $FB );
 
-procedure GetBIOSTime(var AHours, AMinutes, ASeconds: Byte);
+function Detect286CPU: Boolean;
+
 procedure Delay(const ADuration: Word);
 
 function GetKeyPressed: Boolean;
@@ -31,7 +34,8 @@ procedure SetBit(var AByte: Byte; const ABit: Byte; const AValue: Boolean);
 function LocateByte(const AValue: Byte; const AArray: array of Byte): Byte;
 function LocateWord(const AValue: Word; const AArray: array of Word): Word;
 
-function SecondElapsed(var ACurrentSecond: Byte): Boolean;
+{function MSElapsed(const AMilliseconds: Word; var ALastTicks: Longint): Boolean;}
+function MillisecondsElapsed(const AMilliseconds: Word; var ALastTicks: Longint): Boolean;
 
 function MinByte(const AValue1, AValue2: Byte): Byte;
 
@@ -60,43 +64,46 @@ uses
 
 { public declarations }
 
-procedure GetBIOSTime(var AHours, AMinutes, ASeconds: Byte); assembler;
+function Detect286CPU: Boolean; assembler;
 asm
-  clc
+  pushf
 
-  mov ah,02h
-  int 1Ah
+  pop bx
+  and bx, 0FFFh
+  push bx
 
-  les bx,[AHours]
-  mov byte ptr es:[bx],ch
-  les bx,[AMinutes]
-  mov byte ptr es:[bx],cl
-  les bx,[ASeconds]
-  mov byte ptr es:[bx],dh
+  popf
+  pushf
+
+  pop bx
+  and bx, 0F000h
+  cmp bx, 0F000h
+  mov al, 0
+  jz @exit
+  inc al
+
+@exit:
+
 end;
 
 procedure Delay(const ADuration: Word); assembler;
 asm
-  mov ax,1000
+  mov ax, 1000
   mul ADuration
-  mov cx,dx
-  mov dx,ax
-  mov ah,86h
+  mov cx, dx
+  mov dx, ax
+  mov ah, 86h
   int 15h
 end;
 
 function GetKeyPressed: Boolean; assembler;
 asm
-  mov ah,01h
+  mov ah, 01h
   int 16h
 
-  jnz @keyPressed
-
-  mov al,False
-  jmp @exit
-
-@keyPressed:
-  mov al,True
+  mov al, 0
+  jz @exit
+  inc al
 
 @exit:
 
@@ -104,17 +111,14 @@ end;
 
 function GetShiftDown: Boolean; assembler;
 asm
-  mov ah,02h
+  mov ah, 02h
   int 16h
 
-  and al,03h
-  jz @shiftDepressed
+  and al, 03h
 
-  mov al,True
-  jmp @exit
-
-@shiftDepressed:
-  xor al,al
+  mov al, 0
+  jz @exit
+  inc al
 
 @exit:
 
@@ -122,19 +126,19 @@ end;
 
 function GetScanCode: Word; assembler;
 asm
-  xor ah,ah
+  xor ah, ah
   int 16h
 end;
 
 function GetStandardKey(const AScanCode: Word): Char; assembler;
 asm
-  mov ax,AScanCode
+  mov ax, AScanCode
 end;
 
 function GetExtendedKey(const AScanCode: Word): Char; assembler;
 asm
-  mov ax,AScanCode
-  xchg ah,al
+  mov ax, AScanCode
+  xchg ah, al
 end;
 
 function GetBit(const AByte, ABit: Byte): Boolean;
@@ -185,23 +189,74 @@ begin
   end;
 end;
 
-function SecondElapsed(var ACurrentSecond: Byte): Boolean;
+{function MSElapsed(const AMilliseconds: Word; var ALastTicks: Longint): Boolean; assembler;
+asm
+  push bp
+  push si
+
+  mov dx, 0040h
+  mov si, 006Ch
+  les di, [si]
+
+  cli
+
+  mov ax, word ptr es:[di]
+  mov bx, word ptr es:[di + 2]
+
+  sti
+
+  push ax
+  push bx
+
+  mov ax, word ptr [AMilliseconds]
+  mov cx, 182
+  imul cx
+  add ax, 5000
+  mov cx, 10000
+  div cx
+
+  mov dx, ax
+
+  pop bx
+  pop ax
+
+  sub ax, word ptr [ALastTicks]
+  sbb bx, word ptr [ALastTicks + 2]
+  jge @@ticksElapsed
+
+  xor al, al
+  jmp @@exit
+
+@@ticksElapsed:
+  mov word ptr [ALastTicks], ax
+  mov word ptr [ALastTicks + 2], bx
+  mov al, 01h
+
+@@exit:
+  pop si
+  pop bp
+end;}
+
+function MillisecondsElapsed(const AMilliseconds: Word; var ALastTicks: Longint): Boolean;
 var
-  LHours: Byte;
-  LMinutes: Byte;
-  LSeconds: Byte;
+  LCurrentTicks: Longint;
+  LTargetTicks: Longint;
 
 begin
-  GetBIOSTime(LHours, LMinutes, LSeconds);
+  DisableInterrupts;
+  LCurrentTicks := MemL[$0040:$006C];
+  EnableInterrupts;
 
-  if LSeconds <> ACurrentSecond then
+  LTargetTicks := (Longint(AMilliseconds) * 182 + 5000) div 10000;
+
+  if LCurrentTicks - ALastTicks >= LTargetTicks then
   begin
-    ACurrentSecond := LSeconds;
+    ALastTicks := LCurrentTicks;
 
-    SecondElapsed := True;
+    MillisecondsElapsed := True;
   end else
   begin
-    SecondElapsed := False;
+    MillisecondsElapsed := False;
   end;
 end;
 
@@ -267,7 +322,7 @@ var
 begin
   LSeparatedString := AString;
 
-  if AString <> sEmpty then
+  if Length(AString) = 0 then
   begin
     LPosition := Length(LSeparatedString);
 
@@ -291,13 +346,13 @@ end;
 
 function LoCase(const AChar: Char): Char; assembler;
 asm
-  mov al,AChar
+  mov al, AChar
 
-  cmp al,'A'
+  cmp al, 'A'
   jb @exit
-  cmp al,'Z'
+  cmp al, 'Z'
   ja @exit
-  add al,20h
+  add al, 20h
 
 @exit:
 
@@ -307,8 +362,8 @@ function LowerCase(const AString: String): String; assembler;
 asm
   push ds
 
-  lds si,[AString]
-  les di,[@Result]
+  lds si, [AString]
+  les di, [@Result]
 
   cld
 
@@ -316,18 +371,18 @@ asm
 
   stosb
 
-  xor ah,ah
-  xchg ax,cx
+  xor ah, ah
+  xchg ax, cx
   jcxz @exit
 
 @lowerCase:
   lodsb
 
-  cmp al,'A'
+  cmp al, 'A'
   jb @nextByte
-  cmp al,'Z'
+  cmp al, 'Z'
   ja @nextByte
-  add al,20h
+  add al, 20h
 
 @nextByte:
   stosb
@@ -340,12 +395,12 @@ end;
 
 function ReplicateChar(const ACharacter: Char; const ATimes: Byte): String; assembler;
 asm
-  mov al,ACharacter
-  xor ch,ch
-  mov cl,ATimes
-  les di,[@Result]
+  mov al, ACharacter
+  xor ch, ch
+  mov cl, ATimes
+  les di, [@Result]
 
-  mov es:[di],cl
+  mov es:[di], cl
   inc di
 
   cld
@@ -357,9 +412,9 @@ function StrPas(const APChar: PChar): String; assembler;
 asm
   push ds
 
-  les di,[APChar]
-  xor al,al
-  mov cx,0FFFFh
+  les di, [APChar]
+  xor al, al
+  mov cx, 0FFFFh
 
   cld
 
@@ -368,9 +423,9 @@ asm
   not cx
   dec cx
 
-  lds si,[APChar]
-  les di,[@Result]
-  mov al,cl
+  lds si, [APChar]
+  les di, [@Result]
+  mov al, cl
 
   stosb
 
@@ -496,22 +551,36 @@ end;
 
 function FileReplaceExt(const AFileName, AExtension: String): String;
 var
-  LDotPosition: Byte;
+  LBackslashPosition: Byte;
+  LDotPosition: Shortint;
 
 begin
+  LBackslashPosition := 0;
+
   for LDotPosition := Length(AFileName) downto 1 do
   begin
-    if AFileName[LDotPosition] = cFullStop then
-    begin
-      Break;
+    case AFileName[LDotPosition] of
+      cBackslash:
+        LBackslashPosition := LDotPosition;
+
+      cFullStop:
+        Break;
+
     end;
   end;
 
-  if (LDotPosition = 1) and (AFileName[LDotPosition] <> cFullStop) then
+  if (LDotPosition = 1) or (LDotPosition < Length(AFileName) - 4) or
+    (LDotPosition < LBackslashPosition) then
   begin
-    FileReplaceExt := AFileName;
+    FileReplaceExt := AFileName + IfThenElse(Length(AExtension) = 0,
+      sEmpty, cFullStop) + AExtension;
   end else
   begin
+    if Length(AExtension) = 0 then
+    begin
+      Dec(LDotPosition);
+    end;
+
     FileReplaceExt := Copy(AFileName, 1, LDotPosition) + AExtension;
   end;
 end;

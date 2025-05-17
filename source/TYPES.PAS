@@ -6,6 +6,8 @@
 { - License: GNU General Public License v3.0                                - }
 { --------------------------------------------------------------------------- }
 
+{$G+}
+
 unit Types;
 
 {$I cdefines.inc}
@@ -17,6 +19,9 @@ type
   TProgramError = (
     peHardwareInit,
     peControllerReinit
+{$IFDEF CDPLAYER},
+    peCDROMDriverInit
+{$ENDIF}
   );
 
   TAIFDetectionMode = (
@@ -32,17 +37,20 @@ type
   );
 
   TParameters = packed record
-    Setup: Boolean;
+    ROMSetup: Boolean;
 {$IFDEF PNPSETUP}
     PnPSetup: Boolean;
 {$ENDIF}
-    ROMSetup: Boolean;
+    Setup: Boolean;
     Mixer: Boolean;
-    InitMode: TAIFInitMode;
-    Status: Boolean;
-    Quiet: Boolean;
     LineOut: Boolean;
     LineOutRelay: Boolean;
+    InitMode: TAIFInitMode;
+    Quiet: Boolean;
+{$IFDEF CDPLAYER}
+    CDPlayer: Boolean;
+{$ENDIF}
+    Status: Boolean;
   end;
 
   TBitStatus = (

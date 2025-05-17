@@ -1,18 +1,16 @@
 { --------------------------------------------------------------------------- }
-{ - Audio Interface - Conditional Defines (cdefines.inc)                    - }
+{ - Audio Interface - Version Scheme (version.inc)                          - }
 { - Copyright (C) 1998-2025 Alexandru Groza of Microprogramming TECHNIQUES  - }
 { - All rights reserved.                                                    - }
 { --------------------------------------------------------------------------- }
 { - License: GNU General Public License v3.0                                - }
 { --------------------------------------------------------------------------- }
 
-{
-  Disambiguation:
-    * Undefine the appropriate statement to remove a sub-program from the
-      main program compiled code.
-    * Doing so reduces the executable file size, streamlining the driver,
-      if required.
-}
+{$DEFINE BETA}
 
-{.$DEFINE PNPSETUP}
-{$DEFINE CDPLAYER}
+  sMajor    = '3';
+  sMinor    = '3';
+  sBuild    = '542';
+  sRevision = 'D';
+  sVersion  = 'VER.'#32 + sMajor + '.' + sMinor + '.' + sBuild +
+              {$IFDEF BETA}'-á' + {$ENDIF}#32'REV.'#32 + sRevision;

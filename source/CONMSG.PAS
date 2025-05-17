@@ -6,6 +6,8 @@
 { - License: GNU General Public License v3.0                                - }
 { --------------------------------------------------------------------------- }
 
+{$G+}
+
 unit ConMsg;
 
 interface
@@ -13,12 +15,14 @@ interface
 procedure ConMsgWriteProgramHeader;
 procedure ConMsgWriteHelp;
 procedure ConMsgWriteParameterMissing;
-procedure ConMsgWriteConfigChanged(const AMessage: String; const AInitMessage: Boolean);
+procedure ConMsgWriteStatus(const AMessage: String; const AStatus: Boolean);
+procedure ConMsgWriteConfigChanged(const AMessage: String; const AStatus: Boolean);
 
 implementation
 
 uses
   Consts,
+  Error,
   Params,
   Routines,
   Screen,
@@ -72,13 +76,29 @@ begin
   VideoWriteln(sTypeHelp);
 end;
 
-procedure ConMsgWriteConfigChanged(const AMessage: String; const AInitMessage: Boolean);
+procedure ConMsgWriteStatus(const AMessage: String; const AStatus: Boolean);
 begin
-  ScreenWriteStatus(AMessage, sCHANGED, clChanged, not GParameters.Quiet);
-
-  if AInitMessage then
+  if not GParameters.Quiet then
   begin
-    ScreenWriteStatus(sAIFInitialization, sPENDING, clPending, not GParameters.Quiet);
+    ScreenWriteStatus(AMessage, sFAILEDOK[AStatus], clErrorSuccess[AStatus]);
+  end;
+
+  if not AStatus then
+  begin
+    ErrorWriteHalt;
+  end;
+end;
+
+procedure ConMsgWriteConfigChanged(const AMessage: String; const AStatus: Boolean);
+begin
+  if not GParameters.Quiet and AStatus then
+  begin
+    ScreenWriteStatus(AMessage, sCHANGED, clChanged);
+
+    if (GParameters.InitMode = imInvalid) and not GParameters.LineOut then
+    begin
+      ScreenWriteStatus(sAIFInitialization, sPENDING, clPending);
+    end;
   end;
 end;
 

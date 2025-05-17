@@ -1,10 +1,12 @@
 { --------------------------------------------------------------------------- }
 { - Audio Interface - (EEP)ROM Setup Subprogram (romsetup.pas)              - }
-{ - Copyright (C) 1998-2022 Alexandru Groza of Microprogramming TECHNIQUES  - }
+{ - Copyright (C) 1998-2025 Alexandru Groza of Microprogramming TECHNIQUES  - }
 { - All rights reserved.                                                    - }
 { --------------------------------------------------------------------------- }
 { - License: GNU General Public License v3.0                                - }
 { --------------------------------------------------------------------------- }
+
+{$G+}
 
 unit ROMSetup;
 
@@ -31,20 +33,33 @@ type
   );
 
 const
+  kCmdProgramCommandsY         = 3;
+  kCmdEditFilenameY            = 4;
+  kCmdEraseEEPROMFY            = 6;
+  kCmdEraseEEPROMSY            = 7;
+  kCmdReadEEPROMY              = 8;
+  kCmdWriteEEPROMY             = 9;
+  kCmdExitY                    = 11;
+
+  kKVFilenameY                 = 3;
+  kKVOperationY                = 4;
+  kKVStatusY                   = 5;
+  kKVEEPROMY                   = 6;
+
   kUICommands: packed array[0..kROMSetupCmdCount] of TUICommand = (
-    ( Y: 4; Accelerator: sROMSetupCmdF4; Name: sROMSetupCmdEditFilename ),
-    ( Y: 6; Accelerator: sROMSetupCmdF5; Name: sROMSetupCmdEraseEEPROMF ),
-    ( Y: 7; Accelerator: sROMSetupCmdF6; Name: sROMSetupCmdEraseEEPROMS ),
-    ( Y: 8; Accelerator: sROMSetupCmdF7; Name: sROMSetupCmdReadEEPROM ),
-    ( Y: 9; Accelerator: sROMSetupCmdF8; Name: sROMSetupCmdWriteEEPROM ),
-    ( Y: 11; Accelerator: sROMSetupCmdESC; Name: sROMSetupCmdExit )
+    ( Y: kCmdEditFilenameY; Accelerator: sROMSetupCmdF4; Name: sROMSetupCmdEditFilename ),
+    ( Y: kCmdEraseEEPROMFY; Accelerator: sROMSetupCmdF5; Name: sROMSetupCmdEraseEEPROMF ),
+    ( Y: kCmdEraseEEPROMSY; Accelerator: sROMSetupCmdF6; Name: sROMSetupCmdEraseEEPROMS ),
+    ( Y: kCmdReadEEPROMY; Accelerator: sROMSetupCmdF7; Name: sROMSetupCmdReadEEPROM ),
+    ( Y: kCmdWriteEEPROMY; Accelerator: sROMSetupCmdF8; Name: sROMSetupCmdWriteEEPROM ),
+    ( Y: kCmdExitY; Accelerator: sROMSetupCmdESC; Name: sROMSetupCmdExit )
   );
 
   kUIKeyValues: packed array[0..kROMSetupKeyValueCount] of TUIKeyValue = (
-    ( Y: 3; Key: sROMSetupFilename; Value: cMinus ),
-    ( Y: 4; Key: sROMSetupOperation; Value: cMinus ),
-    ( Y: 5; Key: sROMSetupStatus; Value: cMinus ),
-    ( Y: 6; Key: sROMSetupEEPROM; Value: sROMSetup93C56A )
+    ( Y: kKVFilenameY; Key: sROMSetupFilename; Value: cMinus ),
+    ( Y: kKVOperationY; Key: sROMSetupOperation; Value: cMinus ),
+    ( Y: kKVStatusY; Key: sROMSetupStatus; Value: cMinus ),
+    ( Y: kKVEEPROMY; Key: sROMSetupEEPROM; Value: sROMSetup93C56A )
   );
 
   sOperations: packed array[TOperation] of String[Length(sROMSetupEraseFast)] = (
@@ -62,87 +77,21 @@ var
 
 { private declarations }
 
-procedure UIUpdateProgressBar(const ABytes: Word; const AByte: Byte); far; forward;
-procedure UIResetProgressBar; forward;
-procedure UIResetOperationStatus(const AOperation: TOperation); forward;
-procedure UIDrawResult(const AValue: Boolean); forward;
-procedure UICreateComponents; forward;
-procedure UIDrawComponents; forward;
-procedure UIDrawCommands; forward;
+procedure UIComponentsCreate; forward;
+procedure UIComponentsDraw; forward;
+procedure UICommandsDraw; forward;
+
+procedure UIProgressBarUpdate(const ABytes: Word; const AByte: Byte); far; forward;
+procedure UIProgressBarReset; forward;
+
+procedure UIOperationStatusReset(const AOperation: TOperation); forward;
+
+procedure UIResultDraw(const AValue: Boolean); forward;
+
 procedure UIDraw; forward;
 procedure UILoop; forward;
 
-procedure UIUpdateProgressBar(const ABytes: Word; const AByte: Byte);
-begin
-  ScreenProgressBarSetProgress(IGProgressBar, ABytes);
-
-  VideoWriteCharAttrAt(
-    kROMSetupRawDataX + 2 + (ABytes mod kROMSetupRawDataLength),
-    kROMSetupRawDataY + 2 + (ABytes div kROMSetupRawDataLength) mod kROMSetupRawDataLength,
-    Chr(AByte),
-    VideoAttribute(
-      clROMSetupFore,
-      clROMSetupBack
-    )
-  );
-end;
-
-procedure UIResetProgressBar;
-begin
-  Routines.Delay(kROMSetupOperationDelay);
-
-  ScreenProgressBarReset(IGProgressBar, kROMSetupProgressBarMin);
-end;
-
-procedure UIResetOperationStatus(const AOperation: TOperation);
-begin
-  VideoWriteRegion(
-    kROMSetupOperationX,
-    kROMSetupOperationY,
-    kROMSetupOpStatusWidth,
-    kROMSetupOpStatusHeight,
-    cSpace,
-    VideoAttribute(
-      clROMSetupFore,
-      clROMSetupBack
-    )
-  );
-
-  VideoWriteStringAt(
-    kROMSetupOperationX,
-    kROMSetupOperationY,
-    sOperations[AOperation],
-    clROMSetupFore,
-    clROMSetupBack
-  );
-end;
-
-procedure UIDrawResult(const AValue: Boolean);
-begin
-  VideoWriteRegion(
-    kROMSetupStatusX,
-    kROMSetupStatusY,
-    Length(sFAILEDOK[False]),
-    1,
-    cSpace,
-    VideoAttribute(
-      clROMSetupFore,
-      clROMSetupBack
-    )
-  );
-
-  VideoWriteStringAt(
-    kROMSetupStatusX,
-    kROMSetupStatusY,
-    sFAILEDOK[AValue],
-    clFAILEDOK[AValue],
-    clROMSetupBack
-  );
-
-  UIResetProgressBar;
-end;
-
-procedure UICreateComponents;
+procedure UIComponentsCreate;
 begin
   IGEdit.PositionX := kROMSetupEditX;
   IGEdit.PositionY := kROMSetupEditY;
@@ -187,7 +136,7 @@ begin
   IGMessageBox.Colors.BtnHighAccelerator := clMessageBoxBtnHighAccel;
 end;
 
-procedure UIDrawComponents;
+procedure UIComponentsDraw;
 var
   LUIKeyValue: Byte;
   LKeyValueData: TKeyValueData;
@@ -226,7 +175,7 @@ begin
   ScreenFramedAreaDraw(IGRawData);
 end;
 
-procedure UIDrawCommands;
+procedure UICommandsDraw;
 var
   LUICommand: Byte;
 
@@ -245,7 +194,7 @@ begin
 
   VideoWriteStringAt(
     kROMSetupCmdX,
-    3,
+    kCmdProgramCommandsY,
     sROMSetupCmdProgramCmds,
     clROMSetupCmdHeader,
     clROMSetupCmdBack
@@ -265,21 +214,91 @@ begin
   end;
 end;
 
+procedure UIProgressBarUpdate(const ABytes: Word; const AByte: Byte);
+begin
+  ScreenProgressBarSetProgress(IGProgressBar, ABytes);
+
+  VideoWriteCharAttrAt(
+    kROMSetupRawDataX + 2 + (ABytes mod kROMSetupRawDataLength),
+    kROMSetupRawDataY + 2 + (ABytes div kROMSetupRawDataLength) mod kROMSetupRawDataLength,
+    Chr(AByte),
+    VideoAttribute(
+      clROMSetupFore,
+      clROMSetupBack
+    )
+  );
+end;
+
+procedure UIProgressBarReset;
+begin
+  Routines.Delay(kROMSetupOperationDelay);
+
+  ScreenProgressBarReset(IGProgressBar, kROMSetupProgressBarMin);
+end;
+
+procedure UIOperationStatusReset(const AOperation: TOperation);
+begin
+  VideoWriteRegion(
+    kROMSetupOperationX,
+    kROMSetupOperationY,
+    kROMSetupOpStatusWidth,
+    kROMSetupOpStatusHeight,
+    cSpace,
+    VideoAttribute(
+      clROMSetupFore,
+      clROMSetupBack
+    )
+  );
+
+  VideoWriteStringAt(
+    kROMSetupOperationX,
+    kROMSetupOperationY,
+    sOperations[AOperation],
+    clROMSetupFore,
+    clROMSetupBack
+  );
+end;
+
+procedure UIResultDraw(const AValue: Boolean);
+begin
+  VideoWriteRegion(
+    kROMSetupStatusX,
+    kROMSetupStatusY,
+    Length(sFAILEDOK[False]),
+    1,
+    cSpace,
+    VideoAttribute(
+      clROMSetupFore,
+      clROMSetupBack
+    )
+  );
+
+  VideoWriteStringAt(
+    kROMSetupStatusX,
+    kROMSetupStatusY,
+    sFAILEDOK[AValue],
+    clErrorSuccess[AValue],
+    clROMSetupBack
+  );
+
+  UIProgressBarReset;
+end;
+
 procedure UIDraw;
 begin
   ScreenTitleBarDraw(clInterfaceFore, clInterfaceBack, clInterfaceFore, sROMSetupTitle);
 
-  UICreateComponents;
+  UIComponentsCreate;
+  UIComponentsDraw;
 
-  UIDrawComponents;
-  UIDrawCommands;
+  UICommandsDraw;
 end;
 
 procedure UILoop;
 var
   LScanCode: Word;
   LKey: Char;
-
+      i: integer;
 begin
   while True do
   begin
@@ -297,19 +316,19 @@ begin
 
             kKeyF5:
               begin
-                UIResetOperationStatus(opEraseFast);
-                UIDrawResult(ControllerEraseEEPROM(cemFast, UIUpdateProgressBar));
+                UIOperationStatusReset(opEraseFast);
+                UIResultDraw(ControllerEraseEEPROM(cemFast, UIProgressBarUpdate));
               end;
 
             kKeyF6:
               begin
-                UIResetOperationStatus(opEraseSlow);
-                UIDrawResult(ControllerEraseEEPROM(cemSlow, UIUpdateProgressBar));
+                UIOperationStatusReset(opEraseSlow);
+                UIResultDraw(ControllerEraseEEPROM(cemSlow, UIProgressBarUpdate));
               end;
 
             kKeyF7:
               begin
-                UIResetOperationStatus(opRead);
+                UIOperationStatusReset(opRead);
 
                 if FileExists(IGEdit.Text) then
                 begin
@@ -323,22 +342,22 @@ begin
 
                   if ScreenMessageBoxDraw(IGMessageBox) <> mrYes then
                   begin
-                    UIDrawResult(False);
+                    UIResultDraw(False);
 
                     Continue;
                   end;
                 end;
 
-                UIDrawResult(ControllerReadEEPROM(IGEdit.Text, UIUpdateProgressBar));
+                UIResultDraw(ControllerReadEEPROM(IGEdit.Text, UIProgressBarUpdate));
               end;
 
             kKeyF8:
               begin
-                UIResetOperationStatus(opWrite);
+                UIOperationStatusReset(opWrite);
 
                 if FileExists(IGEdit.Text) then
                 begin
-                  UIDrawResult(ControllerWriteEEPROM(IGEdit.Text, UIUpdateProgressBar));
+                  UIResultDraw(ControllerWriteEEPROM(IGEdit.Text, UIProgressBarUpdate));
                 end else
                 begin
                   ScreenMessageBoxPrepare(
@@ -351,7 +370,7 @@ begin
 
                   ScreenMessageBoxDraw(IGMessageBox);
 
-                  UIDrawResult(False);
+                  UIResultDraw(False);
                 end;
               end;
 

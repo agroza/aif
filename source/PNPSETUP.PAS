@@ -6,6 +6,8 @@
 { - License: GNU General Public License v3.0                                - }
 { --------------------------------------------------------------------------- }
 
+{$G+}
+
 unit PnPSetup;
 
 interface
@@ -22,18 +24,23 @@ uses
   Video;
 
 const
+  kCmdProgramCommandsY         = 3;
+  kCmdExitY                    = 4;
+
   kUICommands: packed array[0..kPnPSetupCmdCount] of TUICommand = (
-    ( Y: 4; Accelerator: sPnPSetupCmdESC; Name: sPnPSetupCmdExit )
+    ( Y: kCmdExitY; Accelerator: sPnPSetupCmdESC; Name: sPnPSetupCmdExit )
   );
 
 { private declarations }
 
-procedure UIDrawComponents; forward;
-procedure UIDrawCommands; forward;
+procedure UIComponentsDraw; forward;
+
+procedure UICommandsDraw; forward;
+
 procedure UIDraw; forward;
 procedure UILoop; forward;
 
-procedure UIDrawComponents;
+procedure UIComponentsDraw;
 begin
   VideoWriteRegion(
     kPnPSetupComponentsLeft,
@@ -57,7 +64,7 @@ begin
   );
 end;
 
-procedure UIDrawCommands;
+procedure UICommandsDraw;
 var
   LUICommand: Byte;
 
@@ -76,7 +83,7 @@ begin
 
   VideoWriteStringAt(
     kPnPSetupCmdX,
-    3,
+    kCmdProgramCommandsY,
     sPnPSetupCmdProgramCmds,
     clPnPSetupCmdHeader,
     clPnPSetupCmdBack
@@ -100,8 +107,9 @@ procedure UIDraw;
 begin
   ScreenTitleBarDraw(clInterfaceFore, clInterfaceBack, clInterfaceFore, sPnPSetupTitle);
 
-  UIDrawComponents;
-  UIDrawCommands;
+  UIComponentsDraw;
+
+  UICommandsDraw;
 end;
 
 procedure UILoop;

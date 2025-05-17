@@ -1,18 +1,23 @@
 { --------------------------------------------------------------------------- }
 { - Audio Interface - Error Handling (error.pas)                            - }
-{ - Copyright (C) 1998-2021 Alexandru Groza of Microprogramming TECHNIQUES  - }
+{ - Copyright (C) 1998-2025 Alexandru Groza of Microprogramming TECHNIQUES  - }
 { - All rights reserved.                                                    - }
 { --------------------------------------------------------------------------- }
 { - License: GNU General Public License v3.0                                - }
 { --------------------------------------------------------------------------- }
 
+{$G+}
+
 unit Error;
 
 interface
 
+{$I cdefines.inc}
+
 uses
   Types;
 
+function Error16bitCPURequired: Boolean;
 function ErrorNotEnoughMemory: Boolean;
 
 procedure ErrorSetHaltOnErrors(const AValue: Boolean);
@@ -31,6 +36,9 @@ const
   sProgramErrors: packed array[TProgramError] of PChar = (
     sHardwareInitError,
     sControllerReinitError
+{$IFDEF CDPLAYER},
+    sCDROMDriverInitError
+{$ENDIF}
   );
 
 var
@@ -38,6 +46,19 @@ var
   IGProgramError: TProgramError;
 
 { public declarations }
+
+function Error16bitCPURequired: Boolean;
+begin
+  if not Detect286CPU then
+  begin
+    VideoWriteln(s16bitCPURequired);
+
+    Error16bitCPURequired := True;
+  end else
+  begin
+    Error16bitCPURequired := False;
+  end;
+end;
 
 function ErrorNotEnoughMemory: Boolean;
 begin

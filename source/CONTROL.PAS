@@ -1,11 +1,13 @@
 { --------------------------------------------------------------------------- }
 { - Audio Interface - Sound Controller Interface (control.pas)              - }
-{ - Copyright (C) 1998-2022 Alexandru Groza of Microprogramming TECHNIQUES  - }
+{ - Copyright (C) 1998-2025 Alexandru Groza of Microprogramming TECHNIQUES  - }
 { - Portions Copyright (C) 2018 Jan Knipperts                               - }
 { - All rights reserved.                                                    - }
 { --------------------------------------------------------------------------- }
 { - License: GNU General Public License v3.0                                - }
 { --------------------------------------------------------------------------- }
+
+{$G+}
 
 unit Control;
 
@@ -1244,90 +1246,105 @@ end;
 
 function ControllerReadEEPROM(const AFileName: String; const AUpdateProgress: TUpdateProgress): Boolean;
 var
-  I: Word;
-  LByte: Byte;
+  LIOSucceeded: Boolean;
   LFile: File of Byte;
+  LIndex: Word;
+  LByte: Byte;
 
 begin
-  ControllerReadEEPROM := False;
-
   SetRegisterBit(kREGISTER_MC3, kBitWRSROM, True);
 
+  FileMode := fmReadWrite;
 {$I-}
   Assign(LFile, AFileName);
-  FileMode := fmReadWrite;
   Rewrite(LFile);
 {$I+}
-  for I := 0 to Pred(kEEPROMSize) do
-  begin
-    LByte := EEPROMRead(I);
-{$I-}
-    Write(LFile, LByte);
-{$I+}
-    if IOResult <> 0 then
-    begin
-      Break;
-    end;
+  LIOSucceeded := IOResult = 0;
 
-    AUpdateProgress(I, LByte);
-  end;
+  if LIOSucceeded then
+  begin
+    for LIndex := 0 to Pred(kEEPROMSize) do
+    begin
+      LByte := EEPROMRead(LIndex);
 {$I-}
-  Close(LFile);
+      Write(LFile, LByte);
 {$I+}
+      LIOSucceeded := IOResult = 0;
+
+      if not LIOSucceeded then
+      begin
+        Break;
+      end;
+
+      AUpdateProgress(LIndex, LByte);
+    end;
+{$I-}
+    Close(LFile);
+{$I+}
+    LIOSucceeded := IOResult = 0;
+  end;
 
   SetRegisterBit(kREGISTER_MC3, kBitWRSROM, False);
 
-  ControllerReadEEPROM := IOResult = 0;
+  ControllerReadEEPROM := LIOSucceeded;
 end;
 
 function ControllerWriteEEPROM(const AFileName: String; const AUpdateProgress: TUpdateProgress): Boolean;
 var
-  I: Word;
-  LByte: Byte;
+  LIOSucceeded: Boolean;
   LFile: File of Byte;
-  LSucceeded: Boolean;
+  LIndex: Word;
+  LByte: Byte;
+  LEEPROMWriteSucceeded: Boolean;
 
 begin
-  ControllerWriteEEPROM := False;
-
-  LSucceeded := False;
+  LEEPROMWriteSucceeded := False;
 
   SetRegisterBit(kREGISTER_MC3, kBitWRSROM, True);
 
   EEPROMWriteEnable;
 
+  FileMode := fmReadOnly;
 {$I-}
   Assign(LFile, AFileName);
-  FileMode := fmReadOnly;
   Reset(LFile);
 {$I+}
-  for I := 0 to Pred(kEEPROMSize) do
+  LIOSucceeded := IOResult = 0;
+
+  if LIOSucceeded then
   begin
+    for LIndex := 0 to Pred(kEEPROMSize) do
+    begin
 {$I-}
-    Read(LFile, LByte);
+      Read(LFile, LByte);
 {$I+}
-    if IOResult <> 0 then
-    begin
-      Break;
-    end;
+      LIOSucceeded := IOResult = 0;
 
-    LSucceeded := EEPROMWrite(I, LByte);
-    if not LSucceeded then
-    begin
-      Break;
-    end;
+      if not LIOSucceeded then
+      begin
+        Break;
+      end;
 
-    AUpdateProgress(I, LByte);
+      LEEPROMWriteSucceeded := EEPROMWrite(LIndex, LByte);
+
+      if not LEEPROMWriteSucceeded then
+      begin
+        Break;
+      end;
+
+      AUpdateProgress(LIndex, LByte);
+    end;
+{$I-}
+    Close(LFile);
+{$I+}
+    LIOSucceeded := IOResult = 0;
   end;
-{$I-}
-  Close(LFile);
-{$I+}
 
   EEPROMWriteDisable;
 
   SetRegisterBit(kREGISTER_MC3, kBitWRSROM, False);
 
-  ControllerWriteEEPROM := (IOResult = 0) and LSucceeded;
+  ControllerWriteEEPROM := LIOSucceeded and LEEPROMWriteSucceeded;
 end;
 
 end.

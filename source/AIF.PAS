@@ -1,11 +1,12 @@
 { --------------------------------------------------------------------------- }
 { - Audio Interface - Program (aif.pas)                                     - }
-{ - Copyright (C) 1998-2022 Alexandru Groza of Microprogramming TECHNIQUES  - }
+{ - Copyright (C) 1998-2025 Alexandru Groza of Microprogramming TECHNIQUES  - }
 { - All rights reserved.                                                    - }
 { --------------------------------------------------------------------------- }
 { - License: GNU General Public License v3.0                                - }
 { --------------------------------------------------------------------------- }
 
+{$G+}
 {$M 16384, 65535, 655360}
 
 program aif;
@@ -13,13 +14,13 @@ program aif;
 {$I cdefines.inc}
 
 uses
+  CDPlayer,
   ConMsg,
   Consts,
   Error,
   Init,
   Mixer,
   Params,
-  Screen,
   Setup,
   PnPSetup,
   ROMSetup,
@@ -32,7 +33,7 @@ var
 begin
   ConMsgWriteProgramHeader;
 
-  if ErrorNotEnoughMemory then
+  if Error16bitCPURequired or ErrorNotEnoughMemory then
   begin
     Exit;
   end;
@@ -44,30 +45,12 @@ begin
   begin
     if ProcessParameters then
     begin
-      ErrorSetHaltOnErrors(False);
-
-      GConfigLoaded := SetupLoadConfig;
-      ScreenWriteStatusOf(sLoadingAIFConfig, GConfigLoaded, not GParameters.Quiet);
-
-      if not GConfigLoaded then
+      if GParameters.ROMSetup then
       begin
-        SetupDefaultConfig;
-        MixerDefaultConfig;
+        ROMSetupStart;
 
-        ScreenWriteStatusOf(sLoadingAIFConfigDefault, True, not GParameters.Quiet);
+        Exit;
       end;
-
-      if GParameters.Setup or not GConfigLoaded then
-      begin
-        if SetupStart then
-        begin
-          ConMsgWriteConfigChanged(sAIFConfig, GParameters.InitMode = imInvalid);
-        end;
-      end;
-
-      ErrorSetHaltOnErrors(True);
-
-      InitAIFBasic;
 {$IFDEF PNPSETUP}
       if GParameters.PnPSetup then
       begin
@@ -76,38 +59,69 @@ begin
         Exit;
       end;
 {$ENDIF}
-      if GParameters.ROMSetup then
-      begin
-        ROMSetupStart;
+      ErrorSetHaltOnErrors(False);
 
-        Exit;
+      GConfigLoaded := SetupConfigLoad;
+      ConMsgWriteStatus(sLoadingAIFConfig, GConfigLoaded);
+
+      if not GConfigLoaded then
+      begin
+        SetupConfigDefault;
+        MixerConfigDefault;
+
+        ConMsgWriteStatus(sLoadingAIFConfigDefault, True);
       end;
 
-      if (GParameters.InitMode = imSetup) or GParameters.LineOut then
+      if GParameters.Setup or not GConfigLoaded then
       begin
-        GParameters.InitMode := SetupGetInitMode;
-      end;
-
-      if GParameters.LineOut then
-      begin
-        InitLineOut;
-
-        Exit;
+        ConMsgWriteConfigChanged(sAIFConfig, SetupStart);
       end;
 
       if GParameters.Mixer then
       begin
-        if MixerStart then
-        begin
-          ConMsgWriteConfigChanged(sMixerConfig, GParameters.InitMode = imInvalid);
-        end;
+        ConMsgWriteConfigChanged(sMixerConfig, MixerStart);
+      end;
+
+      ErrorSetHaltOnErrors(True);
+
+      InitAIFBasic;
+
+      if GParameters.LineOut then
+      begin
+        InitLineOut;
+      end;
+
+      if (GParameters.InitMode = imSetup) or
+        ((GParameters.InitMode = imInvalid) and GParameters.LineOut) then
+      begin
+        GParameters.InitMode := SetupGetInitMode;
       end;
 
       if GParameters.InitMode <> imInvalid then
       begin
         InitAIFComplete;
       end;
+{$IFDEF CDPLAYER}
+      if GParameters.CDPlayer then
+      begin
+        InitCDEXDriver;
 
+        GConfigLoaded := CDPlayerConfigLoad;
+        ConMsgWriteStatus(sLoadingCDPConfig, GConfigLoaded);
+
+        if not GConfigLoaded then
+        begin
+          CDPlayerConfigDefault;
+
+          ConMsgWriteStatus(sLoadingCDPConfigDefault, True);
+        end;
+
+        if CDPlayerStart then
+        begin
+          CDPlayerConfigSave;
+        end;
+      end;
+{$ENDIF}
       if GParameters.Status then
       begin
         StatusWrite;

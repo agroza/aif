@@ -7,6 +7,8 @@
 { - License: GNU General Public License v3.0                                - }
 { --------------------------------------------------------------------------- }
 
+{$G+}
+
 unit Screen;
 
 interface
@@ -135,6 +137,7 @@ type
   end;
 
   TMessageBoxResult = (
+    mrUndefined,
     mrCancel,
     mrClose,
     mrYes,
@@ -216,8 +219,7 @@ procedure ScreenStoreColors;
 procedure ScreenRestoreColors;
 procedure ScreenSetVVColors;
 
-procedure ScreenWriteStatus(const AMessage, AStatus: String; AColor: Byte; const ACondition: Boolean);
-procedure ScreenWriteStatusOf(const AMessage: String; const AStatus, ACondition: Boolean);
+procedure ScreenWriteStatus(const AMessage, AStatus: String; AColor: Byte);
 
 procedure ScreenTitleBarDraw(const AForeground, ABackground, ATextColor: Byte; const ACaption: String);
 
@@ -253,7 +255,6 @@ implementation
 
 uses
   Consts,
-  Error,
   Routines,
   Video;
 
@@ -298,33 +299,33 @@ const
   kVVYellow: TPaletteColor = ( RIntensity: 50; GIntensity: 50; BIntensity: 0 );
 
   { UI objects constants }
-  kTitleBarHeight           = 1;
-  kKeyValueItemHeight       = 1;
-  kEditHeight               = 1;
-  kFrameHeight              = 1;
+  kTitleBarHeight              = 1;
+  kKeyValueItemHeight          = 1;
+  kEditHeight                  = 1;
+  kFrameHeight                 = 1;
 
   kFrameGlyphs: packed array[TFrameType] of array[TFrameGlyphs] of Char = (
     ( 'Ú', '³', 'À', 'Ä', '¿', '³', 'Ù', 'Ä' ),
     ( 'Û', 'Ý', 'È', 'Û', 'Û', 'Þ', 'É', 'Í' )
   );
 
-  cProgressBarEmpty         = '°';
-  cProgressBarFill          = 'Û';
+  cProgressBarEmpty            = '°';
+  cProgressBarFill             = 'Û';
 
   cProgressBarGlyph: packed array[TProgressBarDirection] of Char = (
     cProgressBarFill,
     cProgressBarEmpty
   );
 
-  kProgressBarHeight        = 3;
-  kProgressBarInternHeight  = 1;
-  kButtonHeight             = 1;
+  kProgressBarHeight           = 3;
+  kProgressBarInternHeight     = 1;
+  kButtonHeight                = 1;
 
-  cButtonLeftDemarcation    = '';
-  cButtonRightDemarcation   = '';
+  cButtonLeftDemarcation       = '';
+  cButtonRightDemarcation      = '';
 
-  kMessageBoxTitlePadding   = 1;
-  kMessageBoxButtonPadding  = 2;
+  kMessageBoxTitlePadding      = 1;
+  kMessageBoxButtonPadding     = 2;
 
   sMessageBoxButtons: packed array[TMessageBoxButton] of PChar = (
     sMessageBoxCancel,
@@ -446,63 +447,50 @@ begin
   VideoSetPaletteColor(clVGAPaletteYellow, kVVYellow);
 end;
 
-procedure ScreenWriteStatus(const AMessage, AStatus: String; AColor: Byte; const ACondition: Boolean);
+procedure ScreenWriteStatus(const AMessage, AStatus: String; AColor: Byte);
 var
   LPositionX: Byte;
   LPositionY: Byte;
 
 begin
-  if ACondition then
-  begin
-    LPositionX := VideoWhereX;
-    LPositionY := VideoWhereY;
+  LPositionX := VideoWhereX;
+  LPositionY := VideoWhereY;
 
-    VideoWriteStringAt(
-      LPositionX,
-      LPositionY,
-      AMessage,
-      clNormal,
-      clBlack
-    );
+  VideoWriteStringAt(
+    LPositionX,
+    LPositionY,
+    AMessage,
+    clNormal,
+    clBlack
+  );
 
-    LPositionX := kOKFailedXPosition;
+  LPositionX := kOKFailedXPosition;
 
-    VideoWriteCharAt(
-      LPositionX,
-      LPositionY,
-      cOpenSquareBracket
-    );
+  VideoWriteCharAt(
+    LPositionX,
+    LPositionY,
+    cOpenSquareBracket
+  );
 
-    Inc(LPositionX, 2);
+  Inc(LPositionX, 2);
 
-    VideoWriteStringAt(
-      LPositionX,
-      LPositionY,
-      AStatus,
-      AColor,
-      clBlack
-    );
+  VideoWriteStringAt(
+    LPositionX,
+    LPositionY,
+    AStatus,
+    AColor,
+    clBlack
+  );
 
-    Inc(LPositionX, Succ(Length(AStatus)));
+  Inc(LPositionX, Succ(Length(AStatus)));
 
-    VideoWriteCharAt(
-      LPositionX,
-      LPositionY,
-      cClosedSquareBracket
-    );
+  VideoWriteCharAt(
+    LPositionX,
+    LPositionY,
+    cClosedSquareBracket
+  );
 
-    VideoWriteNewln;
-  end;
-end;
-
-procedure ScreenWriteStatusOf(const AMessage: String; const AStatus, ACondition: Boolean);
-begin
-  ScreenWriteStatus(AMessage, sFAILEDOK[AStatus], clFAILEDOK[AStatus], ACondition);
-
-  if not AStatus then
-  begin
-    ErrorWriteHalt;
-  end;
+  VideoWriteNewln;
 end;
 
 procedure ScreenTitleBarDraw(const AForeground, ABackground, ATextColor: Byte; const ACaption: String);
@@ -688,7 +676,7 @@ begin
     case LKey of
       kKeyBackspace:
         begin
-          if LInput <> sEmpty then
+          if Length(LInput) > 0 then
           begin
             Delete(LInput, Length(LInput), 1);
 
@@ -886,23 +874,43 @@ procedure ScreenProgressBarUpdate(const AProgressBarData: TProgressBarData;
 var
   LProgress: Real;
   LProgressWidth: Word;
+  LVideoAttribute: Byte;
 
   procedure InternalUpdate;
+  var
+    LProgressBarGlyph: Char;
+
+    procedure FillUnit(const AOffset: Byte);
+    begin
+      VideoWriteCharAttrAt(
+        Succ(AProgressBarData.PositionX) + AOffset,
+        AProgressBarData.PositionY + 2,
+        LProgressBarGlyph,
+        LVideoAttribute
+      );
+    end;
+
   begin
-    if LProgressWidth = AProgressBarData.Width - 2 then
+    if LProgressWidth >= AProgressBarData.Width - 2 then
     begin
       Dec(LProgressWidth);
     end;
 
-    VideoWriteCharAttrAt(
-      Succ(AProgressBarData.PositionX) + LProgressWidth,
-      AProgressBarData.PositionY + 2,
-      cProgressBarGlyph[AProgressBarDirection],
-      VideoAttribute(
-        AProgressBarData.Colors.Progress,
-        AProgressBarData.Colors.Background
-      )
-    );
+    if AProgressBarData.Progress = AProgressBarData.Min then
+    begin
+      LProgressBarGlyph := cProgressBarEmpty;
+    end else
+    begin
+      LProgressBarGlyph := cProgressBarGlyph[AProgressBarDirection];
+
+      if (LProgressWidth = Succ(AProgressBarData.Min)) and
+        (AProgressBarDirection = dirAscending) then
+      begin
+        FillUnit(Pred(LProgressWidth));
+      end;
+    end;
+
+    FillUnit(LProgressWidth);
   end;
 
   procedure InternalRepaint;
@@ -924,10 +932,7 @@ var
       LProgressWidth,
       kProgressBarInternHeight,
       cProgressBarGlyph[AProgressBarDirection],
-      VideoAttribute(
-        AProgressBarData.Colors.Progress,
-        AProgressBarData.Colors.Background
-      )
+      LVideoAttribute
     );
   end;
 
@@ -935,19 +940,20 @@ begin
   if AProgressBarData.Max > 0 then
   begin
     LProgress := AProgressBarData.Progress / AProgressBarData.Max;
+    LProgressWidth := Round(LProgress * (AProgressBarData.Width - 2));
 
-    if AProgressBarData.Progress > 0 then
-    begin
-      LProgressWidth := Round(LProgress * (AProgressBarData.Width - 2));
+    LVideoAttribute := VideoAttribute(
+      AProgressBarData.Colors.Progress,
+      AProgressBarData.Colors.Background
+    );
 
-      case AProgressBarData.DrawMode of
-        dmUpdate:
-          InternalUpdate;
+    case AProgressBarData.DrawMode of
+      dmUpdate:
+        InternalUpdate;
 
-        dmRepaint:
-          InternalRepaint;
+      dmRepaint:
+        InternalRepaint;
 
-      end;
     end;
 
     VideoWriteStringAt(
@@ -982,14 +988,11 @@ var
   LDirection: TProgressBarDirection;
 
 begin
-  if AProgressBarData.Progress <> AValue then
-  begin
-    LDirection := TProgressBarDirection(AProgressBarData.Progress >= AValue);
+  LDirection := TProgressBarDirection(AProgressBarData.Progress >= AValue);
 
-    AProgressBarData.Progress := AValue;
+  AProgressBarData.Progress := AValue;
 
-    ScreenProgressBarUpdate(AProgressBarData, LDirection);
-  end;
+  ScreenProgressBarUpdate(AProgressBarData, LDirection);
 end;
 
 procedure ScreenButtonDraw(const AButtonData: TButtonData);
@@ -1214,6 +1217,8 @@ begin
       end;
     end;
   end;
+
+  MessageBoxAccelerator := mrUndefined;
 end;
 
 function MessageBoxEventHandler(var AButtonsData: PMessageBoxButtonsData;
@@ -1223,6 +1228,7 @@ var
   LKey: Char;
   LButtonCount: Byte;
   LButtonIndex: Byte;
+  LMessageBoxResult: TMessageBoxResult;
 
 begin
   LButtonCount := MessageBoxButtonCount(AMessageBoxData.Buttons);
@@ -1286,9 +1292,17 @@ begin
         end;
 
     else
-      MessageBoxEventHandler := MessageBoxAccelerator(LKey, AMessageBoxData.Buttons);
+      LMessageBoxResult := MessageBoxAccelerator(LKey, AMessageBoxData.Buttons);
 
-      Break;
+      case LMessageBoxResult of
+        mrUndefined:
+          Continue;
+
+      else
+        MessageBoxEventHandler := LMessageBoxResult;
+
+        Break;
+      end;
     end;
   end;
 end;

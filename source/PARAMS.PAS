@@ -6,6 +6,8 @@
 { - License: GNU General Public License v3.0                                - }
 { --------------------------------------------------------------------------- }
 
+{$G+}
+
 unit Params;
 
 {$I cdefines.inc}
@@ -89,12 +91,28 @@ begin
 
   if ParamCount > 0 then
   begin
-    GParameters.Setup := FindSimpleParameter(pSetup);
+    GParameters.ROMSetup := FindSimpleParameter(pROMSetup);
 {$IFDEF PNPSETUP}
     GParameters.PnPSetup := FindSimpleParameter(pPnPSetup);
 {$ENDIF}
-    GParameters.ROMSetup := FindSimpleParameter(pROMSetup);
+    GParameters.Setup := FindSimpleParameter(pSetup);
     GParameters.Mixer := FindSimpleParameter(pMixer);
+    GParameters.LineOut := FindComplexParameter(pLineOut, LParameterLineOut);
+
+    if GParameters.LineOut then
+    begin
+      if FindComplexParameterValue(LParameterLineOut, pOn) then
+      begin
+        GParameters.LineOutRelay := True;
+      end else
+      if FindComplexParameterValue(LParameterLineOut, pOff) then
+      begin
+        GParameters.LineOutRelay := False;
+      end else
+      begin
+        GParameters.LineOut := False;
+      end;
+    end;
 
     if FindSimpleParameter(pInit) then
     begin
@@ -113,34 +131,23 @@ begin
     end;
 
     GParameters.Quiet := FindSimpleParameter(pQuiet);
+{$IFDEF CDPLAYER}
+    GParameters.CDPlayer := FindSimpleParameter(pCDPlayer);
+{$ENDIF}
     GParameters.Status := FindSimpleParameter(pStatus);
 
-    GParameters.LineOut := FindComplexParameter(pLineOut, LParameterLineOut);
-
-    if GParameters.LineOut then
-    begin
-      if FindComplexParameterValue(LParameterLineOut, pOn) then
-      begin
-        GParameters.LineOutRelay := True;
-      end else
-      if FindComplexParameterValue(LParameterLineOut, pOff) then
-      begin
-        GParameters.LineOutRelay := False;
-      end else
-      begin
-        GParameters.LineOut := False;
-      end;
-    end;
-
     ProcessParameters :=
-      GParameters.Setup or
+      GParameters.ROMSetup or
 {$IFDEF PNPSETUP}
       GParameters.PnPSetup or
 {$ENDIF}
-      GParameters.ROMSetup or
+      GParameters.Setup or
       GParameters.Mixer or
-      GParameters.Status or
       GParameters.LineOut or
+{$IFDEF CDPLAYER}
+      GParameters.CDPlayer or
+{$ENDIF}
+      GParameters.Status or
       (GParameters.InitMode <> imInvalid);
   end else
   begin

@@ -6,6 +6,8 @@
 { - License: GNU General Public License v3.0                                - }
 { --------------------------------------------------------------------------- }
 
+{$G+}
+
 unit Consts;
 
 {$I cdefines.inc}
@@ -17,47 +19,53 @@ uses
   Video;
 
 const
+  {$I version.inc}
+
   sEmpty                       = '';
   sCRLF                        = #13#10;
 
   { program stringtable }
-  sProgramTitle                = 'AUDIO INTERFACE ' +
+  sProgramTitle                = 'AUDIO INTERFACE'#32 +
                 {$IFDEF PNPSETUP}'+PnP SETUP ' +{$ENDIF}
-                                 ' VER. 3.1 REV. C';
+                {$IFDEF CDPLAYER}'+CD PLAYER ' +{$ENDIF}
+                                 #32 + sVersion;
   sProgramCopyright            = 'Copyright (C) 1998-2025 Microprogramming TECHNIQUES';
   sProgramAuthor               = 'Programming/PC Code: Alexandru Groza';
   sProgramRights               = 'All rights reserved.';
 
-  sNotEnoughMemory             = 'Not enough conventional memory.';
+  s16bitCPURequired            = '16-bit CPU required.';
+  sNotEnoughMemory             = 'Not enough memory.';
   sParameterMissing            = 'Parameter(s) invalid or missing.';
 
   sTypeHelp                    = 'Type:' + #13#10 +
                                  '  aif.exe -help';
 
-  sHelpUsage                   = 'Usage is:' + #13#10 +
-                                 '  aif.exe' +
+  sHelpUsage                   = 'Usage is:' + #13#10#32#32 +
+                                 'aif.exe' +
                                  ' [-?|-help]' +
-                                 ' [-setup]' +
-                {$IFDEF PNPSETUP}' [-pnpsetup]' +{$ENDIF}
                                  ' [-romsetup]' +
-                                 ' [-mixer]' + #13#10 + '   ' +
+                {$IFDEF PNPSETUP}' [-pnpsetup]' +{$ENDIF}
+                                 ' [-setup]' +
+                                 ' [-mixer]' + #13#10#32#32#32 +
+                                 ' [-lineout=on|off]' +
                                  ' [-init|-wss|-sb]' +
                                  ' [-quiet]' +
-                                 ' [-status]' +
-                                 ' [-lineout=on|off]' + #13#10;
+                {$IFDEF CDPLAYER}' [-cdplayer]' +{$ENDIF}
+                                 ' [-status]' + #13#10;
 
   sHelpWhere                   = 'Where:';
-  sHelpParamHelp               = '  -?|-help  shows this screen; all other parameters are ignored';
-  sHelpParamSetup              = '  -setup    starts the setup program; some parameters might be ignored';
-  sHelpParamPnPSetup           = '  -pnpsetup starts the PnP setup program; some parameters are ignored';
-  sHelpParamROMSetup           = '  -romsetup starts the (EEP)ROM setup program; some parameters are ignored';
-  sHelpParamMixer              = '  -mixer    starts the volume mixer program';
+  sHelpParamHelp               = '  -?|-help  shows this screen; ignores other parameters';
+  sHelpParamROMSetup           = '  -romsetup starts the (EEP)ROM setup sub-program; ignores other parameters';
+  sHelpParamPnPSetup           = '  -pnpsetup starts the PnP setup sub-program; ignores other parameters';
+  sHelpParamSetup              = '  -setup    starts the setup sub-program';
+  sHelpParamMixer              = '  -mixer    starts the volume mixer sub-program';
+  sHelpParamLineOut            = '  -lineout  enables or disables line out relay';
   sHelpParamInit               = '  -init     initializes the audio interface to preset mode';
   sHelpParamWSS                = '  -wss      initializes the audio interface to Windows Sound System mode';
   sHelpParamSB                 = '  -sb       initializes the audio interface to Sound Blaster mode';
   sHelpParamQuiet              = '  -quiet    reduces text verbosity';
+  sHelpParamCDPlayer           = '  -cdplayer starts the CD player sub-program';
   sHelpParamStatus             = '  -status   displays the current audio interface configuration';
-  sHelpParamLineOut            = '  -lineout  enables or disables line out relay; some parameters are ignored';
 
   sHelpExamples                = 'Examples:' + #13#10 +
                                  '  aif.exe -init' + #13#10 +
@@ -66,29 +74,33 @@ const
   sLoadingAIFConfig            = 'Loading Audio Interface Configuration';
   sLoadingAIFConfigDefault     = 'Loading Default Audio Interface Configuration';
   sAIFConfig                   = 'Audio Interface Configuration';
+  sMixerConfig                 = 'Audio Codec Mixer Configuration';
   sDetecting82c924             = 'Detecting OPTi 82c924 Sound Controller';
   sDetectingAD1845             = 'Detecting AD1845 / CS4231 Audio Codec';
   sDetectingAD1848             = 'Detecting AD1848 / CS4248 Audio Codec';
   sDetectingAD1848orAD1845     = 'Detecting AD1848 / CS4248 or AD1845 / CS4231';
+  sSettingLineOutRelay         = 'Setting Line Out Relay Control';
   sInitializing82c924          = 'Initializing OPTi 82c924 Sound Controller';
   sInitializingAD1848          = 'Initializing AD1848 / CS4248 Audio Codec';
   sInitializingAD1845          = 'Initializing AD1845 / CS4231 Audio Codec';
   sInitializingMPU             = 'Initializing MPU-401 Interface';
-  sMixerConfig                 = 'Audio Codec Mixer Configuration';
   sSettingMixerConfig          = 'Setting Audio Codec Mixer Configuration';
   sSettingSBMode               = 'Setting Sound Controller to Sound Blaster Mode';
   sSettingWSSMode              = 'Setting Sound Controller to Windows Sound System Mode';
   sAIFInitialization           = 'Audio Interface Initialization';
+  sDetectingCDEXPresence       = 'Detecting CD-ROM Extensions Driver Presence';
+  sLoadingCDPConfig            = 'Loading CD Player Configuration';
+  sLoadingCDPConfigDefault     = 'Loading Default CD Player Configuration';
 
   sAIFInitializedSBMode        = 'Audio Interface initialized to Sound Blaster (SB) mode.';
   sAIFInitializedWSSMode       = 'Audio Interface initialized to Windows Sound System (WSS) mode.';
-
-  sLineOutRelay                = 'Line Out relay control is ';
 
   sHardwareInitError           = 'Hardware initialization error.' + #13#10 +
                                  'Audio Interface is either not present or it is faulty.';
   sControllerReinitError       = 'Controller reinitialization error.' + #13#10 +
                                  'Audio Interface is faulty.';
+  sCDROMDriverInitError        = 'CD-ROM driver software initialization error.' + #13#10 +
+                                 'CD-ROM extensions driver is not installed.';
 
   sMode                        = 'mode';
   sPnP                         = 'PnP';
@@ -130,6 +142,8 @@ const
 
   sFAILED                      = 'FAILED';
   sOK                          = 'OK';
+  sOFF                         = 'OFF';
+  sON                          = 'ON';
   sCHANGED                     = 'CHANGED';
   sPENDING                     = 'PENDING';
 
@@ -144,19 +158,24 @@ const
     sOK
   );
 
+  sOFFON: packed array[Boolean] of String[Length(sOFF)] = (
+    sOFF,
+    sON
+  );
+
   sNoYes: packed array[Boolean] of String[Length(sYes)] = (
     sNo,
     sYes
   );
 
-  sAIFMode: packed array[TBitStatus] of String[Length(sAIFWindowsSoundSystem)] = (
-    sAIFSoundBlaster,
-    sAIFWindowsSoundSystem
-  );
-
   sDisabledEnabled: packed array[Boolean] of String[Length(sDisabled)] = (
     sDisabled,
     sEnabled
+  );
+
+  sAIFMode: packed array[TBitStatus] of String[Length(sAIFWindowsSoundSystem)] = (
+    sAIFSoundBlaster,
+    sAIFWindowsSoundSystem
   );
 
   sBitDepth: packed array[TCodecBitDepth] of String[Length(s16bit)] = (
@@ -193,16 +212,17 @@ const
   { program commandline parameters }
   pHelpAlt                     = '-?';
   pHelp                        = '-help';
-  pSetup                       = '-setup';
-  pPnPSetup                    = '-pnpsetup';
   pROMSetup                    = '-romsetup';
+  pPnPSetup                    = '-pnpsetup';
+  pSetup                       = '-setup';
   pMixer                       = '-mixer';
+  pLineOut                     = '-lineout=';
   pInit                        = '-init';
   pWSS                         = '-wss';
   pSB                          = '-sb';
   pQuiet                       = '-quiet';
+  pCDPlayer                    = '-cdplayer';
   pStatus                      = '-status';
-  pLineOut                     = '-lineout=';
 
   pOn                          = 'on';
   pOff                         = 'off';
@@ -210,24 +230,35 @@ const
   { program commandline parameters help }
   kHelpParametersBaseCount     = 9;
 {$IFDEF PNPSETUP}
+  {$IFDEF CDPLAYER}
+  kHelpParametersCount         = kHelpParametersBaseCount + 2;
+  {$ELSE}
   kHelpParametersCount         = kHelpParametersBaseCount + 1;
+  {$ENDIF}
 {$ELSE}
+  {$IFDEF CDPLAYER}
+  kHelpParametersCount         = kHelpParametersBaseCount + 1;
+  {$ELSE}
   kHelpParametersCount         = kHelpParametersBaseCount;
+  {$ENDIF}
 {$ENDIF}
   kHelpParameters: packed array[0..kHelpParametersCount] of PChar = (
     sHelpParamHelp,
-    sHelpParamSetup,
+    sHelpParamROMSetup,
 {$IFDEF PNPSETUP}
     sHelpParamPnPSetup,
 {$ENDIF}
-    sHelpParamROMSetup,
+    sHelpParamSetup,
     sHelpParamMixer,
+    sHelpParamLineOut,
     sHelpParamInit,
     sHelpParamWSS,
     sHelpParamSB,
     sHelpParamQuiet,
-    sHelpParamStatus,
-    sHelpParamLineOut
+{$IFDEF CDPLAYER}
+    sHelpParamCDPlayer,
+{$ENDIF}
+    sHelpParamStatus
   );
 
   { VersaVision UI support messages }
@@ -242,6 +273,7 @@ const
 
   { file masks }
   fmBINFiles                   = 'bin';
+  fmCDPFiles                   = 'cdp';
 
   { file mode constants }
   fmReadOnly                   = 0;
@@ -256,16 +288,23 @@ const
   kRequiredMemory              = 8192;
 
   { color constants }
-  clError                      = clRed;
-  clSuccess                    = clGreen;
   clNormal                     = clLightGray;
   clHighlight                  = clWhite;
-  clChanged                    = clCyan;
-  clPending                    = clLightCyan;
+  clError                      = clRed;
+  clSuccess                    = clGreen;
+  clOff                        = clBrown;
+  clOn                         = clYellow;
+  clChanged                    = clGreen;
+  clPending                    = clLightGreen;
 
-  clFAILEDOK: packed array[Boolean] of Byte = (
+  clErrorSuccess: packed array[Boolean] of Byte = (
     clError,
     clSuccess
+  );
+
+  clOffOn: packed array[Boolean] of Byte = (
+    clOff,
+    clOn
   );
 
   { program color theme }
@@ -655,6 +694,7 @@ const
   clMixerStatCmdHeader         = clWhite;
   clMixerStatCmdFore           = clLightGray;
   clMixerStatCmdBack           = clDarkGray;
+
   clMixerDynCmdHeader          = clWhite;
   clMixerDynCmdFore            = clLightGray;
   clMixerDynCmdBack            = clBlue;
@@ -729,6 +769,231 @@ const
   kStatusItemX                 = 1;
   kStatusSemicolonX            = 23;
   kStatusValueX                = 25;
+
+  { CD Player program stringtable }
+  sCDPlayerTitle               = 'AUDIO INTERFACE CD PLAYER';
+
+  sCDPlayerDriveLetter         = 'Drive Letter';
+  sCDPlayerDoorClosed          = 'Door Closed';
+  sCDPlayerDoorLocked          = 'Door Locked';
+  sCDPlayerDisk                = 'Disk';
+  sCDPlayerStatus              = 'Status';
+  sCDPlayerTrack               = 'Track';
+  sCDPlayerTotalTracks         = 'Total Tracks';
+  sCDPlayerTrackTime           = 'Track Time';
+  sCDPlayerTrackPlayTime       = 'Track Play Time';
+  sCDPlayerDiskTime            = 'Disk Time';
+  sCDPlayerDiskPlayTime        = 'Disk Play Time';
+
+  sCDPlayerTrackOrder          = 'Track Order';
+
+  sCDPlayerTrackProgress       = 'Track Progress';
+  sCDPlayerDiskProgress        = 'Disk Progress';
+
+  sCDPlayerDiskUnloaded        = 'Unloaded';
+  sCDPlayerDiskLoaded          = 'Loaded';
+
+  sCDPlayerStatusStop          = 'Stop';
+  sCDPlayerStatusPlay          = 'Play';
+  sCDPlayerStatusPause         = 'Pause';
+
+  sCDPlayerCmdProgramCmds      = 'PROGRAM COMMANDS';
+  sCDPlayerCmdF4               = 'F5';
+  sCDPlayerCmdChangeDrive      = 'Change Drive';
+  sCDPlayerCmdF5               = 'F6';
+  sCDPlayerCmdOpenCloseDoor    = 'Open/Close Door';
+  sCDPlayerCmdF6               = 'F7';
+  sCDPlayerCmdLockUnlock       = 'Lock/Unlock Door';
+  sCDPlayerCmdF7               = 'F8';
+  sCDPlayerCmdResetDrive       = 'Reset Drive';
+
+  sCDPlayerCmdZ                = 'Z';
+  sCDPlayerCmdPrevious         = '< ³ Previous';
+  sCDPlayerCmdX                = 'X';
+  sCDPlayerCmdPlay             = ' ³ Play';
+  sCDPlayerCmdC                = 'C';
+  sCDPlayerCmdPause            = 'ð ³ Pause';
+  sCDPlayerCmdV                = 'V';
+  sCDPlayerCmdStop             = 'þ ³ Stop';
+  sCDPlayerCmdB                = 'B';
+  sCDPlayerCmdNext             = '> ³ Next';
+
+  sCDPlayerCmdStar             = '*';
+  sCDPlayerCmdRandomTrack      = 'Random Track';
+  sCDPlayerCmd1to9             = '1-9';
+  sCDPlayerCmdQuickPlay        = 'Quick Play';
+  sCDPlayerCmdESC              = 'ESC';
+  sCDPlayerCmdExit             = 'Exit';
+
+  sCDPlayerCmdProgramOptions   = 'ADDITIONAL OPTIONS';
+  sCDPlayerCmd1                = 'E';
+  sCDPlayerCmdAutoEject        = 'Auto Eject';
+  sCDPlayerCmd2                = 'T';
+  sCDPlayerCmdRepeatTrack      = 'Repeat Track';
+  sCDPlayerCmd3                = 'A';
+  sCDPlayerCmdRepeatAll        = 'Repeat All';
+  sCDPlayerCmd4                = 'S';
+  sCDPlayerCmdShuffleOrder     = 'Shuffle Order';
+  sCDPlayerCmd5                = 'R';
+  sCDPlayerCmdReverseOrder     = 'Reverse Order';
+
+  sCDPlayerCDROMExtensions     = 'CDROM EXTENSIONS';
+  sCDPlayerDriverVersion       = 'DRIVER VER. ';
+
+  sCDPlayerDriveNotCDROM       = ' is not a CDROM drive.' + #13#10 +
+                                 'Please select another drive.';
+  sCDPlayerBackgroundPlay      = 'CDROM is currently playing an audio track.' + #13#10 +
+                                 'Continue playing in background?';
+  sCDPlayerBackgroundPause     = 'CDROM is currently paused.' + #13#10 +
+                                 'Leave it like this?';
+  sCDPlayerCDROMError          = 'An error has occured. CDROM driver reports:' + #13#10;
+  sCDPlayerCDROMDataTrack      = 'A data track has been found.' + #13#10 +
+                                 'Such tracks do not contain audio information.';
+
+  { CD Player program color theme }
+  clCDPlayerFore               = clLightGray;
+  clCDPlayerBack               = clBlue;
+
+  clCDPlayerEditFore           = clCDPlayerFore;
+  clCDPlayerEditBack           = clCDPlayerBack;
+  clCDPlayerEditHighFore       = clWhite;
+  clCDPlayerEditHighBack       = clRed;
+
+  clCDPlayerTrackOrderFore     = clCDPlayerFore;
+  clCDPlayerTrackOrderBack     = clCDPlayerBack;
+  clCDPlayerTrackOrderTitle    = clCDPlayerFore;
+  clCDPlayerTrackOrderPast     = clGreen;
+  clCDPlayerTrackOrderCurrent  = clCyan;
+  clCDPlayerTrackOrderFuture   = clCDPlayerFore;
+
+  clCDPlayerProgressFore       = clCDPlayerFore;
+  clCDPlayerProgressBack       = clCDPlayerBack;
+  clCDPlayerProgressTitle      = clWhite;
+  clCDPlayerProgressColor      = clGreen;
+
+  clCDPlayerStatCmdHigh        = clLightCyan;
+  clCDPlayerStatCmdHeader      = clWhite;
+  clCDPlayerStatCmdFore        = clLightGray;
+  clCDPlayerStatCmdBack        = clDarkGray;
+
+  clCDPlayerDynCmdHeader       = clWhite;
+  clCDPlayerDynCmdHigh         = clLightGreen;
+  clCDPlayerDynCmdFore         = clLightGray;
+  clCDPlayerDynCmdBack         = clDarkGray;
+
+  clCDPlayerPlayLEDOn          = clGreen;
+  clCDPlayerPauseLEDOn         = clYellow;
+  clCDPlayerStopLEDOn          = clRed;
+  clCDPlayerLEDOff             = clCDPlayerStatCmdFore;
+
+  clCDPlayerPlayLED: packed array[Boolean] of Byte = (
+    clCDPlayerLEDOff,
+    clCDPlayerPlayLEDOn
+  );
+
+  clCDPlayerPauseLED: packed array[Boolean] of Byte = (
+    clCDPlayerLEDOff,
+    clCDPlayerPauseLEDOn
+  );
+
+  clCDPlayerStopLED: packed array[Boolean] of Byte = (
+    clCDPlayerLEDOff,
+    clCDPlayerStopLEDOn
+  );
+
+  { CD Player program constants }
+  kCDPlayerStartupDelay        = 500;
+
+  kCDPlayerComponentsLeft      = 1;
+  kCDPlayerComponentsTop       = 2;
+  kCDPlayerComponentsWidth     = 49;
+  kCDPlayerComponentsHeight    = 24;
+
+  kCDPlayerKeyX                = 2;
+  kCDPlayerValueX              = 20;
+  kCDPlayerKeyValueWidth       = 10;
+
+  kCDPlayerKeyValueCount       = 10;
+  kCDPlayerKVDriveLetter       = 0;
+  kCDPlayerKVDoorClosed        = 1;
+  kCDPlayerKVDoorLocked        = 2;
+  kCDPlayerKVDisk              = 3;
+  kCDPlayerKVStatus            = 4;
+  kCDPlayerKVTrack             = 5;
+  kCDPlayerKVTotalTracks       = 6;
+  kCDPlayerKVTrackTime         = 7;
+  kCDPlayerKVTrackPlayTime     = 8;
+  kCDPlayerKVDiskTime          = 9;
+  kCDPlayerKVDiskPlayTime      = 10;
+
+  kCDPlayerEditX               = kCDPlayerValueX;
+  kCDPlayerEditY               = 3;
+  kCDPlayerEditWidth           = kCDPlayerKeyValueWidth;
+  kCDPlayerEditMaxLength       = 3;
+
+  kCDPlayerTrackOrderX         = 31;
+  kCDPlayerTrackOrderY         = 3;
+  kCDPlayerTrackOrderWidth     = 18;
+  kCDPlayerTrackOrderHeight    = 10;
+  kCDPlayerTrackOrderLineItems = 5;
+  kCDPlayerTrackOrderStrLen    = 2;
+
+  kCDPlayerProgressBarX        = kCDPlayerKeyX;
+  kCDPlayerProgressBarWidth    = 47;
+  kCDPlayerProgressBarMin      = 0;
+
+  kCDPlayerTrackProgressY      = 15;
+  kCDPlayerDiskProgressY       = 19;
+
+  kCDPlayerCommandsLeft        = 50;
+  kCDPlayerCommandsTop         = 2;
+  kCDPlayerCommandsWidth       = 31;
+  kCDPlayerCommandsHeight      = 17;
+
+  kCDPlayerCmdX                = 52;
+
+  kCDPlayerStatCmdCount        = 11;
+  kCDPlayerDynCmdCount         = 4;
+
+  kCDPlayerCmdLEDX             = kCDPlayerCmdX + 5;
+
+  kCDPlayerOptionsLeft         = 50;
+  kCDPlayerOptionsTop          = 19;
+  kCDPlayerOptionsWidth        = 31;
+  kCDPlayerOptionsHeight       = 7;
+
+  kCDPlayerOptionX             = 57;
+  kCDPlayerOptionWidth         = 21;
+  kCDPlayerOptionHeight        = 1;
+
+  kCDPlayerCDROMExtensionsX    = 2;
+  kCDPlayerCDROMExtensionsY    = 23;
+  kCDPlayerDriverVersionX      = 2;
+  kCDPlayerDriverVersionY      = 24;
+
+  { CD Player program default initialization values }
+  kCDPlayerAutoEjectDefault    = True;
+  kCDPlayerRepeatTrackDefault  = False;
+  kCDPlayerRepeatAllDefault    = False;
+  kCDPlayerShuffleOrderDefault = False;
+  kCDPlayerReverseOrderDefault = False;
+
+  { CDROM support constants }
+  sCDROMReserved               = 'Reserved';
+  sCDROMWriteProtect           = 'Write-protect Violation';
+  sCDROMUnknownUnit            = 'Unknown Unit';
+  sCDROMDriveNotReady          = 'Drive Not Ready';
+  sCDROMUnknownCommand         = 'Unknown Command';
+  sCDROMCRCError               = 'CRC Error';
+  sCDROMBadRequestLength       = 'Bad Drive Request Structure Length';
+  sCDROMSeekError              = 'Seek Error';
+  sCDROMUnknownMedia           = 'Unknown Media';
+  sCDROMSectorNotFound         = 'Sector Not Found';
+  sCDROMWriteFault             = 'Write Fault';
+  sCDROMReadFault              = 'Read Fault';
+  sCDROMGeneralFailure         = 'General Failure';
+  sCDROMInvalidDiskChange      = 'Invalid Disk Change';
+  sCDROMUnknownError           = 'Unknown Error';
 
 implementation
 
