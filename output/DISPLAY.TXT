@@ -1,0 +1,68 @@
+1. Synopsis
+
+DISPLAY is a compact .COM program designed for viewing text files within any
+MS-DOS environment. It displays the contents of text files in a scrollable
+window, formatted for 80 columns by 24 lines.
+
+This program is lightweight, occupying less than 1 KB of disk space.
+
+DISPLAY is intended to be used on distribution media for MS-DOS software, or
+as part of software packages.
+
+2. Usage
+
+To view a text file, type:
+  display.com <file.ext>
+
+If the specified file cannot be found or read, an error message will be
+displayed. Should there be insufficient conventional memory to load the file,
+an appropriate error message will appear.
+
+If the program is executed without specifying any commandline parameter, then
+the typical usage example is displayed.
+
+3. Program Navigation
+
+To scroll the text up, press either the UP () or Page Up () key.
+To scroll the text down, press either the DOWN () or Page Down () key.
+
+Page scrolling is done by shifting the entire 24 lines of text up or down, at
+once. If there are less than 24 lines of text remaining, the program scrolls
+to the beginning or the end of the text file, depending on the page direction.
+
+Scroll to the beginning of the text file by pressing the Home key.
+Similarly, use the End key to scroll to the end of the text file.
+
+To summarize, the Home key scrolls to the beginning, the End key to the end,
+and the Page Up/Page Down keys allow for large chunks of text to be scrolled
+at once. The Up/Down keys scroll the text line by line.
+
+To exit the program, press the Escape (ESC) key.
+
+4. File Size Constraints
+
+The file passed as the commandline parameter must not exceed 62 KB in size.
+If the file is larger, only the first 62 KB will be displayed. In addition,
+a red background in the program header indicates that the file has been
+truncated. If the file is fully displayed, the program header will appear
+with a blue background.
+
+5. Legal Mentions
+
+This program is furnished under the GNU General Public License v3.0 license
+agreement. In addition, the complete source code is available on GitHub at:
+   * github.com/agroza/display
+
+The author is *not* responsible for any misuse or possible damage caused by
+this computer program.
+
+MS-DOS and Microsoft are registered trademarks of Microsoft Corporation.
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴�
+DISPLAY VER. 1.2 - Text-Mode File Viewer
+Copyright (C) 1998-2025 Microprogramming TECHNIQUES
+Programming/PC Code: Alexandru Groza
+All rights reserved.
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴�
+
+                             - end-of-document -

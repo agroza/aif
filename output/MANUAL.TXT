@@ -1,0 +1,840 @@
+ÉÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ»
+º                                                                            º
+º                        AIF - Audio Interface Driver                        º
+º                   ISA Audio Interface model 2486-AIF-401                   º
+º            Copyright (C) 1998-2025 Microprogramming TECHNIQUES             º
+º                                                                            º
+º                   = User's Guide and Reference Manual =                    º
+º                                                                            º
+ÈÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼
+
+ The AIF interface driver, subject of this User's Guide is furnished under
+ the GNU General Public License v3.0 license agreement.
+
+ In addition to the hardware and software documentation, the complete source
+ code is available on GitHub at:
+   * github.com/agroza/aif
+
+ The AIF program is *only* intended to be used with the following hardware.
+
+ 16-bit ISA Audio Interface model 2486-AIF-401
+ Copyright (C) 2020 Alexandru Groza
+
+ The author is *not* responsible for any possible damage caused by this
+ computer program if used with other sound cards.
+
+ The entire project hardware documentation can be found at:
+   * alexandrugroza.ro/microelectronics/system-design/isa-audio-interface
+
+ This User's Guide and Reference Manual is additionally supplied with the AIF
+ driver, for a better understanding of the functionalities embedded in the
+ software. It is *not* a documentation for the source code, and there will be
+ no principle of operation description, or any audio (or video) interface
+ hardware control via software. That topic is vast and might be the subject
+ of a separate document.
+
+ This document is formatted using the IBM PC code page 437 character set and
+ is best viewed with a fixed-width (monospaced) font in a DOS environment, or
+ with a DOS-compatible text viewer that supports extended ASCII characters.
+
+ Document ID: 2486-AIF-401-MANUAL-15.25
+ First Edition, Revision A (April, 2025)
+
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+
+
+ Preface
+ ÍÍÍÍÍÍÍ
+
+ Thank you for your interest in this project, be it the hardware, software,
+ or both components.
+
+ I hope you had fun building the 16-bit ISA Audio Interface and you will have
+ a great time using it with any computer you might have, as long as it is
+ equipped with an ISA bus.
+
+ I decided to write this documentation for a clearer understanding of what is
+ the intended purpose of the AIF program, and how to use the program.
+
+ Considering the exhaustive hardware documentation for this project, and the
+ availability of the source code, it is only natural that this document fills
+ the gaps on the software documentation side of the Audio Interface project.
+
+
+ Abstract
+ ÍÍÍÍÍÍÍÍ
+
+ Most sound cards require some sort of hardware initialization before being
+ usable. And this is also the case for the 16-bit ISA Audio Interface that is
+ mentioned above.
+
+ This guide provides insights into the features of the AIF hardware interface
+ driver. It furnishes information which readers can use to determine the best
+ use-cases for their specific needs, in addition to the main scope of this
+ computer program.
+
+
+ Table of Contents
+ ÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ
+
+ 1.0 Introduction
+   1.1 Audience and Scope
+   1.2 How to Use This Document
+   1.3 What is AIF?
+   1.4 Additional Features
+ 2.0 Main Usage
+   2.1 General Considerations
+     2.1.1 System Requirements
+   2.2 List of Files
+   2.3 Commandline Parameters
+     2.3.1 Parameter Types
+     2.3.2 Embedded Help Screen
+   2.4 Initialization
+     2.4.1 Automating the Initialization
+     2.4.2 Keeping Quiet
+   2.5 Controlling the Line Output Relay
+   2.6 Combining Parameters
+ 3.0 Additional Sub-programs
+   3.1 Which Sub-programs are Available?
+   3.2 Setup
+   3.3 PnP Setup
+     3.3.1 Disambiguation
+     3.3.2 Description
+   3.4 (EEP)ROM Setup
+   3.5 Mixer
+   3.6 CD Player
+     3.6.1 CDROM Extensions
+     3.6.2 Description
+ 4.0 Additional Information
+   4.1 Legal Mentions
+
+
+
+ 1.0 Introduction
+
+ This document provides guidance in the usage of the AIF driver to intialize
+ the OPTi 82c924-based 16-bit Audio Interface sound card, model 2486-AIF-401.
+
+ The document describes the various functionalities included with the driver,
+ while also exploring the extra sub-programs.
+
+
+ 1.1 Audience and Scope
+
+ This document is primarily intended for people that either have built or
+ acquired the 2486-AIF-401 audio interface. In addition, this document could
+ be useful to those who want to use the additional functionalities offered,
+ such as the CD Player sub-program, or the EEPROM programming feature.
+
+ The information within this document is specific in nature, and applies
+ solely to the above-mentioned AIF interface driver and sound card hardware.
+
+
+ 1.2 How to Use This Document
+
+ To view this document through the included text-mode viewer program, type:
+
+   display.com manual.txt
+
+ This document is organized into chapters, each focusing on a specific aspect
+ of the AIF software. The structure is designed to help you find information
+ quickly and efficiently.
+
+   * Chapter 2 focuses on the main use-case of AIF, which is to initialize
+     the audio interface hardware, including both the sound controller and
+     the audio codec.
+
+   * Chapter 3 details the additional sub-programs embedded within the AIF
+     software. These include Setup, PnP Setup, (EEP)ROM Setup, Mixer, and the
+     CD Player functionalities.
+
+   * Chapter 4 provides supplementary information, that is general in nature.
+
+ The order in which you read the chapters is flexible.
+ While it is recommended to read the entire documentation for a comprehensive
+ understanding, it is perfectly acceptable to consult only those sections
+ relevant to your specific use-cases.
+
+
+ 1.3 What is AIF?
+
+ It is an MS-DOS(R)-based commandline interface driver program created for
+ the initialization of the 16-bit ISA Audio Interface sound card, which is
+ based on the OPTi 82c924 sound controller chip, Crystal CS4231A audio codec
+ chip, and the Yamaha OPL-3 FM synthesizer chip.
+
+ The sound card can be initialized to Sound Blaster(tm) mode, in addition to
+ the Windows Sound System(tm) mode.
+
+
+ 1.4 Additional Features
+
+ A series of additional features can be controlled through the embedded Setup
+ sub-program. For example, the availability of the IDE CDROM host interface,
+ various IRQ and DMA settings, as well as sampling rates and bit depths.
+
+ The AIF program includes an EEPROM access sub-program that can be used to
+ read or write the 93C56 serial EEPROM, located on the printed circuit board
+ assembly. This EEPROM can store a custom PnP configuration.
+
+ There is even an audio CD player sub-program that can fully control the
+ CDROM drive hardware through a text-mode graphical user interface, provided
+ that the CDROM Extensions driver is already installed on the host system.
+
+
+
+ 2.0 Main Usage
+
+ This section covers the main use-case for the AIF hardware interface driver.
+
+
+ 2.1 General Considerations
+
+ In order to use the AIF software, you have to place it in its own directory,
+ for instance C:\AIF, or whatever other directory suits your preferences.
+
+ At the first run of the program, it will create an additional file, AIF.BIN
+ that contains the hardware configuration for the Audio Interface sound card.
+
+ This way, at any subsequent initialization of the sound card, the driver
+ will use the stored configuration instead of going through the setup program
+ again and again.
+
+ If you use the CD Player sub-program, it will create another file, AIF.CDP.
+ The CD Player configuration is stored in there.
+
+ If any of these files are deleted, or corrupted, then AIF.EXE will re-create
+ them.
+
+ It is recommended to start AIF through AUTOEXEC.BAT, in order to automate
+ the sound card initialization.
+
+ 2.1.1 System Requirements
+
+ In order to run AIF.EXE, you need an IBM PC or compatible computer, with an
+ 8088 processor, and at least 80 KB of free conventional memory. However,
+ 100 KB is preferred.
+
+ AIF is a non-resident program and frees all allocated memory upon exit.
+
+ You also need around 27 KB of free drive space for the main executable file
+ and the hardware configuration files. This User's Guide and Reference Manual
+ occupies an additional 36 KB of drive space. The text viewer program takes
+ less than 1 KB of drive space, and its documentation around 3 Kb. In total,
+ you need around 70 KB of free drive space for the entire software package.
+
+
+ 2.2 List of Files
+
+ For references, the following files are included, part of the AIF software
+ package.
+
+   File Name    ³ Description
+  ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+   AIF.EXE      ³ the hardware interface driver itself
+   AIF.BIN      ³ stores the Setup and Mixer hardware configuration
+   AIF.CDP      ³ stores the CD Player settings
+   DISPLAY.COM  ³ text-mode file viewer program
+   DISPLAY.TXT  ³ documentation for the DISPLAY.COM program
+   MANUAL.TXT   ³ this document
+
+ AIF.EXE is actually the only file required, as the .BIN and .CDP files are
+ auto-generated, should they not exist. This MANUAL.TXT document is nice to
+ have and is a good reference point in addition to the embedded commandline
+ help screen. DISPLAY.COM is a lightweight text file viewer that allows you
+ to view this (or any other text) document, while providing basic scrolling
+ features. Its documentation is distributed as DISPLAY.TXT. Should you not
+ need this file, feel free to delete it to gain around 3 Kb of disk space.
+
+
+ 2.3 Commandline Parameters
+
+ Simply running the executable file will tell you that you have to supply at
+ least one, if not multiple parameters.
+
+ For the record, the command line parameters are case-insensitive, which
+ means that, for instance, -init is equal to -INIT.
+
+ 2.3.1 Parameter Types
+
+ There are two types of commandline parameters, identified as follows.
+   * simple
+   * complex
+
+ Simple parameters are identified by a single word, such as -help or -setup.
+
+ Complex parameters are identified by a single word, followed by an equal
+ sign, and the intended value. For example, the -lineout=on|off statement.
+
+ 2.3.2 Embedded Help Screen
+
+ The easiest way to get information on the commandline parameters is to type
+ either of the following:
+
+   aif.exe -?
+   aif.exe -help
+
+ The following screen is displayed at the console.
+
+ Usage is:
+   aif.exe [-?|-help] [-romsetup] [-pnpsetup] [-setup] [-mixer]
+     [-lineout=on|off] [-init|-wss|-sb] [-quiet] [-cdplayer] [-status]
+
+ Where:
+   -?|-help  shows this screen; ignores other parameters
+   -romsetup starts the (EEP)ROM setup sub-program; ignores other parameters
+   -pnpsetup starts the PnP setup sub-program; ignores other parameters
+   -setup    starts the setup sub-program
+   -mixer    starts the volume mixer sub-program
+   -lineout  enables or disables line out relay
+   -init     initializes the audio interface to preset mode
+   -wss      initializes the audio interface to Windows Sound System mode
+   -sb       initializes the audio interface to Sound Blaster mode
+   -status   displays the current audio interface configuration
+   -cdplayer starts the CD player sub-program
+   -quiet    reduces text verbosity
+
+ Examples:
+   aif.exe -init
+   aif.exe -mixer -init -quiet -status
+
+ As you can see in the examples section, multiple commandline parameters can
+ be combined. For instance, to configure the card for the very first time,
+ you could type:
+
+   aif.exe -setup -mixer -init
+
+ Please note that in order to persist the settings, you must save the Setup
+ and Mixer configuration when exitting each sub-program. Otherwise, Setup
+ will be automatically triggered the next time you issue the initialization
+ command.
+
+ In fact, the same will happen if you supply any other commandline parameters
+ that rely on persistent settings.
+
+
+ 2.4 Initialization
+
+ Upon correct initialization of the sound card hardware, LED2 (SWCFGD) should
+ light up, and the output relay will pulse (audible click-clack) in order to
+ filter out the eventual noises caused when setting the internal registers of
+ the audio codec chip.
+
+ The simplest way to initialize the card is to use:
+
+   aif.exe -init
+
+ However, two additional shortcuts are available as commandline parameters.
+
+   Parameter ³ Description
+  ÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+   -sb       ³ Initializes the card to Sound Blaster mode.
+   -wss      ³ Initializes the card to Windows Sound System mode.
+
+ Both parameters work either standalone, or in conjunction with other, but
+ not together, and not combined with -init.
+
+ In fact, AIF first checks for the -init switch, then for the -wss switch,
+ and finally for the -sb switch. Thus, if you type for instance:
+
+   aif.exe -sb -init -wss
+
+ the same effect is realized as typing the following command:
+
+   aif.exe -init
+
+ To recap, the initialization commandline parameters are not to be combined.
+
+ If the -setup, -mixer, or both commandline parameters are specified, without
+ any initialization parameter, then the card has to be initialized for the
+ changes to take effect.
+
+ 2.4.1 Automating the Initialization
+
+ Once the sound card hardware is correctly configured, then the following
+ line is typically sufficient within AUTOEXEC.BAT:
+
+   aif.exe -init
+
+ If you don't have the AIF directory referenced by the PATH variable, then
+ you need to specify the fully qualified path and filename. For instance,
+
+   c:\drivers\aif\aif.exe -init
+
+ It is recommended that the AIF initialization statement to be put at the end
+ of the AUTOEXEC.BAT content. However, the program is unlikely to interfere
+ with any other drivers, thus you could place it wherever you find suitable.
+
+ 2.4.2 Keeping Quiet
+
+ If you don't want AIF to be verbose and output a lot of text during the
+ initialization sequence, while loaded by AUTOEXEC.BAT, then you can use the
+ following command.
+
+   aif.exe -init -quiet
+
+ The -quiet parameter can also be used during normal initialization, directly
+ from the commandline, but this use-case is quasi-questionable.
+
+
+ 2.5 Controlling the Line Output Relay
+
+ AIF is able to control the line output relay via a complex parameter. The
+ audio output can be turned on or off by using the following commands.
+
+   aif.exe -lineout=on
+   aif.exe -lineout=off
+
+ This parameter can work either standalone, or in conjunction with the the
+ other parameters. For example:
+
+   aif.exe -setup -lineout=off
+   aif.exe -setup -mixer -lineout=off
+
+ You can execute these commands, if for some reason you need to disconnect
+ the line output, even though the Setup or Mixer configuration was modified.
+
+ In addition, -lineout internally triggers an initialization command. Thus,
+ combining -lineout with -init is redundant. But, the following commands are
+ still valid:
+
+   aif.exe -lineout=on -init
+   aif.exe -lineout=off -init
+
+ However, it is unnecessary to specify -init, if -lineout is present.
+
+
+ 2.6 Combining Parameters
+
+ As previously stated, multiple commandline parameters can be combined. For
+ example, these commands are valid.
+
+   aif.exe -setup -mixer -init -cdplayer
+   aif.exe -setup -mixer -lineout=on -cdplayer
+
+ The order in which commandline parameters are treated is the same as that of
+ the parameters displayed in the commandline help screen.
+
+ Please note that the -romsetup and -pnpsetup parameters cannot be combined
+ with eachother, nor with any other parameter.
+ AIF first checks for the EEPROM Setup sub-program switch, and then for the
+ PnP Setup sub-program switch, effectively ignoring all other parameters.
+
+
+
+ 3.0 Additional Sub-programs
+
+ For convenience, a few additional sub-programs are embedded within the main
+ executable file. This way, there are less standalone .EXE files involved in
+ the software package distribution.
+
+ In addition, there is less storage space involved, meaning that the AIF
+ package is lightweight. In other words, it is also suited for floppy disks.
+
+
+ 3.1 Which Sub-programs are Available?
+
+ When the AIF program is compiled, some of the sub-programs could be omitted
+ by conditional defines. This option exists for a number of reasons, such as.
+   * reduce executable file size
+   * exclude PnP Setup, which is an experimental sub-program
+   * exclude CD Player, if a lightweight version of the driver is required
+
+ The following sub-programs are always compiled in the executable file.
+   * Setup
+   * EEPROM Setup
+   * Mixer
+
+ The following sub-programs could, or could not be part of the compiled file.
+   * PnP Setup
+   * CD Player
+
+ To know which sub-programs are available, just observe the first line output
+ to the console when AIF is executed.
+
+ AUDIO INTERFACE +PnP SETUP +CD PLAYER  VER. 3.2.536 REV. C
+ Copyright (C) 1998-2025 Microprogramming TECHNIQUES
+
+ The included sub-programs appear as +PROGRAM NAME after the AUDIO INTERFACE
+ identifier.
+
+ 3.2 Setup
+
+ The Setup program presents the hardware configuration options in an easy to
+ use manner, through a text-mode user interface. This way, you can easily
+ select and modify the hardware parameters of the audio interface.
+
+ To start the Setup sub-program, type:
+
+   aif.exe -setup
+
+ If AIF.BIN does not exist, then regardless of what commandline parameter you
+ specify, the Setup sub-program will be invoked first.
+
+ The program commands, accessible via keyboard shortcuts are listed below.
+
+   Shortcut ³ Function              ³ Description
+  ÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+   F8       ³ Default Configuration ³ Loads the default configuration.
+   F9       ³ Reload Configuration  ³ Reloads the stored configuration.
+   F10      ³ Save and Exit         ³ Saves the changes (if any) and exits.
+   ESC      ³ Exit                  ³ Prompts whether to save changes (if
+            ³                       ³ any), and exits, depending on your
+            ³                       ³ input.
+
+ To navigate your way through the options, use the arrow keys. The up () and
+ down () keys move the cursor over the hardware parameters list, while the
+ left () and right () keys cycle through the possible values.
+
+ The configurable hardware parameters are listed below, including their
+ possible values.
+
+   Hardware Parameter   ³ Possible Value
+  ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+   Audio Interface Mode ³ Sound Blaster, Windows Sound System
+   WSS Address          ³ 0530, 0E80, 0F40, 0604
+   WSS IRQ              ³ Disabled, 7, 9, 10, 11
+   WSS DMA              ³ Disabled, 0, 1, 3
+   SB Address           ³ 0220, 0240
+   SB IRQ               ³ Disabled, 5, 7, 10
+   SB DMA               ³ Disabled, 0, 1, 3
+   MPU-401              ³ Disabled, Enabled
+   MPU-401 Address      ³ 0300, 0310, 0320, 0330
+   MPU-401 IRQ          ³ 5, 7, 9, 10
+   Game Port            ³ Disabled, Enabled
+   IDE CD-ROM           ³ Disabled, Enabled
+   Audio Codec          ³ AD1848 / CS4231, AD1848 / CS4248
+   Audio Codec Crystals ³ 16 MHz, 16/24 MHz
+   WSS Sampling Rate    ³ 5,512 Hz, 6,615 Hz, 8,000 Hz, 9,600 Hz, 11,025 Hz
+                        ³ 16,000 Hz, 18,900 Hz, 22,050 Hz, 27,428 Hz
+                        ³ 32,000 Hz, 33,075 Hz, 37,800 Hz, 44,100 Hz
+                        ³ 48,000 Hz
+   WSS Bit Depth        ³ 8-bit, 16-bit
+   WSS Sound Output     ³ Mono, Stereo
+   SB Sampling Rate     ³ 5,512 Hz, 6,615 Hz, 8,000 Hz, 9,600 Hz, 11,025 Hz
+                        ³ 16,000 Hz, 18,900 Hz, 22,050 Hz, 27,428 Hz
+                        ³ 32,000 Hz, 33,075 Hz, 37,800 Hz, 44,100 Hz
+                        ³ 48,000 Hz
+   SB Bit Depth         ³ 8-bit, 16-bit
+   SB Sound Output      ³ Mono, Stereo
+   SB DSP Version       ³ 1.5, 2.1, 3.2, 4.4
+   SB ADPCM             ³ Disabled, Enabled
+   SB Command FIFO      ³ Disabled, Enabled
+   Volume Control       ³ Normal, Automatic
+
+ If any of the parameters above are modified, when pressing the ESC key, you
+ will be prompted to save the changes. Alternatively, you could just press
+ F10 to automatically save the changes and then exit the Setup program.
+
+ If you opt not to save the configuration upon exitting Setup, and you have
+ also passed the -init commandline parameter, then the sound card hardware
+ will still be initialized with the new values, but they will not be stored
+ for persistency.
+
+ At any point, if you feel you altered the wrong parameter, you can press F8
+ to load the default configuration that is guaranteed to work with the AIF
+ hardware. Similarly, F9 reloads the previously stored configuration from the
+ AIF.BIN file, if any.
+
+
+ 3.3 PnP Setup
+
+ The purpose of the PnP Setup sub-program is to allow customization of the
+ PnP EEPROM data stored on the card.
+
+ Notes:
+   * This sub-program is *not* yet fully implemented.
+   * This documentation section is subject to change.
+
+
+ 3.3.1 Disambiguation
+
+ PnP stands for Plug and Play. This is a set of techniques that allow the OS,
+ BIOS, and hardware (in this case ISA) to automatically manage the allocation
+ of system resources. The OPTi 82c924 sound controller chip supports ISA PnP.
+
+ 3.3.2 Description
+
+ The goal of the PnP Setup sub-program is to provide a visual representation
+ of the PnP EEPROM configuration data.
+
+ Only if configured to be included at compilation time, to start the PnP
+ Setup sub-program, type:
+
+   aif.exe -pnpsetup
+
+ If the PnP Setup is excluded when the AIF.EXE interface driver was compiled,
+ the parameter is ignored, and an error message is displayed.
+
+
+ 3.4 (EEP)ROM Setup
+
+ The (EEP)ROM Setup sub-program allows reading of the onboard 93C56 serial
+ EEPROM, effectively dumping its contents to a given file. At the same time,
+ you have the possibility to erase, or rewrite the EEPROM with the contents
+ of a custom file.
+
+ To start the EEPROM Setup sub-program, type:
+
+   aif.exe -romsetup
+
+ The program commands, accessible via keyboard shortcuts are listed below.
+
+   Shortcut ³ Function              ³ Description
+  ÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+   F4       ³ Edit Filename         ³ Specifies the input/output file name.
+   F5       ³ Erase EEPROM (Fast)   ³ Clears the EEPROM contents quickly.
+   F6       ³ Erase EEPROM (Slow)   ³ Clears the EEPROM contents slowly.
+   F7       ³ Read EEPROM           ³ Dumps the EEPROM contents to a file.
+   F8       ³ Write EEPROM          ³ Programs the EEPROM with custom data.
+   ESC      ³ Exit                  ³ Exits the sub-program.
+
+ The Filename field specifies either a fully qualified path and file name, or
+ only the file name. In this case, the file will be written to, or read from,
+ the same directory where the AIF.EXE program resides.
+
+ The Raw Data window dynamically updates with byte data, while the EEPROM
+ contents are being read. At the same time, the progress bar is updated to
+ show the completion percentage of the current operation.
+
+ For feedback purposes, the program also updates the operation and status
+ fields accordingly.
+
+
+ 3.5 Mixer
+
+ The Mixer sub-program provides an easy, visual way to set the sound volumes
+ for the various input and output channels available on the audio codec chip.
+
+ To start the Mixer sub-program, type:
+
+   aif.exe -mixer
+
+ The program commands, accessible via keyboard shortcuts are listed below.
+
+   Shortcut ³ Function              ³ Description
+  ÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+   F8       ³ Default Configuration ³ Loads the default configuration.
+   F9       ³ Reload Configuration  ³ Reloads the stored configuration.
+   F10      ³ Save and Exit         ³ Saves the changes (if any) and exits.
+   ESC      ³ Exit                  ³ Prompts whether to save changes (if
+            ³                       ³ any), and exits, depending on your
+            ³                       ³ input.
+
+ In addition, there are seven keyboard shortcuts that toggle various things.
+ These commands, and their keyboard shortcuts are listed below.
+
+   Shortcut ³ Function              ³ Description
+  ÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+   1        ³ Line In               ³ Sets the line in as source input.
+   2        ³ FM & AUX In           ³ Sets the OPL3 + AUX as source input.
+   3        ³ Microphone            ³ Sets the microphone as source input.
+   4        ³ Post-Mixed DAC        ³ Sets the PC Speaker as source input.
+   5        ³ Microphone Gain +20dB ³ Boosts microphone signal strength.
+   6        ³ Digital Mix           ³ Enables the PC Speaker input circuit.
+   7        ³ Outputs Enabled       ³ Toggles the output relay accordingly.
+
+ Switches 1 through 4 are mutually exclusive, meaning that only one can be
+ active at any given time.
+
+ Switches 5 through 7 are of type on-off and can be toggled independently.
+
+ The text-mode user interface presents the volume settings in a familiar
+ format, using sliders, as hardware analogic audio signal mixers do. You can
+ change the volume of any output or input independently on the left or right
+ channel, or hold down shift while pressing the left () and right () keys
+ to change both channels at the same time. The sole exception is the Digital
+ Mix volume slider, which can only be altered on both channels at the same
+ time, regardless of the shift key status. This is because that channel is
+ for monaural sound, and is hardwired to the PC Speaker input circuit.
+
+ At any point, you can press F8 to load the default configuration, which is
+ guaranteed to work with the AIF hardware. Similarly, F9 reloads the stored
+ configuration from the AIF.BIN file, if available.
+
+ If any volume or switch has been altered, upon pressing the ESC key, you are
+ prompted to save the settings. Failing to do so will still initialize the
+ sound card, but the settings will not persist the next time you attempt to
+ initialize the sound card, using the following command.
+
+   aif.exe -init
+
+ Finally, pressing F10, automatically saves the settings and immediately
+ exits the Mixer sub-program without any other user prompt.
+
+
+ 3.6 CD Player
+
+ This section describes the CD Player sub-program. In order to use it, you
+ need to install the CDROM Extensions driver. If you attempt to start the
+ CD Player without the CDROM Extensions driver, an error will be displayed.
+
+ 3.6.1 CDROM Extensions
+
+ The CD Player software communicates with the CDROM hardware through the CD
+ Extensions interrupt 0x2F. While this interrupt is also shared with the
+ Network Redirector, the CD Player sub-program will first check the presence
+ of the CDROM Extensions driver via function 0x1100.
+
+ Any other low-level CDROM hardware request will be made through the above-
+ mentioned device driver.
+
+ In short, you need to install and configure the MSCDEX.EXE CDROM Extensions
+ device driver first.
+
+ 3.6.2 Description
+
+ To play audio CDs on a standard CDROM drive, you typically don't need any
+ software. Most CDROM drives have physical buttons to control play, pause,
+ and stop functions. Also, there is also some sort of volume control, either
+ digital (buttons) or analog (dial). But the user experience is limited.
+
+ To overcome this caveat, the CD Player sub-program was developed. The same
+ familiar text-mode user interface now presents various CDROM- and audio CD-
+ related information, as well as a set of commands to easily control the CD
+ playback.
+
+ To start the CD Player sub-program, type:
+
+   aif.exe -cdplayer
+
+ The program commands, accessible via keyboard shortcuts are listed below.
+
+   Shortcut ³ Function              ³ Description
+  ÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+   F5       ³ Change Drive          ³ Specifies the CDROM drive letter.
+   F6       ³ Open/Close Door       ³ Opens or closes the drive tray.
+   F7       ³ Lock/Unlock Door      ³ Locks or unlocks the CDROM controls.
+   F8       ³ Reset Drive           ³ Resets the CDROM hardware.
+   ESC      ³ Exit                  ³ If an audio CD is already playing, it
+            ³                       ³ prompts whether you want to stop the
+            ³                       ³ playback, or leave it play in the
+            ³                       ³ background before exitting.
+
+ If you have multiple CDROM drives installed in the same system, then they
+ can be controlled at the same time. For instance, you could have two audio
+ CDs playing at the same time. To switch between CDROM drive E and drive F,
+ press F5 and replace the drive letter. The CD Player will quickly recognize
+ the CDROM hardware status and will act accordingly, updating the interface
+ on-the-fly. Selecting a non-CDROM drive will trigger an error message.
+
+ In some cases, depending on how the CDROM Extensions driver initialized the
+ CDROM drive during computer boot, the first time you attempt to open (or
+ close) the door via F6, the hardware will not respond. This happens only
+ once, and in some specific cases. To overcome this issue, manually open (or
+ close) the CD tray.
+
+ The lock function applies to the physical buttons on the CDROM drive front
+ pannel. If the lock is on, then the buttons don't respond to interactions.
+
+ To easily control the playback functions, a number of keyboard shortcuts are
+ provided. These are listed below.
+
+   Shortcut ³ Function              ³ Description
+  ÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+   Z        ³ [<] Previous          ³ Plays the previous track.
+   X        ³ [] Play              ³ Plays the current track.
+   C        ³ [ğ] Pause             ³ Pauses or resumes playback.
+   V        ³ [ş] Stop              ³ Stops playback.
+   B        ³ [>] Next              ³ Plays the next track.
+            ³                       ³
+   *        ³ Random Track          ³ Plays a random track.
+   1-9      ³ Quick Play            ³ Plays a track in interval 1 to 9, if.
+            ³                       ³ available on the compact disc.
+
+ The order of the playback keys is pretty straightforward, following the
+ bottom line of the keyboard (Z through B), in sequence.
+
+ The asterisk (*) shortcut is used to playback a randomly selected track from
+ the loaded compact disc.
+ Quick playback keys 1 through 9 provide a faster alternative to switch to a
+ specific track on the compact disc, within the first 9 tracks.
+
+ For convenience, some additional options are included. They are described as
+ follows.
+
+   Shortcut ³ Function              ³ Description
+  ÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+   E        ³ Auto Eject            ³ Ejects the disk when playback done.
+   T        ³ Repeat Track          ³ Repeats current track indefinitely.
+   R        ³ Repeat All            ³ Repeats all tracks indefinitely.
+   V        ³ Shuffle Order         ³ Shuffles the playback order.
+   B        ³ Reverse Order         ³ Reverses the playback order.
+
+ Auto Eject is a toggle switch, and can be turned on and off independently.
+ If enabled, when the audio CD finishes playback, the software automatically
+ ejects the CD. If the play mode is set to repeat all tracks, then Auto Eject
+ option has no effect.
+
+ Repeat Track and Repeat All are mutually exclusive.
+ Repeat All takes into consideration the playback order. If tracks are
+ shuffled, reverse shuffled, or reversed, then they are repeated in that
+ specific order.
+
+ Shuffle Order and Reverse Order are mutually exclusive, but interconnected
+ to some extent, as described below.
+ The Shuffle Order function randomly sorts the track order with each toggle.
+ The Reverse Order function inverts the track order list with each toggle.
+ In addition, if the tracks are first shuffled and then Reverse Order is
+ selected, the shuffled track order list is reversed as well.
+
+ The user interface shows the selected Drive Letter, Door and Disk status,
+ Track-related information, and various time data. The Track List displays
+ the total tracks on the audio CD. The already played tracks are marked, the
+ current track is highlighted, and the remaining tracks are unmarked.
+
+ Finally, two progress bars show the elapsed percentage of the current track,
+ and the disk, as a whole.
+
+ For the record, the UI is updated each second, and the CD Player is closely
+ monitoring the CDROM hardware for changes. This means that once you start
+ the CD-Player sub-program and you already have an audio CD playing, it will
+ pick-up the disk and current track data in real-time. You can even control
+ the CDROM via the buttons on the front panel, and the software will detect
+ the changes and update the UI accordingly.
+
+ Furthermore, if the CDROM playback was manually started, and the CD Player
+ program never launched, upon starting it, it will adjust the UI to reflect
+ the current CD progress.
+
+
+
+ 4.0 Additional Information
+
+ AIF is still evolving, and some features are still being actively developed.
+ However, that is happening at a slower pace. Most of the bugs were fixed
+ already, and the program is stable in most scenarios. Should you spot bugs,
+ feel free to open issues on the AIF GitHub page. I will analyze them, and
+ eventually, provide updates and fixes.
+
+ For now, the PnP Setup sub-program is excluded from the compiled AIF.EXE
+ file, as it is no more than an entrypoint for the upcoming fully-featured
+ sub-program. However, this document states the point of the PnP Setup, and
+ provides a glimpse of the future use-cases of this feature.
+
+
+ 4.1 Legal Mentions
+
+ IBM, PC, and PS/2 are trademarks or registered trademarks of
+ International Business Machines Corporation.
+ MS-DOS, MSCDEX, Windows, and Windows Sound System are trademarks or
+ registered trademarks of Microsoft Corporation.
+ Sound Blaster is a trademark or registered trademark of
+ Creative Technology Ltd.
+ Yamaha and OPL3 are trademarks or registered trademarks of
+ Yamaha Corporation.
+ Crystal and CS4231A are trademarks or registered trademarks of
+ Cirrus Logic, Inc.
+ OPTi and 82c924 are trademarks or registered trademarks of OPTi Inc.
+ All other trademarks are the property of their respective owners.
+ No affiliation or endorsement is implied.
+
+
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+ 16-bit Audio Interface hardware, software, and documentation
+ Copyright (C) 1998-2025 Microprogramming TECHNIQUES
+ Documentation written by: Alexandru Groza
+ All rights reserved.
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+
+                             - end-of-document -
