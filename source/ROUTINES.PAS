@@ -34,7 +34,6 @@ procedure SetBit(var AByte: Byte; const ABit: Byte; const AValue: Boolean);
 function LocateByte(const AValue: Byte; const AArray: array of Byte): Byte;
 function LocateWord(const AValue: Word; const AArray: array of Word): Word;
 
-{function MSElapsed(const AMilliseconds: Word; var ALastTicks: Longint): Boolean;}
 function MillisecondsElapsed(const AMilliseconds: Word; var ALastTicks: Longint): Boolean;
 
 function MinByte(const AValue1, AValue2: Byte): Byte;
@@ -188,54 +187,6 @@ begin
     end;
   end;
 end;
-
-{function MSElapsed(const AMilliseconds: Word; var ALastTicks: Longint): Boolean; assembler;
-asm
-  push bp
-  push si
-
-  mov dx, 0040h
-  mov si, 006Ch
-  les di, [si]
-
-  cli
-
-  mov ax, word ptr es:[di]
-  mov bx, word ptr es:[di + 2]
-
-  sti
-
-  push ax
-  push bx
-
-  mov ax, word ptr [AMilliseconds]
-  mov cx, 182
-  imul cx
-  add ax, 5000
-  mov cx, 10000
-  div cx
-
-  mov dx, ax
-
-  pop bx
-  pop ax
-
-  sub ax, word ptr [ALastTicks]
-  sbb bx, word ptr [ALastTicks + 2]
-  jge @@ticksElapsed
-
-  xor al, al
-  jmp @@exit
-
-@@ticksElapsed:
-  mov word ptr [ALastTicks], ax
-  mov word ptr [ALastTicks + 2], bx
-  mov al, 01h
-
-@@exit:
-  pop si
-  pop bp
-end;}
 
 function MillisecondsElapsed(const AMilliseconds: Word; var ALastTicks: Longint): Boolean;
 var

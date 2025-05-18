@@ -59,51 +59,56 @@ begin
         Exit;
       end;
 {$ENDIF}
-      ErrorSetHaltOnErrors(False);
-
-      GConfigLoaded := SetupConfigLoad;
-      ConMsgWriteStatus(sLoadingAIFConfig, GConfigLoaded);
-
-      if not GConfigLoaded then
+      if GParameters.InitMode <> imNoInit then
       begin
-        SetupConfigDefault;
-        MixerConfigDefault;
+        ErrorSetHaltOnErrors(False);
 
-        ConMsgWriteStatus(sLoadingAIFConfigDefault, True);
-      end;
+        GConfigLoaded := SetupConfigLoad;
+        ConMsgWriteStatus(sLoadingAIFConfig, GConfigLoaded);
 
-      if GParameters.Setup or not GConfigLoaded then
-      begin
-        ConMsgWriteConfigChanged(sAIFConfig, SetupStart);
-      end;
+        if not GConfigLoaded then
+        begin
+          SetupConfigDefault;
+          MixerConfigDefault;
 
-      if GParameters.Mixer then
-      begin
-        ConMsgWriteConfigChanged(sMixerConfig, MixerStart);
-      end;
+          ConMsgWriteStatus(sLoadingAIFConfigDefault, True);
+        end;
 
-      ErrorSetHaltOnErrors(True);
+        if GParameters.Setup or not GConfigLoaded then
+        begin
+          ConMsgWriteConfigChanged(sAIFConfig, SetupStart);
+        end;
 
-      InitAIFBasic;
+        if GParameters.Mixer then
+        begin
+          ConMsgWriteConfigChanged(sMixerConfig, MixerStart);
+        end;
 
-      if GParameters.LineOut then
-      begin
-        InitLineOut;
-      end;
+        ErrorSetHaltOnErrors(True);
 
-      if (GParameters.InitMode = imSetup) or
-        ((GParameters.InitMode = imInvalid) and GParameters.LineOut) then
-      begin
-        GParameters.InitMode := SetupGetInitMode;
-      end;
+        InitAIFBasic;
 
-      if GParameters.InitMode <> imInvalid then
-      begin
-        InitAIFComplete;
+        if GParameters.LineOut then
+        begin
+          InitLineOut;
+        end;
+
+        if (GParameters.InitMode = imSetup) or
+          ((GParameters.InitMode = imInvalid) and GParameters.LineOut) then
+        begin
+          GParameters.InitMode := SetupGetInitMode;
+        end;
+
+        if GParameters.InitMode <> imInvalid then
+        begin
+          InitAIFComplete;
+        end;
       end;
 {$IFDEF CDPLAYER}
       if GParameters.CDPlayer then
       begin
+        ErrorSetHaltOnErrors(False);
+
         InitCDEXDriver;
 
         GConfigLoaded := CDPlayerConfigLoad;
@@ -116,15 +121,20 @@ begin
           ConMsgWriteStatus(sLoadingCDPConfigDefault, True);
         end;
 
-        if CDPlayerStart then
+        ErrorSetHaltOnErrors(True);
+
+        if CDPlayerStart or not GConfigLoaded then
         begin
           CDPlayerConfigSave;
         end;
       end;
 {$ENDIF}
-      if GParameters.Status then
+      if GParameters.InitMode <> imNoInit then
       begin
-        StatusWrite;
+        if GParameters.Status then
+        begin
+          StatusWrite;
+        end;
       end;
     end else
     begin

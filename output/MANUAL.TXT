@@ -92,6 +92,7 @@
    2.4 Initialization
      2.4.1 Automating the Initialization
      2.4.2 Keeping Quiet
+     2.4.3 Skipping Initialization
    2.5 Controlling the Line Output Relay
    2.6 Combining Parameters
  3.0 Additional Sub-programs
@@ -219,7 +220,7 @@
 
  You also need around 27 KB of free drive space for the main executable file
  and the hardware configuration files. This User's Guide and Reference Manual
- occupies an additional 36 KB of drive space. The text viewer program takes
+ occupies an additional 37 KB of drive space. The text viewer program takes
  less than 1 KB of drive space, and its documentation around 3 Kb. In total,
  you need around 70 KB of free drive space for the entire software package.
 
@@ -278,7 +279,7 @@
 
  Usage is:
    aif.exe [-?|-help] [-romsetup] [-pnpsetup] [-setup] [-mixer]
-     [-lineout=on|off] [-init|-wss|-sb] [-quiet] [-cdplayer] [-status]
+     [-lineout=on|off] [-noinit|-init|-wss|-sb] [-quiet] [-cdplayer] [-status]
 
  Where:
    -?|-help  shows this screen; ignores other parameters
@@ -287,6 +288,7 @@
    -setup    starts the setup sub-program
    -mixer    starts the volume mixer sub-program
    -lineout  enables or disables line out relay
+   -noinit   skips the audio interface initialization sequence
    -init     initializes the audio interface to preset mode
    -wss      initializes the audio interface to Windows Sound System mode
    -sb       initializes the audio interface to Sound Blaster mode
@@ -375,6 +377,20 @@
 
  The -quiet parameter can also be used during normal initialization, directly
  from the commandline, but this use-case is quasi-questionable.
+
+ 2.4.3 Skipping Initialization
+
+ An additional commandline parameter was added to skip the initialization
+ sequence of the audio interface hardware. This is useful if you only need to
+ run the CD Player sub-program on a machine that is equipped with a different
+ sound card.
+
+ Simply running the following command:
+
+   aif.exe -noinit
+
+ will cause the program to terminate immediately. Combining this -noinit with
+ any other parameter than -cdplayer, will terminate the program immediately.
 
 
  2.5 Controlling the Line Output Relay
@@ -694,9 +710,14 @@
  related information, as well as a set of commands to easily control the CD
  playback.
 
- To start the CD Player sub-program, type:
+ To start the CD Player sub-program, type either of the following commands:
 
    aif.exe -cdplayer
+   aif.exe -noinit -cdplayer
+
+ The -noinit parameter is described in Section 2.4.3 Skipping Initialization,
+ and it is used to run the CD Player sub-program on any machine, regardless
+ what audio hardware is installed.
 
  The program commands, accessible via keyboard shortcuts are listed below.
 

@@ -114,6 +114,10 @@ begin
       end;
     end;
 
+    if FindSimpleParameter(pNoInit) then
+    begin
+      GParameters.InitMode := imNoInit;
+    end else
     if FindSimpleParameter(pInit) then
     begin
       GParameters.InitMode := imSetup;

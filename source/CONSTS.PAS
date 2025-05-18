@@ -48,7 +48,7 @@ const
                                  ' [-setup]' +
                                  ' [-mixer]' + #13#10#32#32#32 +
                                  ' [-lineout=on|off]' +
-                                 ' [-init|-wss|-sb]' +
+                                 ' [-noinit|-init|-wss|-sb]' +
                                  ' [-quiet]' +
                 {$IFDEF CDPLAYER}' [-cdplayer]' +{$ENDIF}
                                  ' [-status]' + #13#10;
@@ -60,6 +60,7 @@ const
   sHelpParamSetup              = '  -setup    starts the setup sub-program';
   sHelpParamMixer              = '  -mixer    starts the volume mixer sub-program';
   sHelpParamLineOut            = '  -lineout  enables or disables line out relay';
+  sHelpParamNoInit             = '  -noinit   skips the audio interface initialization sequence';
   sHelpParamInit               = '  -init     initializes the audio interface to preset mode';
   sHelpParamWSS                = '  -wss      initializes the audio interface to Windows Sound System mode';
   sHelpParamSB                 = '  -sb       initializes the audio interface to Sound Blaster mode';
@@ -217,6 +218,7 @@ const
   pSetup                       = '-setup';
   pMixer                       = '-mixer';
   pLineOut                     = '-lineout=';
+  pNoInit                      = '-noinit';
   pInit                        = '-init';
   pWSS                         = '-wss';
   pSB                          = '-sb';
@@ -228,7 +230,7 @@ const
   pOff                         = 'off';
 
   { program commandline parameters help }
-  kHelpParametersBaseCount     = 9;
+  kHelpParametersBaseCount     = 10;
 {$IFDEF PNPSETUP}
   {$IFDEF CDPLAYER}
   kHelpParametersCount         = kHelpParametersBaseCount + 2;
@@ -251,6 +253,7 @@ const
     sHelpParamSetup,
     sHelpParamMixer,
     sHelpParamLineOut,
+    sHelpParamNoInit,
     sHelpParamInit,
     sHelpParamWSS,
     sHelpParamSB,
@@ -972,7 +975,7 @@ const
   kCDPlayerDriverVersionY      = 24;
 
   { CD Player program default initialization values }
-  kCDPlayerAutoEjectDefault    = True;
+  kCDPlayerAutoEjectDefault    = False;
   kCDPlayerRepeatTrackDefault  = False;
   kCDPlayerRepeatAllDefault    = False;
   kCDPlayerShuffleOrderDefault = False;

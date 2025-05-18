@@ -602,8 +602,6 @@ var
   LSlowTicks: Longint;
 
 begin
-  IGCDPlayerConfigChanged := False;
-
   LFastTicks := 0;
   LSlowTicks := 0;
 
@@ -1540,6 +1538,8 @@ var
   LFileSignature: TFileSignature;
 
 begin
+  IGCDPlayerConfigChanged := False;
+
   FillChar(LFileSignature, SizeOf(TFileSignature), $00);
 
   LFileName := FileReplaceExt(FExpand(ParamStr(0)), fmCDPFiles);
@@ -1562,10 +1562,17 @@ begin
 {$I+}
       LIOSucceeded := IOResult = 0;
 
-      if LIOSucceeded and (GCDROMData.CurrentDriveLetter <> IGCDPlayer.Config.DriveLetter) and
-        CDROMDriveCheck(IGCDPlayer.Config.DriveLetter) then
+      if LIOSucceeded then
       begin
-        GCDROMData.CurrentDriveLetter := IGCDPlayer.Config.DriveLetter;
+        if CDROMDriveCheck(IGCDPlayer.Config.DriveLetter) then
+        begin
+          GCDROMData.CurrentDriveLetter := IGCDPlayer.Config.DriveLetter;
+        end else
+        begin
+          IGCDPlayer.Config.DriveLetter := GCDROMData.CurrentDriveLetter;
+
+          IGCDPlayerConfigChanged := True;
+        end;
       end;
     end;
   end;

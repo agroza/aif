@@ -31,6 +31,7 @@ type
 
   TAIFInitMode = (
     imInvalid,
+    imNoInit,
     imSetup,
     imWSS,
     imSB

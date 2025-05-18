@@ -345,7 +345,7 @@ begin
   if Assigned(AVideoRAMData) then
   begin
     Move(
-      Mem[kVGARAMAddress : kVGARAMStartOffset],
+      Mem[kVGARAMAddress:kVGARAMStartOffset],
       AVideoRAMData^,
       kVGARAMSize
     );
@@ -358,7 +358,7 @@ begin
   begin
     Move(
       AVideoRAMData^,
-      Mem[kVGARAMAddress : kVGARAMStartOffset],
+      Mem[kVGARAMAddress:kVGARAMStartOffset],
       kVGARAMSize
     );
   end;
@@ -379,7 +379,7 @@ begin
   for LHeight := 0 to Pred(AVideoArea.Height) do
   begin
     Move(
-      Mem[kVGARAMAddress : ((AVideoArea.PositionY + LHeight) * kVGAColumnCount + Pred(AVideoArea.PositionX)) * 2],
+      Mem[kVGARAMAddress:((AVideoArea.PositionY + LHeight) * kVGAColumnCount + Pred(AVideoArea.PositionX)) * 2],
       AVideoSection^,
       LVideoAreaWidthSize
     );
@@ -404,7 +404,7 @@ begin
   begin
     Move(
       AVideoSection^,
-      Mem[kVGARAMAddress : ((AVideoArea.PositionY + LHeight) * kVGAColumnCount + Pred(AVideoArea.PositionX)) * 2],
+      Mem[kVGARAMAddress:((AVideoArea.PositionY + LHeight) * kVGAColumnCount + Pred(AVideoArea.PositionX)) * 2],
       LVideoAreaWidthSize
     );
 
