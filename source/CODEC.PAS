@@ -1,6 +1,6 @@
 { --------------------------------------------------------------------------- }
 { - Audio Interface - Audio Codec Interface (codec.pas)                     - }
-{ - Copyright (C) 1998-2022 Alexandru Groza of Microprogramming TECHNIQUES  - }
+{ - Copyright (C) 1998-2025 Alexandru Groza of Microprogramming TECHNIQUES  - }
 { - Portions Copyright (C) 2019 Jan Knipperts                               - }
 { - All rights reserved.                                                    - }
 { --------------------------------------------------------------------------- }
@@ -115,7 +115,7 @@ type
 
 const
   { general codec related constants }
-  kCodecCommunicationDelay            = 1;
+  kCodecIODelay                       = 1;
   kRetries                            = $FFFF;
 
   { codec direct registers }
@@ -225,6 +225,11 @@ var
 
 { private declarations }
 
+procedure CodecIODelay;
+begin
+  Routines.Delay(kCodecIODelay);
+end;
+
 procedure SetConfig(const AAddress: Word);
 begin
   GICodecConfig.WSSPort := AAddress;
@@ -259,15 +264,14 @@ begin
   if CodecIsReady then
   begin
     LOldRegister := Port[GICodecConfig.Address];
-    Port[GICodecConfig.Address] := (LOldRegister and $F0) or (ARegister and $1F);
 
-    Routines.Delay(kCodecCommunicationDelay);
+    Port[GICodecConfig.Address] := (LOldRegister and $F0) or (ARegister and $1F);
+    CodecIODelay;
 
     CodecRead := Port[GICodecConfig.Data];
 
     Port[GICodecConfig.Address] := LOldRegister;
-
-    Routines.Delay(kCodecCommunicationDelay);
+    CodecIODelay;
   end;
 
   EnableInterrupts;
@@ -283,19 +287,17 @@ begin
   if CodecIsReady then
   begin
     LOldRegister := Port[GICodecConfig.Address];
-    Port[GICodecConfig.Address] := (LOldRegister and $F0) or (ARegister and $1F);
 
-    Routines.Delay(kCodecCommunicationDelay);
+    Port[GICodecConfig.Address] := (LOldRegister and $F0) or (ARegister and $1F);
+    CodecIODelay;
 
     Port[GICodecConfig.Data] := AData;
-
-    Routines.Delay(kCodecCommunicationDelay);
+    CodecIODelay;
 
     AData := Port[GICodecConfig.Data];
 
     Port[GICodecConfig.Address] := LOldRegister;
-
-    Routines.Delay(kCodecCommunicationDelay);
+    CodecIODelay;
   end;
 
   EnableInterrupts;

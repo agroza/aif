@@ -129,12 +129,9 @@ begin
         end;
       end;
 {$ENDIF}
-      if GParameters.InitMode <> imNoInit then
+      if (GParameters.InitMode <> imNoInit) and GParameters.Status then
       begin
-        if GParameters.Status then
-        begin
-          StatusWrite;
-        end;
+        StatusWrite;
       end;
     end else
     begin

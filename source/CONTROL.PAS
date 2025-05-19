@@ -101,94 +101,99 @@ uses
 
 const
   { general controller related constants }
-  kRegisterPassword          = $E5;
+  kRegisterPassword            = $E5;
 
   { controller registers }
-  kREGISTER_MC1              = $0F8D;
-  kREGISTER_MC2              = $0F8E;
-  kREGISTER_MC3              = $0F8F;
-  kREGISTER_MC4              = $0F90;
-  kREGISTER_MC5              = $0F91;
-  kREGISTER_MC6              = $0F92;
-  kREGISTER_MC7              = $0F93;
+  kREGISTER_MC1                = $0F8D;
+  kREGISTER_MC2                = $0F8E;
+  kREGISTER_MC3                = $0F8F;
+  kREGISTER_MC4                = $0F90;
+  kREGISTER_MC5                = $0F91;
+  kREGISTER_MC6                = $0F92;
+  kREGISTER_MC7                = $0F93;
 
-  kREGISTER_MC_INDIRECT_IDX  = $0F94;
-  kREGISTER_MC_INDIRECT_DATA = $0F95;
+  kREGISTER_MC_INDIRECT_IDX    = $0F94;
+  kREGISTER_MC_INDIRECT_DATA   = $0F95;
 
-  kREGISTER_PASSWORD         = $0F8F;
+  kREGISTER_PASSWORD           = $0F8F;
 
   { controller registers default values }
-  kREGISTER_MC1_Default      = $00;
-  kREGISTER_MC2_Default      = $03;
-  kREGISTER_MC3_Default      = $F2;
-  kREGISTER_MC4_Default      = $A2;
-  kREGISTER_MC5_Default      = $2F;
-  kREGISTER_MC6_Default      = $83;
+  kREGISTER_MC1_Default        = $00;
+  kREGISTER_MC2_Default        = $03;
+  kREGISTER_MC3_Default        = $F2;
+  kREGISTER_MC4_Default        = $A2;
+  kREGISTER_MC5_Default        = $2F;
+  kREGISTER_MC6_Default        = $83;
 
   { Mode Control Register 1 bits }
-  kBitMOD                    = 7;
-  kBitPDN                    = 6;
-  kBitGPEN                   = 0;
+  kBitMOD                      = 7;
+  kBitPDN                      = 6;
+  kBitGPEN                     = 0;
 
   { Mode Control Register 2 bits }
-  kBitOPL4                   = 5;
+  kBitOPL4                     = 5;
 
   { Mode Control Register 3 bits }
-  kBitFMAP                   = 3;
-  kBitDABASE                 = 2;
-  kBitWRSROM                 = 1;
-  kBitCMDPAS                 = 0;
+  kBitFMAP                     = 3;
+  kBitDABASE                   = 2;
+  kBitWRSROM                   = 1;
+  kBitCMDPAS                   = 0;
 
   { Mode Control Register 4 bits }
-  kBitADPCMEN                = 7;
-  kBitGPOUT                  = 6;
-  kBitACKSIMEN               = 5;
-  kBitPNPMODE                = 4;
-  kBitFMCLK                  = 3;
-  kBitSILENCE                = 2;
+  kBitADPCMEN                  = 7;
+  kBitGPOUT                    = 6;
+  kBitACKSIMEN                 = 5;
+  kBitPNPMODE                  = 4;
+  kBitFMCLK                    = 3;
+  kBitSILENCE                  = 2;
 
   { Mode Control Register 5 bits }
-  kBitAVCEN                  = 7;
-  kBitOPL5                   = 6;
-  kBitSHPASS                 = 5;
-  kBitSBACCESS               = 4;
-  kBitCFIFO                  = 3;
-  kBitEPEN                   = 2;
-  kBitCFIX                   = 1;
-  kBitCDFTOEN                = 0;
+  kBitAVCEN                    = 7;
+  kBitOPL5                     = 6;
+  kBitSHPASS                   = 5;
+  kBitSBACCESS                 = 4;
+  kBitCFIFO                    = 3;
+  kBitEPEN                     = 2;
+  kBitCFIX                     = 1;
+  kBitCDFTOEN                  = 0;
 
   { Mode Control Register 6 bits }
-  kBitMPU401                 = 7;
-  kBitDRQTMEN                = 2;
-  kBitAUDIOEN                = 1;
-  kBitATTNEN                 = 0;
+  kBitMPU401                   = 7;
+  kBitDRQTMEN                  = 2;
+  kBitAUDIOEN                  = 1;
+  kBitATTNEN                   = 0;
 
   { Mode Control Register 7 bits }
-  kBitSROMCS                 = 2;
-  kBitSROMCLK                = 1;
-  kBitROMDOUT                = 0;
+  kBitSROMCS                   = 2;
+  kBitSROMCLK                  = 1;
+  kBitROMDOUT                  = 0;
 
   { Mode Control Register 9 bits }
-  kBitROMIN                  = 5;
+  kBitROMIN                    = 5;
 
   { WSS Configuration Register bits }
-  kWSSConfigBitRes           = 7;
-  kBitISS                    = 6;
+  kWSSConfigBitRes             = 7;
+  kBitISS                      = 6;
 
   { EEPROM communication }
-  kEEPROMCommandEWDS         = $0800;
-  kEEPROMCommandEWEN         = $0980;
-  kEEPROMCommandERAL         = $0900;
-  kEEPROMCommandWRAL         = $0880;
-  kEEPROMCommandERASE        = $0E00;
-  kEEPROMCommandREAD         = $0C00;
-  kEEPROMCommandWRITE        = $0A00;
+  kEEPROMCommandEWDS           = $0800;
+  kEEPROMCommandEWEN           = $0980;
+  kEEPROMCommandERAL           = $0900;
+  kEEPROMCommandWRAL           = $0880;
+  kEEPROMCommandERASE          = $0E00;
+  kEEPROMCommandREAD           = $0C00;
+  kEEPROMCommandWRITE          = $0A00;
 
-  kEEPROMReadyRetries        = $FFFF;
-  kEEPROMSize                = 256;
-  kEEPROMCommunicationDelay  = 1;
+  kEEPROMReadyRetries          = $FFFF;
+  kEEPROMSize                  = 256;
+  kEEPROMIODelay               = 1;
 
 { private declarations }
+
+procedure EEPROMIODelay;
+begin
+  Routines.Delay(kEEPROMIODelay);
+end;
 
 procedure SetBitStatus(var ABitVariable: TBitStatus; const AValue: Boolean);
 begin
@@ -950,19 +955,17 @@ end;
 procedure EEPROMClockPulse;
 begin
   SetRegisterBit(kREGISTER_MC7, kBitSROMCLK, True);
-
-  Routines.Delay(kEEPROMCommunicationDelay);
+  EEPROMIODelay;
 
   SetRegisterBit(kREGISTER_MC7, kBitSROMCLK, False);
-
-  Routines.Delay(kEEPROMCommunicationDelay);
+  EEPROMIODelay;
 end;
 
 procedure EEPROMDataOut(const AValue: Boolean);
 begin
   { TODO -oagroza -cImplement : Send data to indirect kREGISTER_MC9 / kBitROMIN. }
 
-  Routines.Delay(kEEPROMCommunicationDelay);
+  EEPROMIODelay;
 end;
 
 function EEPROMWaitReady: Boolean;
@@ -971,9 +974,7 @@ var
 
 begin
   EEPROMSetCS(False);
-
-  Routines.Delay(kEEPROMCommunicationDelay);
-
+  EEPROMIODelay;
   EEPROMSetCS(True);
 
   LRetries := kEEPROMReadyRetries;

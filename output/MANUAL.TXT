@@ -292,9 +292,9 @@
    -init     initializes the audio interface to preset mode
    -wss      initializes the audio interface to Windows Sound System mode
    -sb       initializes the audio interface to Sound Blaster mode
-   -status   displays the current audio interface configuration
-   -cdplayer starts the CD player sub-program
    -quiet    reduces text verbosity
+   -cdplayer starts the CD player sub-program
+   -status   displays the current audio interface configuration
 
  Examples:
    aif.exe -init
