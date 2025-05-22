@@ -61,7 +61,7 @@ begin
 {$ENDIF}
       if GParameters.InitMode <> imNoInit then
       begin
-        ErrorSetHaltOnErrors(False);
+        ErrorContinueOnErrors;
 
         GConfigLoaded := SetupConfigLoad;
         ConMsgWriteStatus(sLoadingAIFConfig, GConfigLoaded);
@@ -84,7 +84,7 @@ begin
           ConMsgWriteConfigChanged(sMixerConfig, MixerStart);
         end;
 
-        ErrorSetHaltOnErrors(True);
+        ErrorHaltOnErrors;
 
         InitAIFBasic;
 
@@ -107,9 +107,11 @@ begin
 {$IFDEF CDPLAYER}
       if GParameters.CDPlayer then
       begin
+        ErrorHaltOnErrors;
+
         InitCDEXDriver;
 
-        ErrorSetHaltOnErrors(False);
+        ErrorContinueOnErrors;
 
         GConfigLoaded := CDPlayerConfigLoad;
         ConMsgWriteStatus(sLoadingCDPConfig, GConfigLoaded);
@@ -121,7 +123,7 @@ begin
           ConMsgWriteStatus(sLoadingCDPConfigDefault, True);
         end;
 
-        ErrorSetHaltOnErrors(True);
+        ErrorHaltOnErrors;
 
         if CDPlayerStart or not GConfigLoaded then
         begin

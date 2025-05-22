@@ -10,7 +10,7 @@
 
   sMajor    = '3';
   sMinor    = '4';
-  sBuild    = '572';
+  sBuild    = '573';
   sRevision = 'C';
   sVersion  = 'VER.'#32 + sMajor + '.' + sMinor + '.' + sBuild +
               {$IFDEF BETA}'-á' + {$ENDIF}#32'REV.'#32 + sRevision;

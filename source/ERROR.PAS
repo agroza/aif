@@ -20,7 +20,8 @@ uses
 function Error16bitCPURequired: Boolean;
 function ErrorNotEnoughMemory: Boolean;
 
-procedure ErrorSetHaltOnErrors(const AValue: Boolean);
+procedure ErrorHaltOnErrors;
+procedure ErrorContinueOnErrors;
 procedure ErrorSetProgramError(const AValue: TProgramError);
 
 procedure ErrorWriteHalt;
@@ -73,12 +74,14 @@ begin
   end;
 end;
 
-procedure ErrorSetHaltOnErrors(const AValue: Boolean);
-begin
-  if IGHaltOnErrors <> AValue then
-  begin
-    IGHaltOnErrors := AValue;
-  end;
+procedure ErrorHaltOnErrors; assembler;
+asm
+  mov IGHaltOnErrors, True
+end;
+
+procedure ErrorContinueOnErrors; assembler;
+asm
+  mov IGHaltOnErrors, False
 end;
 
 procedure ErrorSetProgramError(const AValue: TProgramError);
