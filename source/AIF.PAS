@@ -107,9 +107,9 @@ begin
 {$IFDEF CDPLAYER}
       if GParameters.CDPlayer then
       begin
-        ErrorSetHaltOnErrors(False);
-
         InitCDEXDriver;
+
+        ErrorSetHaltOnErrors(False);
 
         GConfigLoaded := CDPlayerConfigLoad;
         ConMsgWriteStatus(sLoadingCDPConfig, GConfigLoaded);

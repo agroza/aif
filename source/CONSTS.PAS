@@ -493,32 +493,6 @@ const
   sPnPSetupCmdESC              = 'ESC';
   sPnPSetupCmdExit             = 'Exit';
 
-  { PnP Setup program color theme }
-  clPnPSetupFore               = clLightGray;
-  clPnPSetupBack               = clBlue;
-
-  clPnPSetupCmdHigh            = clLightCyan;
-  clPnPSetupCmdHeader          = clWhite;
-  clPnPSetupCmdFore            = clLightGray;
-  clPnPSetupCmdBack            = clDarkGray;
-
-  { PnP Setup program constants }
-  kPnPSetupStartupDelay        = 500;
-
-  kPnPSetupComponentsLeft      = 1;
-  kPnPSetupComponentsTop       = 2;
-  kPnPSetupComponentsWidth     = 49;
-  kPnPSetupComponentsHeight    = 24;
-
-  kPnPSetupCommandsLeft        = 50;
-  kPnPSetupCommandsTop         = 2;
-  kPnPSetupCommandsWidth       = 31;
-  kPnPSetupCommandsHeight      = 24;
-
-  kPnPSetupCmdX                = 52;
-
-  kPnPSetupCmdCount            = 0;
-
   { ROM Setup program stringtable }
   sROMSetupTitle               = 'AUDIO INTERFACE (EEP)ROM SETUP';
 

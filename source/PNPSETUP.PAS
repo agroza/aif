@@ -24,11 +24,35 @@ uses
   Video;
 
 const
-  kCmdProgramCommandsY         = 3;
-  kCmdExitY                    = 4;
+  clForeground                 = clLightGray;
+  clBackground                 = clBlue;
 
-  kUICommands: packed array[0..kPnPSetupCmdCount] of TUICommand = (
-    ( Y: kCmdExitY; Accelerator: sPnPSetupCmdESC; Name: sPnPSetupCmdExit )
+  clCmdHighlight               = clLightCyan;
+  clCmdHeader                  = clWhite;
+  clCmdForeground              = clLightGray;
+  clCmdBackground              = clDarkGray;
+
+  kStartupDelay                = 500;
+
+  kUIComponentsLeft            = 1;
+  kUIComponentsTop             = 2;
+  kUIComponentsWidth           = 49;
+  kUIComponentsHeight          = 24;
+
+  kUICommandsLeft              = 50;
+  kUICommandsTop               = 2;
+  kUICommandsWidth             = 31;
+  kUICommandsHeight            = 24;
+
+  kUICommandX                  = 52;
+
+  kUIProgramCommandY           = 3;
+  kUICmdExitY                  = 4;
+
+  kUICommandCount              = 0;
+
+  kUICommands: packed array[0..kUICommandCount] of TUICommand = (
+    ( Y: kUICmdExitY; Accelerator: sPnPSetupCmdESC; Name: sPnPSetupCmdExit )
   );
 
 { private declarations }
@@ -43,14 +67,14 @@ procedure UILoop; forward;
 procedure UIComponentsDraw;
 begin
   VideoWriteRegion(
-    kPnPSetupComponentsLeft,
-    kPnPSetupComponentsTop,
-    kPnPSetupComponentsWidth,
-    kPnPSetupComponentsHeight,
+    kUIComponentsLeft,
+    kUIComponentsTop,
+    kUIComponentsWidth,
+    kUIComponentsHeight,
     cSpace,
     VideoAttribute(
-      clPnPSetupFore,
-      clPnPSetupBack
+      clForeground,
+      clBackground
     )
   );
 
@@ -59,8 +83,8 @@ begin
     2,
     3,
     'PnP Setup is not available at this moment.',
-    clPnPSetupFore,
-    clPnPSetupBack
+    clForeground,
+    clBackground
   );
 end;
 
@@ -70,33 +94,33 @@ var
 
 begin
   VideoWriteRegion(
-    kPnPSetupCommandsLeft,
-    kPnPSetupCommandsTop,
-    kPnPSetupCommandsWidth,
-    kPnPSetupCommandsHeight,
+    kUICommandsLeft,
+    kUICommandsTop,
+    kUICommandsWidth,
+    kUICommandsHeight,
     cSpace,
     VideoAttribute(
-      clPnPSetupCmdFore,
-      clPnPSetupCmdBack
+      clCmdForeground,
+      clCmdBackground
     )
   );
 
   VideoWriteStringAt(
-    kPnPSetupCmdX,
-    kCmdProgramCommandsY,
+    kUICommandX,
+    kUIProgramCommandY,
     sPnPSetupCmdProgramCmds,
-    clPnPSetupCmdHeader,
-    clPnPSetupCmdBack
+    clCmdHeader,
+    clCmdBackground
   );
 
   for LUICommand := Low(kUICommands) to High(kUICommands) do
   begin
     ScreenCommandDraw(
-      kPnPSetupCmdX,
+      kUICommandX,
       kUICommands[LUICommand].Y,
-      clPnPSetupCmdHigh,
-      clPnPSetupCmdFore,
-      clPnPSetupCmdBack,
+      clCmdHighlight,
+      clCmdForeground,
+      clCmdBackground,
       StrPas(kUICommands[LUICommand].Accelerator),
       StrPas(kUICommands[LUICommand].Name)
     );
@@ -139,7 +163,7 @@ var
   LVideoRAMData: PVideoRAMData;
 
 begin
-  Routines.Delay(kPnPSetupStartupDelay);
+  Routines.Delay(kStartupDelay);
 
   VideoInitialize(LPositionY, LVideoRAMData);
   ScreenInitialize;

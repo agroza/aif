@@ -239,7 +239,7 @@ procedure ScreenProgressBarDraw(const AProgressBarData: TProgressBarData);
 procedure ScreenProgressBarUpdate(const AProgressBarData: TProgressBarData;
   const AProgressBarDirection: TProgressBarDirection);
 procedure ScreenProgressBarReset(var AProgressBarData: TProgressBarData; const AValue: Word);
-procedure ScreenProgressBarSetProgress(var AProgressBarData: TProgressBarData; AValue: Word);
+procedure ScreenProgressBarSetProgress(var AProgressBarData: TProgressBarData; const AValue: Word);
 
 procedure ScreenMessageBoxPrepare(var AMessageBoxData: TMessageBoxData; const ATitle, AText: String;
   const AButtons: TMessageBoxButtons; const ADefaultButton: TMessageBoxButton);
@@ -983,14 +983,25 @@ begin
   ScreenProgressBarSetProgress(AProgressBarData, AValue);
 end;
 
-procedure ScreenProgressBarSetProgress(var AProgressBarData: TProgressBarData; AValue: Word);
+procedure ScreenProgressBarSetProgress(var AProgressBarData: TProgressBarData; const AValue: Word);
 var
   LDirection: TProgressBarDirection;
 
 begin
-  LDirection := TProgressBarDirection(AProgressBarData.Progress >= AValue);
-
-  AProgressBarData.Progress := AValue;
+  if AValue < AProgressBarData.Min then
+  begin
+    LDirection := dirDescending;
+    AProgressBarData.Progress := AProgressBarData.Min;
+  end else
+  if AValue > AProgressBarData.Max then
+  begin
+    LDirection := dirAscending;
+    AProgressBarData.Progress := AProgressBarData.Max;
+  end else
+  begin
+    LDirection := TProgressBarDirection(AProgressBarData.Progress >= AValue);
+    AProgressBarData.Progress := AValue;
+  end;
 
   ScreenProgressBarUpdate(AProgressBarData, LDirection);
 end;

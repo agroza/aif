@@ -34,8 +34,6 @@ procedure SetBit(var AByte: Byte; const ABit: Byte; const AValue: Boolean);
 function LocateByte(const AValue: Byte; const AArray: array of Byte): Byte;
 function LocateWord(const AValue: Word; const AArray: array of Word): Word;
 
-function MillisecondsElapsed(const AMilliseconds: Word; var ALastTicks: Longint): Boolean;
-
 function MinByte(const AValue1, AValue2: Byte): Byte;
 
 function IntToHex(const AInteger: Integer): String;
@@ -185,29 +183,6 @@ begin
 
       Break;
     end;
-  end;
-end;
-
-function MillisecondsElapsed(const AMilliseconds: Word; var ALastTicks: Longint): Boolean;
-var
-  LCurrentTicks: Longint;
-  LTargetTicks: Longint;
-
-begin
-  DisableInterrupts;
-  LCurrentTicks := MemL[$0040:$006C];
-  EnableInterrupts;
-
-  LTargetTicks := (Longint(AMilliseconds) * 182 + 5000) div 10000;
-
-  if LCurrentTicks - ALastTicks >= LTargetTicks then
-  begin
-    ALastTicks := LCurrentTicks;
-
-    MillisecondsElapsed := True;
-  end else
-  begin
-    MillisecondsElapsed := False;
   end;
 end;
 

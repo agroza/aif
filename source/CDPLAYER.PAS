@@ -27,10 +27,18 @@ uses
   Consts,
   Routines,
   Screen,
+  SysTimer,
   Types,
   Video;
 
 type
+  TSysTimerTrigger = (
+    sttQuarterSecond,
+    sttFullSecond
+  );
+
+  TSysTimerTriggers = set of TSysTimerTrigger;
+
   TCDPlayerOption = (
     cdpAutoEject,
     cdpRepeatTrack,
@@ -105,8 +113,6 @@ const
   cOne                         = '1';
   cNine                        = '9';
 
-  kQuarterSecond               = 250;
-  kFullSecond                  = 1000;
   kSecondsLeadInPreGap         = 2;
 
   kCmdProgramCommandsY         = 3;
@@ -191,6 +197,8 @@ const
   );
 
 var
+  IGSysTimerTickCount: Byte;
+  IGSysTimerTriggers: TSysTimerTriggers;
   IGCDPlayerConfigChanged: Boolean;
   IGDriveLetterEdit: TEditData;
   IGKeyValues: packed array[0..kCDPlayerKeyValueCount] of TKeyValueData;
@@ -203,6 +211,9 @@ var
   IGCDPlayer: TCDPlayer;
 
 { private declarations }
+
+procedure SysTimerInit; forward;
+procedure SysTimerCallback; far; forward;
 
 procedure UIComponentsCreate; forward;
 procedure UIComponentsDraw; forward;
@@ -277,6 +288,31 @@ procedure CDCheckOptions; forward;
 
 procedure CDPlayerConfigClearPlayMode; forward;
 procedure CDPlayerConfigSet; forward;
+
+procedure SysTimerInit;
+begin
+  IGSysTimerTriggers := [];
+  IGSysTimerTickCount := 0;
+
+  SysTimerInterruptHook(SysTimerCallback);
+end;
+
+procedure SysTimerCallback;
+begin
+  Inc(IGSysTimerTickCount);
+
+  if IGSysTimerTickCount mod 5 = 0 then
+  begin
+    Include(IGSysTimerTriggers, sttQuarterSecond);
+  end;
+
+  if IGSysTimerTickCount >= 18 then
+  begin
+    IGSysTimerTickCount := 0;
+
+    Include(IGSysTimerTriggers, sttFullSecond);
+  end;
+end;
 
 procedure UIComponentsCreate;
 var
@@ -598,13 +634,8 @@ procedure UILoop;
 var
   LScanCode: Word;
   LKey: Char;
-  LFastTicks: Longint;
-  LSlowTicks: Longint;
 
 begin
-  LFastTicks := 0;
-  LSlowTicks := 0;
-
   while True do
   begin
     if GetKeyPressed then
@@ -734,7 +765,7 @@ begin
       end;
     end;
 
-    if MillisecondsElapsed(kQuarterSecond, LFastTicks) then
+    if sttQuarterSecond in IGSysTimerTriggers then
     begin
       CDUpdateTrackTimeData;
 
@@ -743,11 +774,15 @@ begin
 
       UIUpdateStatus;
       UIUpdateControlLEDs;
+
+      Exclude(IGSysTimerTriggers, sttQuarterSecond);
     end;
 
-    if MillisecondsElapsed(kFullSecond, LSlowTicks) then
+    if sttFullSecond in IGSysTimerTriggers then
     begin
       UIUpdateTrackTimeData;
+
+      Exclude(IGSysTimerTriggers, sttFullSecond);
     end;
   end;
 end;
@@ -1484,7 +1519,7 @@ end;
 
 procedure CDCheckOptions;
 begin
-  if IGCDPlayer.Disk and CDHasReached(IGCDPlayer.Time.Track,IGCDPlayer.Time.TrackPlay) then
+  if IGCDPlayer.Disk and CDHasReached(IGCDPlayer.Time.Track, IGCDPlayer.Time.TrackPlay) then
   begin
     if IGCDPlayerOptions[cdpRepeatTrack].Enabled then
     begin
@@ -1633,8 +1668,12 @@ begin
 
   CDPlayerReset;
 
+  SysTimerInit;
+
   UIDraw;
   UILoop;
+
+  SysTimerInterruptRelease;
 
   CDPlayerConfigSet;
 
