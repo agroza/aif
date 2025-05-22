@@ -97,6 +97,7 @@
    2.6 Combining Parameters
  3.0 Additional Sub-programs
    3.1 Which Sub-programs are Available?
+     3.1.1 Beta Versions
    3.2 Setup
    3.3 PnP Setup
      3.3.1 Disambiguation
@@ -468,11 +469,28 @@
  To know which sub-programs are available, just observe the first line output
  to the console when AIF is executed.
 
- AUDIO INTERFACE +PnP SETUP +CD PLAYER  VER. 3.2.536 REV. C
+ AUDIO INTERFACE +PnP SETUP +CD PLAYER  VER. 3.2.536 REV. A
  Copyright (C) 1998-2025 Microprogramming TECHNIQUES
 
  The included sub-programs appear as +PROGRAM NAME after the AUDIO INTERFACE
  identifier.
+
+ 3.1.1 Beta Versions
+
+ While AIF is still under development, some versions may be tagged as beta,
+ meaning that they are to be treated as evaluation versions. You can use such
+ a version on your own risk. However, it is recommended to keep a backup copy
+ of the last known non-beta fully-functional version.
+
+ A beta version has a specific identifier (-á) that appears immediately after
+ the build number. For example:
+
+ AUDIO INTERFACE +CD PLAYER  VER. 3.4.573-á REV. C
+ Copyright (C) 1998-2025 Microprogramming TECHNIQUES
+
+ Beta versions may contain previously unreleased features or sub-programs, or
+ major refactoring of the source code.
+
 
  3.2 Setup
 
