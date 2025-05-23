@@ -304,8 +304,6 @@ const
     sCDROMUnknownError
   );
 
-{ private declarations }
-
 function BCDToDecimal(const AValue: Byte): Byte; forward;
 
 procedure CDROMSendDeviceRequest(const ADrive: Char; var ARequestHeader); forward;
@@ -314,6 +312,8 @@ procedure CDROMSendInputRequest(var AIOCTLInputRequest: TIOCTLInputRequest;
   var ACtlBlock; const AByteCount: Byte); forward;
 function CDROMSendOutputRequest(const ACommand, AByteCount: Byte;
   const ALock: Boolean): Word; forward;
+
+{ private declarations }
 
 function BCDToDecimal(const AValue: Byte): Byte; assembler;
 asm

@@ -580,7 +580,6 @@
    * This sub-program is *not* yet fully implemented.
    * This documentation section is subject to change.
 
-
  3.3.1 Disambiguation
 
  PnP stands for Plug and Play. This is a set of techniques that allow the OS,

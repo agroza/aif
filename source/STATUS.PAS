@@ -42,9 +42,9 @@ type
     LineOutRelay: Boolean;
   end;
 
-{ private declarations }
-
 procedure UIWriteItem(const AItem, AValue: String); forward;
+
+{ private declarations }
 
 procedure UIWriteItem(const AItem, AValue: String);
 var

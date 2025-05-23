@@ -55,14 +55,14 @@ const
     ( Y: kUICmdExitY; Accelerator: sPnPSetupCmdESC; Name: sPnPSetupCmdExit )
   );
 
-{ private declarations }
-
 procedure UIComponentsDraw; forward;
 
 procedure UICommandsDraw; forward;
 
 procedure UIDraw; forward;
 procedure UILoop; forward;
+
+{ private declarations }
 
 procedure UIComponentsDraw;
 begin

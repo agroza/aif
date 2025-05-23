@@ -223,6 +223,20 @@ const
 var
   GICodecConfig: TCodecConfig;
 
+procedure CodecIODelay; forward;
+
+procedure SetConfig(const AAddress: Word); forward;
+
+function CodecRead(const ARegister: Byte): Byte; forward;
+procedure CodecWrite(const ARegister: Byte; AData: Byte); forward;
+
+procedure SetRegisterBit(const ARegister, ABit: Byte; const AValue: Boolean); forward;
+
+function SetMCE(const AValue: Boolean): Boolean; forward;
+
+function WaitForCalibration: Boolean; forward;
+function CodecCalibrate: Boolean; forward;
+
 { private declarations }
 
 procedure CodecIODelay;

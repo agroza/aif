@@ -103,8 +103,6 @@ const
     ( Y: kCmdOutputsEnabledY; Accelerator: sMixerCmd7; Name: sMixerCmdOutputsEnabled )
   );
 
-{ private declarations }
-
 procedure UIInitSlider(const AStereoSlider: TStereoSlider; const APositionY: Byte;
   const ATitle: String; const ALocked: Boolean; const ALeftPosition, ARightPosition: Byte); forward;
 
@@ -131,6 +129,8 @@ procedure MixerSetVolumes; forward;
 procedure MixerSetInputConfigOptions; forward;
 
 procedure MixerExitAndSave; forward;
+
+{ private declarations }
 
 procedure UIInitSlider(const AStereoSlider: TStereoSlider; const APositionY: Byte;
   const ATitle: String; const ALocked: Boolean; const ALeftPosition, ARightPosition: Byte);

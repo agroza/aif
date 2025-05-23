@@ -37,23 +37,7 @@ var
 procedure SysTimerInvokeOldISR(const AAddress: Pointer); forward;
 procedure SysTimerInterrupt; interrupt; forward;
 
-procedure SysTimerInterruptHook(const ACallback: TCallback);
-begin
-  IGSysTimerControl.Callback := ACallback;
-
-  GetIntVec(kSysTimerInterruptVector, IGSysTimerControl.OldVector);
-  SetIntVec(kSysTimerInterruptVector, Addr(SysTimerInterrupt));
-
-  IGSysTimerControl.OldExitProc := ExitProc;
-  ExitProc := Addr(SysTimerInterruptRelease);
-end;
-
-procedure SysTimerInterruptRelease;
-begin
-  SetIntVec(kSysTimerInterruptVector, IGSysTimerControl.OldVector);
-
-  ExitProc := IGSysTimerControl.OldExitProc;
-end;
+{ private declarations }
 
 procedure SysTimerInvokeOldISR(const AAddress: Pointer); assembler;
 asm
@@ -90,6 +74,26 @@ begin
   begin
     SysTimerInvokeOldISR(IGSysTimerControl.OldVector);
   end;
+end;
+
+{ public declarations }
+
+procedure SysTimerInterruptHook(const ACallback: TCallback);
+begin
+  IGSysTimerControl.Callback := ACallback;
+
+  GetIntVec(kSysTimerInterruptVector, IGSysTimerControl.OldVector);
+  SetIntVec(kSysTimerInterruptVector, Addr(SysTimerInterrupt));
+
+  IGSysTimerControl.OldExitProc := ExitProc;
+  ExitProc := Addr(SysTimerInterruptRelease);
+end;
+
+procedure SysTimerInterruptRelease;
+begin
+  SetIntVec(kSysTimerInterruptVector, IGSysTimerControl.OldVector);
+
+  ExitProc := IGSysTimerControl.OldExitProc;
 end;
 
 end.

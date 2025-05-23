@@ -188,12 +188,60 @@ const
   kEEPROMSize                  = 256;
   kEEPROMIODelay               = 1;
 
-{ private declarations }
+procedure SetBitStatus(var ABitVariable: TBitStatus; const AValue: Boolean); forward;
+procedure SetBitByStatus(var AByte: Byte; const ABit: Byte; const ABitStatus: TBitStatus); forward;
 
-procedure EEPROMIODelay;
-begin
-  Routines.Delay(kEEPROMIODelay);
-end;
+function ControllerRead(const APort: Word): Byte; forward;
+procedure ControllerWrite(const APort: Word; const AValue: Byte); forward;
+
+procedure SetRegisterBit(const ARegister: Word; const ABit: Byte; const AValue: Boolean); forward;
+
+function Detect82c924(const AAIFDetectionMode: TAIFDetectionMode): Boolean; forward;
+
+procedure SetWSSConfig(const AControllerConfig: TControllerConfig); forward;
+function GetSoundBase(const AData: Byte): Word; forward;
+procedure SetSoundBase(var AData: Byte; const AValue: Word); forward;
+function GetWSDRQ(const AData: Byte): Byte; forward;
+function GetIDECDROM(const AData: Byte): TBitStatus; forward;
+procedure SetIDECDROM(var AData: Byte; const AValue: TBitStatus); forward;
+function GetCDSEL(const AData: Byte): Word; forward;
+procedure SetCDSEL(var AData: Byte; const AValue: Word); forward;
+function GetCDIRQ(const AData: Byte): Byte; forward;
+procedure SetCDIRQ(var AData: Byte; const AValue: Byte); forward;
+function GetCDDRQ(const AData: Byte): Byte; forward;
+procedure SetCDDRQ(var AData: Byte; const AValue: Byte); forward;
+function GetDABASE(const AData: Byte): Word; forward;
+procedure SetDABASE(var AData: Byte; const AValue: Word); forward;
+function GetDAIRQ(const AData: Byte): Byte; forward;
+procedure SetDAIRQ(var AData: Byte; const AValue: Byte); forward;
+function GetDADRQ(const AData: Byte): Byte; forward;
+procedure SetDADRQ(var AData: Byte; const AValue: Byte); forward;
+function GetSBDSPVersion(const AData: Byte): TCodecSBDSPVersion; forward;
+procedure SetSBDSPVersion(var AData: Byte; const AValue: TCodecSBDSPVersion); forward;
+function GetMPUBASE(const AData: Byte): Word; forward;
+procedure SetMPUBASE(var AData: Byte; const AValue: Word); forward;
+function GetMPUIRQ(const AData: Byte): Byte; forward;
+procedure SetMPUIRQ(var AData: Byte; const AValue: Byte); forward;
+
+procedure GetConfig(var AControllerConfig: TControllerConfig); forward;
+procedure SetConfig(const AControllerMode: TControllerMode; const AControllerConfig: TControllerConfig); forward;
+
+procedure EEPROMIODelay; forward;
+procedure EEPROMSetCS(const AValue: Boolean); forward;
+procedure EEPROMClockPulse; forward;
+procedure EEPROMDataOut(const AValue: Boolean); forward;
+function EEPROMWaitReady: Boolean; forward;
+procedure EEPROMSendCommand(const ACommand: Word); forward;
+function EEPROMGetData: Byte; forward;
+procedure EEPROMSendData(const AData: Byte); forward;
+procedure EEPROMWriteDisable; forward;
+procedure EEPROMWriteEnable; forward;
+function EEPROMEraseAll: Boolean; forward;
+function EEPROMErase(const AAddress: Word): Boolean; forward;
+function EEPROMRead(const AAddress: Word): Byte; forward;
+function EEPROMWrite(const AAddress: Word; const AByte: Byte): Boolean; forward;
+
+{ private declarations }
 
 procedure SetBitStatus(var ABitVariable: TBitStatus; const AValue: Boolean);
 begin
@@ -945,6 +993,11 @@ begin
   begin
     SetWSSConfig(AControllerConfig);
   end;
+end;
+
+procedure EEPROMIODelay;
+begin
+  Routines.Delay(kEEPROMIODelay);
 end;
 
 procedure EEPROMSetCS(const AValue: Boolean);

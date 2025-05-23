@@ -62,17 +62,21 @@ const
 var
   GINewChip: Boolean;
 
-{ private declarations }
-
 procedure AISetAudioOutputFormat(const ACodecAudioConfig: TCodecAudioConfig); forward;
+
 function AISetWSSMode: Boolean; forward;
 function AISetSBMode: Boolean; forward;
+procedure AISetMode(const AParameters: TParameters); forward;
+
 function AIControllerDetect(var AOutputString: String): Boolean; forward;
 function AIControllerInitialize: Boolean; forward;
+
 function AICodecDetect(var AOutputString: String): Boolean; forward;
 function AICodecInitialize: Boolean; forward;
+
 function AIMPUInitialize: Boolean; forward;
-procedure AISetMode(const AParameters: TParameters); forward;
+
+{ private declarations }
 
 procedure AISetAudioOutputFormat(const ACodecAudioConfig: TCodecAudioConfig);
 var
@@ -131,6 +135,40 @@ begin
   end else
   begin
     AISetSBMode := False;
+  end;
+end;
+
+procedure AISetMode(const AParameters: TParameters);
+var
+  LAction: Boolean;
+
+begin
+  VideoSetForeground(clNormal);
+  VideoSetBackground(clBlack);
+
+  case AParameters.InitMode of
+    imWSS:
+      begin
+        LAction := AISetWSSMode;
+        ConMsgWriteStatus(sSettingWSSMode, LAction);
+
+        if LAction and AParameters.Quiet then
+        begin
+          VideoWriteln(sAIFInitializedWSSMode);
+        end;
+      end;
+
+    imSB:
+      begin
+        LAction := AISetSBMode;
+        ConMsgWriteStatus(sSettingSBMode, LAction);
+
+        if LAction and AParameters.Quiet then
+        begin
+          VideoWriteln(sAIFInitializedSBMode);
+        end;
+      end;
+
   end;
 end;
 
@@ -200,40 +238,6 @@ begin
   end else
   begin
     AIMPUInitialize := False;
-  end;
-end;
-
-procedure AISetMode(const AParameters: TParameters);
-var
-  LAction: Boolean;
-
-begin
-  VideoSetForeground(clNormal);
-  VideoSetBackground(clBlack);
-
-  case AParameters.InitMode of
-    imWSS:
-      begin
-        LAction := AISetWSSMode;
-        ConMsgWriteStatus(sSettingWSSMode, LAction);
-
-        if LAction and AParameters.Quiet then
-        begin
-          VideoWriteln(sAIFInitializedWSSMode);
-        end;
-      end;
-
-    imSB:
-      begin
-        LAction := AISetSBMode;
-        ConMsgWriteStatus(sSettingSBMode, LAction);
-
-        if LAction and AParameters.Quiet then
-        begin
-          VideoWriteln(sAIFInitializedSBMode);
-        end;
-      end;
-
   end;
 end;
 

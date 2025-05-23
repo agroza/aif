@@ -156,7 +156,7 @@ const
   kVGARAMStartOffset    = $0000;
   kVGARAMAddress        = $B800;
 
-  { Color Attributes }
+  { color attributes }
   caDefaultAttribute    = $07;
 
   kEmptySpace           = ' ';

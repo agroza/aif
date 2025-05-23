@@ -216,8 +216,6 @@ var
   IGSetupConfig: TSetupConfig;
   IGMessageBox: TMessageBoxData;
 
-{ private declarations }
-
 procedure UIComponentsCreate; forward;
 
 procedure UICommandsDraw; forward;
@@ -239,6 +237,8 @@ procedure ApplyConfig; forward;
 procedure InitConfig; forward;
 
 procedure UIExitAndSave; forward;
+
+{ private declarations }
 
 function GSVAIFMode(const AIndex: Byte; const ASetValue: Boolean): String;
 begin

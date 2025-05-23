@@ -29,6 +29,8 @@ uses
   Types,
   Video;
 
+{ public declarations }
+
 procedure ConMsgWriteProgramHeader;
 begin
   VideoWriteNewln;

@@ -50,9 +50,9 @@ var
   IGStatusPort: Word;
   IGCommandPort: Word;
 
-{ private declarations }
-
 function SendDataWaitStatus(const APort: Word; const AData, AMask: Byte): Boolean; forward;
+
+{ private declarations }
 
 function SendDataWaitStatus(const APort: Word; const AData, AMask: Byte): Boolean;
 var

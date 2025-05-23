@@ -75,8 +75,6 @@ var
   IGRawData: TFramedAreaData;
   IGMessageBox: TMessageBoxData;
 
-{ private declarations }
-
 procedure UIComponentsCreate; forward;
 procedure UIComponentsDraw; forward;
 procedure UICommandsDraw; forward;
@@ -90,6 +88,8 @@ procedure UIResultDraw(const AValue: Boolean); forward;
 
 procedure UIDraw; forward;
 procedure UILoop; forward;
+
+{ private declarations }
 
 procedure UIComponentsCreate;
 begin
