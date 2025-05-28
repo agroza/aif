@@ -34,24 +34,44 @@ const
 var
   IGSysTimerControl: TSysTimerControl;
 
-procedure SysTimerInvokeOldISR(const AAddress: Pointer); forward;
-procedure SysTimerInterrupt; interrupt; forward;
+procedure SysTimerInterrupt; forward;
 
 { private declarations }
 
-procedure SysTimerInvokeOldISR(const AAddress: Pointer); assembler;
+procedure SysTimerInterrupt; assembler;
 asm
-  pop bp
-  add sp, 02h
+  push ax
+  push bx
+  push cx
+  push dx
+  push si
+  push di
+  push ds
+  push es
+  push bp
 
-  pop bx
-  pop ax
+  mov ax, seg IGSysTimerControl
+  mov ds, ax
 
-  mov word ptr [bp + 0Eh], bx
-  mov word ptr [bp + 10h], ax
+  cmp word ptr ds:[IGSysTimerControl.Callback + 2], 0
+  je @@skipCallback
+  cmp word ptr ds:[IGSysTimerControl.Callback], 0
+  je @@skipCallback
 
-  mov sp, bp
+  call dword ptr ds:[IGSysTimerControl.Callback]
 
+@@skipCallback:
+  cmp word ptr ds:[IGSysTimerControl.OldVector + 2], 0
+  je @@exit
+  cmp word ptr ds:[IGSysTimerControl.OldVector], 0
+  je @@exit
+
+{
+  old $1C ISR call is skipped by intention, as it will just perform an IRET,
+  rendering the SysTimerInterrupt stack unbalanced
+}
+
+@@exit:
   pop bp
   pop es
   pop ds
@@ -59,21 +79,10 @@ asm
   pop si
   pop dx
   pop cx
+  pop bx
+  pop ax
 
-  retf
-end;
-
-procedure SysTimerInterrupt;
-begin
-  if Assigned(IGSysTimerControl.Callback) then
-  begin
-    IGSysTimerControl.Callback;
-  end;
-
-  if Assigned(IGSysTimerControl.OldVector) then
-  begin
-    SysTimerInvokeOldISR(IGSysTimerControl.OldVector);
-  end;
+  iret
 end;
 
 { public declarations }

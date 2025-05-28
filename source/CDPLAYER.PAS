@@ -33,8 +33,10 @@ uses
 
 type
   TSysTimerTrigger = (
-    sttQuarterSecond,
-    sttFullSecond
+    stt50ms,
+    stt250ms,
+    stt500ms,
+    stt1000ms
   );
 
   TSysTimerTriggers = set of TSysTimerTrigger;
@@ -109,10 +111,16 @@ type
 const
   kFileSignature: TFileSignature = 'AG86.CDP';
 
+  kQuarterSecondMarkers        = [4, 9, 14, 18];
+  kHalfSecondMarkers           = [9, 18];
+  kFullSecondMarker            = 18;
+
   cZero                        = '0';
   cOne                         = '1';
   cNine                        = '9';
 
+  kSecondsPerMinute            = 60;
+  kFramesPerSecond             = 75;
   kSecondsLeadInPreGap         = 2;
 
   kCmdProgramCommandsY         = 3;
@@ -199,7 +207,9 @@ const
 var
   IGSysTimerTickCount: Byte;
   IGSysTimerTriggers: TSysTimerTriggers;
+
   IGCDPlayerConfigChanged: Boolean;
+
   IGDriveLetterEdit: TEditData;
   IGKeyValues: packed array[0..kCDPlayerKeyValueCount] of TKeyValueData;
   IGTrackOrderFramedArea: TFramedAreaData;
@@ -209,8 +219,6 @@ var
   IGMessageBox: TMessageBoxData;
 
   IGCDPlayer: TCDPlayer;
-
-{ private declarations }
 
 procedure SysTimerInit; forward;
 procedure SysTimerCallback; far; forward;
@@ -247,7 +255,7 @@ procedure UIUpdateLEDs(const APlayState, APauseState, AStopState: Boolean); forw
 procedure UIUpdateControlLEDs; forward;
 procedure UIUpdateDoorDisk; forward;
 procedure UIUpdateStatus; forward;
-procedure UIUpdateTrackTimeData; forward;
+procedure UIUpdateAudioQChannel; forward;
 procedure UIResetTrackProgressBar; forward;
 procedure UIResetDiskProgressBar; forward;
 procedure UIUpdateAllResetProgressBars; forward;
@@ -257,7 +265,7 @@ procedure UITracksOrderDisplay; forward;
 function CDSucceeded(const ACDROMStatus: Word): Boolean; forward;
 
 procedure CDPlayerReset; forward;
-procedure CDUpdateTrackTimeData; forward;
+procedure CDUpdateAudioQChannel; forward;
 procedure CDLoadUnload; forward;
 procedure CDLoad; forward;
 procedure CDUnload; forward;
@@ -289,6 +297,8 @@ procedure CDCheckOptions; forward;
 procedure CDPlayerConfigClearPlayMode; forward;
 procedure CDPlayerConfigSet; forward;
 
+{ private declarations }
+
 procedure SysTimerInit;
 begin
   IGSysTimerTriggers := [];
@@ -301,16 +311,23 @@ procedure SysTimerCallback;
 begin
   Inc(IGSysTimerTickCount);
 
-  if IGSysTimerTickCount mod 5 = 0 then
+  Include(IGSysTimerTriggers, stt50ms);
+
+  if IGSysTimerTickCount in kQuarterSecondMarkers then
   begin
-    Include(IGSysTimerTriggers, sttQuarterSecond);
+    Include(IGSysTimerTriggers, stt250ms);
   end;
 
-  if IGSysTimerTickCount >= 18 then
+  if IGSysTimerTickCount in kHalfSecondMarkers then
+  begin
+    Include(IGSysTimerTriggers, stt500ms);
+  end;
+
+  if IGSysTimerTickCount >= kFullSecondMarker then
   begin
     IGSysTimerTickCount := 0;
 
-    Include(IGSysTimerTriggers, sttFullSecond);
+    Include(IGSysTimerTriggers, stt1000ms);
   end;
 end;
 
@@ -765,24 +782,34 @@ begin
       end;
     end;
 
-    if sttQuarterSecond in IGSysTimerTriggers then
+    if stt50ms in IGSysTimerTriggers then
     begin
-      CDUpdateTrackTimeData;
+      Exclude(IGSysTimerTriggers, stt50ms);
 
-      UIUpdateDoorDisk;
+      CDUpdateAudioQChannel;
       CDCheckOptions;
-
-      UIUpdateStatus;
-      UIUpdateControlLEDs;
-
-      Exclude(IGSysTimerTriggers, sttQuarterSecond);
     end;
 
-    if sttFullSecond in IGSysTimerTriggers then
+    if stt250ms in IGSysTimerTriggers then
     begin
-      UIUpdateTrackTimeData;
+      Exclude(IGSysTimerTriggers, stt250ms);
 
-      Exclude(IGSysTimerTriggers, sttFullSecond);
+      UIUpdateDoorDisk;
+      UIUpdateStatus;
+    end;
+
+    if stt500ms in IGSysTimerTriggers then
+    begin
+      Exclude(IGSysTimerTriggers, stt500ms);
+
+      UIUpdateControlLEDs;
+    end;
+
+    if stt1000ms in IGSysTimerTriggers then
+    begin
+      Exclude(IGSysTimerTriggers, stt1000ms);
+
+      UIUpdateAudioQChannel;
     end;
   end;
 end;
@@ -972,7 +999,7 @@ begin
   end;
 end;
 
-procedure UIUpdateTrackTimeData;
+procedure UIUpdateAudioQChannel;
 var
   LTrackSeconds: Word;
   LDiskSeconds: Word;
@@ -1108,9 +1135,8 @@ begin
   FillChar(IGCDPlayer, SizeOf(TCDPlayer) - SizeOf(TCDPlayerConfig), $00);
 end;
 
-procedure CDUpdateTrackTimeData;
+procedure CDUpdateAudioQChannel;
 var
-  LErrorCode: Byte;
   LAudioQChannel: TAudioQChannel;
   LTrackOrder: Byte;
 
@@ -1513,8 +1539,11 @@ end;
 function CDHasReached(const ACurrent, ATarget: TTimeData): Boolean;
 begin
   CDHasReached :=
-    ACurrent.Minutes * 60 + ACurrent.Seconds + kSecondsLeadInPreGap >=
-    ATarget.Minutes * 60 + ATarget.Seconds;
+    ACurrent.Minutes * kSecondsPerMinute +
+    ACurrent.Seconds + Succ(kSecondsLeadInPreGap) +
+    ACurrent.Frames div kFramesPerSecond >=
+    ATarget.Minutes * kSecondsPerMinute +
+    ATarget.Seconds;
 end;
 
 procedure CDCheckOptions;
