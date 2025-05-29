@@ -5,7 +5,7 @@ Audio Interface Program
 ## Synopsis
 This repository contains the MS-DOS(R) AIF driver source code for my DIY [ISA Audio Interface](http://www.alexandrugroza.ro/microelectronics/system-design/isa-audio-interface/index.html) card that you can find on the [Microelectronics](http://www.alexandrugroza.ro/microelectronics/index.html) page on my site.
 
-The program allows the setup and initialization of the audio interface hardware while also providing a stereo volume mixer. In addition, there is the CD Player feature. I programmed all this into one single MS-DOS executable file of roughly 58 Kb. If this file is further compressed, then its size decreases to about 26 Kb. Which is pretty much awesome.
+The program allows the setup and initialization of the audio interface hardware while also providing a stereo volume mixer. In addition, there is the CD Player feature. I programmed all this into one single MS-DOS executable file of roughly 58 Kb. If this file is further compressed, then its size decreases to about 27 Kb. Which is pretty much awesome.
 
 Since this kind of hardware is well out of marketing purposes (my design is not for sale) and the datasheets extensively describe how the software should be written, I believe there is no trade secret to programming such a driver. Thus, I am releasing my work under the GNU General Public License v3.0 terms and conditions, for educational and documentation purposes.
 
@@ -39,6 +39,11 @@ I (re-)learned a lot of (forgotten) programming tricks in the process, and refre
 ### Spin-off Software
 
 Working on AIF triggered me to develop another computer program ([DISPLAY.COM](https://github.com/agroza/display/)), something that I've been thinking of since 1994 or so.
+
+To improve the program versioning, I finally invested time into defining a version structure. Then I programed my own commandline tool that automatically increments the build number in a specific ```version.inc``` file. This program is called [UVERSION.EXE](#) and will soon be available to the public.
+I added it to the Borland Pascal 7.0 Tools menu, with its own keyboard shortcut (Shift+F10). I run it before each full rebuild. I wish there was a way to run it automatically before a full rebuild command.
+
+And finally, I found motivation to write official documentation for my programs, starting with ```AIF```, of course.
 
 ### Program Usage
 
