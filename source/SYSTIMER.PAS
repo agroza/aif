@@ -54,24 +54,24 @@ asm
   mov ds, ax
 
   cmp word ptr ds:[IGSysTimerControl.Callback + 2], 0
-  je @@skipCallback
+  je @skipCallback
   cmp word ptr ds:[IGSysTimerControl.Callback], 0
-  je @@skipCallback
+  je @skipCallback
 
   call dword ptr ds:[IGSysTimerControl.Callback]
 
-@@skipCallback:
+@skipCallback:
   cmp word ptr ds:[IGSysTimerControl.OldVector + 2], 0
-  je @@exit
+  je @exit
   cmp word ptr ds:[IGSysTimerControl.OldVector], 0
-  je @@exit
+  je @exit
 
 {
   old $1C ISR call is skipped by intention, as it will just perform an IRET,
   rendering the SysTimerInterrupt stack unbalanced
 }
 
-@@exit:
+@exit:
   pop bp
   pop es
   pop ds

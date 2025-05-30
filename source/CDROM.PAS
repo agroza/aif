@@ -103,6 +103,7 @@ function CDROMPlayAudio(const AAudioTrack: TAudioTrack): Word;
 function CDROMStopAudio: Word;
 function CDROMResumeAudio: Word;
 
+function CDROMRoundFrames(const AValue: Byte): Byte;
 function CDROMTimeToLBA(const AValue: Longint): Longint;
 function CDROMTimeToSeconds(const ATimeData: TTimeData): Word;
 function CDROMFormatTime(const ATimeData: TTimeData): String;
@@ -432,7 +433,8 @@ begin
   begin
     LError := Lo(AStatus);
 
-    CDROMDriveReady := (LError <> kERR_DRIVE_NOT_READY) and (LError <> kERR_GENERAL_FAILURE);
+    CDROMDriveReady :=
+      (LError <> kERR_DRIVE_NOT_READY) and (LError <> kERR_GENERAL_FAILURE);
   end else
   begin
     CDROMDriveReady := True;
@@ -609,8 +611,10 @@ begin
       end;
     end;
 
-    AAudioTrack.SectorCount := CDROMTimeToLBA(LEndSector.Value) -
-      CDROMTimeToLBA(AAudioTrack.StartSector);
+    AAudioTrack.SectorCount :=
+      CDROMTimeToLBA(LEndSector.Value) -
+      CDROMTimeToLBA(AAudioTrack.StartSector)-
+      kSectorsLeadInPreGap;
   end;
 
   CDROMGetAudioTrackInfo := LStatus;
@@ -744,6 +748,17 @@ begin
   CDROMResumeAudio := LResumeAudioRequest.Header.Status;
 end;
 
+function CDROMRoundFrames(const AValue: Byte): Byte;
+begin
+  if AValue >= Succ(kSectorsPerSecond) div 2 then
+  begin
+    CDROMRoundFrames := 1;
+  end else
+  begin
+    CDROMRoundFrames := 0;
+  end;
+end;
+
 function CDROMTimeToLBA(const AValue: Longint): Longint;
 var
   LTimeData: TTimeData;
@@ -758,7 +773,7 @@ end;
 function CDROMTimeToSeconds(const ATimeData: TTimeData): Word;
 begin
   CDROMTimeToSeconds :=
-    ATimeData.Frames div kSectorsPerSecond +
+    CDROMRoundFrames(ATimeData.Frames) +
     ATimeData.Seconds +
     ATimeData.Minutes * kSecondsPerMinute;
 end;

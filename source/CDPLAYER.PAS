@@ -74,10 +74,10 @@ type
   );
 
   TCDPlayerTime = packed record
-    TrackPlay: TTimeData;
     Track: TTimeData;
-    DiskPlay: TTimeData;
+    TrackPlay: TTimeData;
     Disk: TTimeData;
+    DiskPlay: TTimeData;
   end;
 
   TCDPlayerControl = packed record
@@ -120,7 +120,6 @@ const
   cNine                        = '9';
 
   kSecondsPerMinute            = 60;
-  kFramesPerSecond             = 75;
   kSecondsLeadInPreGap         = 2;
 
   kCmdProgramCommandsY         = 3;
@@ -301,8 +300,8 @@ procedure CDPlayerConfigSet; forward;
 
 procedure SysTimerInit;
 begin
-  IGSysTimerTriggers := [];
   IGSysTimerTickCount := 0;
+  IGSysTimerTriggers := [];
 
   SysTimerInterruptHook(SysTimerCallback);
 end;
@@ -377,8 +376,8 @@ begin
   IGTrackProgressBar.Colors.Progress := clCDPlayerProgressColor;
   IGTrackProgressBar.DrawMode := dmRepaint;
   IGTrackProgressBar.Min := kCDPlayerProgressBarMin;
-  IGTrackProgressBar.Max := 256;
-  IGTrackProgressBar.Progress := 0;
+  IGTrackProgressBar.Max := kCDPlayerProgressBarMax;
+  IGTrackProgressBar.Progress := kCDPlayerProgressBarMin;
   IGTrackProgressBar.Title := sCDPlayerTrackProgress;
 
   IGDiskProgressBar.PositionX := kCDPlayerProgressBarX;
@@ -390,8 +389,8 @@ begin
   IGDiskProgressBar.Colors.Progress := clCDPlayerProgressColor;
   IGDiskProgressBar.DrawMode := dmRepaint;
   IGDiskProgressBar.Min := kCDPlayerProgressBarMin;
-  IGDiskProgressBar.Max := 256;
-  IGDiskProgressBar.Progress := 0;
+  IGDiskProgressBar.Max := kCDPlayerProgressBarMax;
+  IGDiskProgressBar.Progress := kCDPlayerProgressBarMin;
   IGDiskProgressBar.Title := sCDPlayerDiskProgress;
 
   IGMessageBox.Colors.Foreground := clMessageBoxFore;
@@ -1015,7 +1014,8 @@ begin
       IGCDPlayer.Time.Track.Value := 0;
 
       UIResetTrackProgressBar;
-      ScreenProgressBarSetProgress(IGDiskProgressBar, LDiskSeconds - LTrackSeconds + 2);
+      ScreenProgressBarSetProgress(IGDiskProgressBar,
+        LDiskSeconds - LTrackSeconds + kSecondsLeadInPreGap);
     end else
     begin
       ScreenProgressBarSetProgress(IGTrackProgressBar, LTrackSeconds);
@@ -1176,8 +1176,8 @@ begin
   begin
     IGCDPlayer.Time.DiskPlay.Value := IGCDPlayer.AudioDisk.LeadOutTrackSector;
 
-    FillChar(IGCDPlayer.Time.Track, SizeOf(TTimeData), $00);
-    FillChar(IGCDPlayer.Time.Disk, SizeOf(TTimeData), $00);
+    IGCDPlayer.Time.Track.Value := 0;
+    IGCDPlayer.Time.Disk.Value := 0;
 
     CDTracksRead;
     CDTracksSetPlayMode;
@@ -1197,8 +1197,8 @@ begin
 
   CDPlayerReset;
 
-  IGTrackProgressBar.Max := 0;
-  IGDiskProgressBar.Max := 0;
+  IGTrackProgressBar.Max := kCDPlayerProgressBarMax;
+  IGDiskProgressBar.Max := kCDPlayerProgressBarMax;
 
   UIUpdateAllResetProgressBars;
   UITracksOrderDisplay;
@@ -1365,6 +1365,8 @@ end;
 
 procedure CDSwitchTrack(const ATrackNumber: Byte);
 begin
+  IGCDPlayer.Time.Track.Value := 0;
+
   IGCDPlayer.Tracks.OrderIndex := CDTracksGetOrder(ATrackNumber);
 
   CDROMGetTrackPlayTime(IGCDPlayer.Tracks.Data^[ATrackNumber], IGCDPlayer.Time.TrackPlay);
@@ -1498,9 +1500,14 @@ begin
   begin
     Randomize;
 
-    IGCDPlayer.Tracks.OrderIndex := CDTracksGetOrder(Random(Succ(
-      IGCDPlayer.AudioDisk.HighestTrackNumber - IGCDPlayer.AudioDisk.LowestTrackNumber)) +
-      IGCDPlayer.AudioDisk.LowestTrackNumber);
+    IGCDPlayer.Tracks.OrderIndex := CDTracksGetOrder(
+      Random(
+        Succ(
+          IGCDPlayer.AudioDisk.HighestTrackNumber -
+          IGCDPlayer.AudioDisk.LowestTrackNumber
+        )
+      ) + IGCDPlayer.AudioDisk.LowestTrackNumber
+    );
 
     CDPlayTrack;
   end;
@@ -1540,10 +1547,11 @@ function CDHasReached(const ACurrent, ATarget: TTimeData): Boolean;
 begin
   CDHasReached :=
     ACurrent.Minutes * kSecondsPerMinute +
-    ACurrent.Seconds + Succ(kSecondsLeadInPreGap) +
-    ACurrent.Frames div kFramesPerSecond >=
+    ACurrent.Seconds + kSecondsLeadInPreGap +
+    CDROMRoundFrames(ACurrent.Frames) >=
     ATarget.Minutes * kSecondsPerMinute +
-    ATarget.Seconds;
+    ATarget.Seconds +
+    CDROMRoundFrames(ATarget.Frames);
 end;
 
 procedure CDCheckOptions;

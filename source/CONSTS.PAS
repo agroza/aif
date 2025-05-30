@@ -918,6 +918,7 @@ const
   kCDPlayerProgressBarX        = kCDPlayerKeyX;
   kCDPlayerProgressBarWidth    = 47;
   kCDPlayerProgressBarMin      = 0;
+  kCDPlayerProgressBarMax      = 256;
 
   kCDPlayerTrackProgressY      = 15;
   kCDPlayerDiskProgressY       = 19;
