@@ -6,6 +6,12 @@
 { - License: GNU General Public License v3.0                                - }
 { --------------------------------------------------------------------------- }
 
+{$I cdefines.inc}
+
+{$IFDEF CPU16BIT}
+  {$G+}
+{$ENDIF}
+
 unit SysTimer;
 
 interface

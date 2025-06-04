@@ -85,6 +85,7 @@
  2.0 Main Usage
    2.1 General Considerations
      2.1.1 System Requirements
+     2.1.2 8-bit CPU Support
    2.2 List of Files
    2.3 Commandline Parameters
      2.3.1 Parameter Types
@@ -214,16 +215,34 @@
  2.1.1 System Requirements
 
  In order to run AIF.EXE, you need an IBM PC or compatible computer, with an
- 8088 processor, and at least 80 KB of free conventional memory. However,
- 100 KB is preferred.
+ 80286 processor, and at least 80 KB of free conventional memory. However,
+ 100 KB is preferred. In addition, MS-DOS(R) version 3.21 is required.
 
  AIF is a non-resident program and frees all allocated memory upon exit.
 
  You also need around 27 KB of free drive space for the main executable file
  and the hardware configuration files. This User's Guide and Reference Manual
- occupies an additional 37 KB of drive space. The text viewer program takes
- less than 1 KB of drive space, and its documentation around 3 Kb. In total,
+ occupies an additional 38 KB of drive space. The text viewer program takes
+ less than 1 KB of drive space, and its documentation around 3 KB. In total,
  you need around 70 KB of free drive space for the entire software package.
+
+ 2.1.2 8-bit CPU Support
+
+ By default, AIF requires a 16-bit CPU (i.e. at least an 80286). However,
+ depending on a specific conditional define, 8-bit CPU instructions can be
+ generated during source code compilation, effectively allowing AIF.EXE to
+ run on 8088-class CPUs.
+
+ The drawback is that the compiled program code size increases by at least
+ 2 KB, and the execution speed decreases. On the other hand, on such a slow
+ speed CPU, this is not a big issue.
+
+ Besides running the CD Player sub-program, 8-bit mode is not really of use,
+ since the Audio Interface is a 16-bit ISA card, thus it requires a 16-bit
+ CPU and a free 16-bit ISA slot.
+
+ In practice, it is highly unlikely that an 8-bit variant of AIF.EXE should
+ ever exist.
 
 
  2.2 List of Files
@@ -246,7 +265,7 @@
  help screen. DISPLAY.COM is a lightweight text file viewer that allows you
  to view this (or any other text) document, while providing basic scrolling
  features. Its documentation is distributed as DISPLAY.TXT. Should you not
- need this file, feel free to delete it to gain around 3 Kb of disk space.
+ need this file, feel free to delete it to gain around 3 KB of disk space.
 
 
  2.3 Commandline Parameters

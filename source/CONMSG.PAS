@@ -6,7 +6,11 @@
 { - License: GNU General Public License v3.0                                - }
 { --------------------------------------------------------------------------- }
 
-{$G+}
+{$I cdefines.inc}
+
+{$IFDEF CPU16BIT}
+  {$G+}
+{$ENDIF}
 
 unit ConMsg;
 
@@ -73,7 +77,7 @@ begin
   VideoSetForeground(clNormal);
   VideoSetBackground(clBlack);
 
-  VideoWriteln(sParameterMissing);
+  VideoWriteln(sErrorParameterMissing);
   VideoWriteNewln;
   VideoWriteln(sTypeHelp);
 end;

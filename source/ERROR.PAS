@@ -6,19 +6,22 @@
 { - License: GNU General Public License v3.0                                - }
 { --------------------------------------------------------------------------- }
 
-{$G+}
+{$I cdefines.inc}
+
+{$IFDEF CPU16BIT}
+  {$G+}
+{$ENDIF}
 
 unit Error;
 
 interface
-
-{$I cdefines.inc}
 
 uses
   Types;
 
 function Error16bitCPURequired: Boolean;
 function ErrorNotEnoughMemory: Boolean;
+function ErrorDOS321Required: Boolean;
 
 procedure ErrorHaltOnErrors;
 procedure ErrorContinueOnErrors;
@@ -46,13 +49,40 @@ var
   IGHaltOnErrors: Boolean;
   IGProgramError: TProgramError;
 
+function DetectDOS321: Boolean; forward;
+
+{ private declarations }
+
+function DetectDOS321: Boolean; assembler;
+asm
+  mov ah, 30h
+  int 21h
+
+  jc @unsupportedVersion
+
+  cmp al, 3
+  ja @supportedVersion
+  cmp ah, 21
+  jae @supportedVersion
+
+@unsupportedVersion:
+  xor ax, ax
+  jmp @exit
+
+@supportedVersion:
+  mov al, True
+
+@exit:
+
+end;
+
 { public declarations }
 
 function Error16bitCPURequired: Boolean;
 begin
   if not Detect286CPU then
   begin
-    VideoWriteln(s16bitCPURequired);
+    VideoWriteln(sError16bitCPURequired);
 
     Error16bitCPURequired := True;
   end else
@@ -65,12 +95,25 @@ function ErrorNotEnoughMemory: Boolean;
 begin
   if MaxAvail < kRequiredMemory then
   begin
-    VideoWriteln(sNotEnoughMemory);
+    VideoWriteln(sErrorNotEnoughMemory);
 
     ErrorNotEnoughMemory := True;
   end else
   begin
     ErrorNotEnoughMemory := False;
+  end;
+end;
+
+function ErrorDOS321Required: Boolean;
+begin
+  if not DetectDos321 then
+  begin
+    VideoWriteln(sErrorDOS321Required);
+
+    ErrorDOS321Required := True;
+  end else
+  begin
+    ErrorDOS321Required := False;
   end;
 end;
 

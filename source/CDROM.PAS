@@ -6,7 +6,11 @@
 { - License: GNU General Public License v3.0                                - }
 { --------------------------------------------------------------------------- }
 
-{$G+}
+{$I cdefines.inc}
+
+{$IFDEF CPU16BIT}
+  {$G+}
+{$ENDIF}
 
 unit CDROM;
 
@@ -82,6 +86,8 @@ function CDROMSucceeded(const AStatus: Word; var AErrorCode: Byte): Boolean;
 function CDROMBusy(const AStatus: Word): Boolean;
 function CDROMDriveReady(const AStatus: Word): Boolean;
 
+function CDROMProbeSCSI: Boolean;
+
 function CDROMDetectCDEX: Boolean;
 function CDROMGetData(var ADriveCount: Byte; var AFirstDriveLetter: Char): Boolean;
 function CDROMDriveCheck(const ADriveLetter: Char): Boolean;
@@ -103,9 +109,9 @@ function CDROMPlayAudio(const AAudioTrack: TAudioTrack): Word;
 function CDROMStopAudio: Word;
 function CDROMResumeAudio: Word;
 
-function CDROMRoundFrames(const AValue: Byte): Byte;
 function CDROMTimeToLBA(const AValue: Longint): Longint;
 function CDROMTimeToSeconds(const ATimeData: TTimeData): Word;
+function CDROMFramesToSeconds(const AValue: Byte): Byte;
 function CDROMFormatTime(const ATimeData: TTimeData): String;
 procedure CDROMGetTrackPlayTime(const AAudioTrack: TAudioTrack; var ATimeData: TTimeData);
 
@@ -441,6 +447,37 @@ begin
   end;
 end;
 
+function CDROMProbeSCSI: Boolean; assembler;
+asm
+  push ds
+
+  mov ax, seg @Code
+  mov ds, ax
+
+  mov ax, 3D00h
+  lea dx, @SCSIMGR
+  int 21h
+
+  jc @aspiNotInstalled
+
+  xchg ax, bx
+
+  mov ax, 3E00h
+  int 21h
+
+  mov al, True
+  jmp @exit
+
+@SCSIMGR:
+  db 'SCSIMGR$',0
+
+@aspiNotInstalled:
+  xor ax, ax
+
+@exit:
+  pop ds
+end;
+
 function CDROMDetectCDEX: Boolean; assembler;
 asm
   mov ax, 1500h
@@ -748,17 +785,6 @@ begin
   CDROMResumeAudio := LResumeAudioRequest.Header.Status;
 end;
 
-function CDROMRoundFrames(const AValue: Byte): Byte;
-begin
-  if AValue >= Succ(kSectorsPerSecond) div 2 then
-  begin
-    CDROMRoundFrames := 1;
-  end else
-  begin
-    CDROMRoundFrames := 0;
-  end;
-end;
-
 function CDROMTimeToLBA(const AValue: Longint): Longint;
 var
   LTimeData: TTimeData;
@@ -773,9 +799,20 @@ end;
 function CDROMTimeToSeconds(const ATimeData: TTimeData): Word;
 begin
   CDROMTimeToSeconds :=
-    CDROMRoundFrames(ATimeData.Frames) +
+    CDROMFramesToSeconds(ATimeData.Frames) +
     ATimeData.Seconds +
     ATimeData.Minutes * kSecondsPerMinute;
+end;
+
+function CDROMFramesToSeconds(const AValue: Byte): Byte;
+begin
+  if AValue >= Succ(kSectorsPerSecond) div 2 then
+  begin
+    CDROMFramesToSeconds := 1;
+  end else
+  begin
+    CDROMFramesToSeconds := 0;
+  end;
 end;
 
 function CDROMFormatTime(const ATimeData: TTimeData): String;

@@ -6,11 +6,13 @@
 { - License: GNU General Public License v3.0                                - }
 { --------------------------------------------------------------------------- }
 
-{$G+}
+{$I cdefines.inc}
+
+{$IFDEF CPU16BIT}
+  {$G+}
+{$ENDIF}
 
 unit Consts;
-
-{$I cdefines.inc}
 
 interface
 
@@ -26,6 +28,7 @@ const
 
   { program stringtable }
   sProgramTitle                = 'AUDIO INTERFACE'#32 +
+               {$IFNDEF CPU16BIT}'8-bit ' +{$ENDIF}
                 {$IFDEF PNPSETUP}'+PnP SETUP ' +{$ENDIF}
                 {$IFDEF CDPLAYER}'+CD PLAYER ' +{$ENDIF}
                                  #32 + sVersion;
@@ -33,9 +36,10 @@ const
   sProgramAuthor               = 'Programming/PC Code: Alexandru Groza';
   sProgramRights               = 'All rights reserved.';
 
-  s16bitCPURequired            = '16-bit CPU required.';
-  sNotEnoughMemory             = 'Not enough memory.';
-  sParameterMissing            = 'Parameter(s) invalid or missing.';
+  sError16bitCPURequired       = '16-bit CPU required.';
+  sErrorNotEnoughMemory        = 'Not enough memory.';
+  sErrorDOS321Required         = 'MS-DOS(R) 3.21 required.';
+  sErrorParameterMissing       = 'Parameter(s) invalid or missing.';
 
   sTypeHelp                    = 'Type:' + #13#10 +
                                  '  aif.exe -help';
@@ -814,8 +818,10 @@ const
   sCDPlayerCmd5                = 'R';
   sCDPlayerCmdReverseOrder     = 'Reverse Order';
 
-  sCDPlayerCDROMExtensions     = 'CDROM EXTENSIONS';
-  sCDPlayerDriverVersion       = 'DRIVER VER. ';
+  sCDPlayerCDEXDriverVersion   = 'CDROM EXTENSIONS DRIVER VER. ';
+  sCDPlayerCDROMATAPI          = 'ATAPI';
+  sCDPlayerCDROMSCSI           = 'SCSI';
+  sCDPlayerDriveTypeSeparator  = ' / ';
 
   sCDPlayerDriveNotCDROM       = ' is not a CDROM drive.' + #13#10 +
                                  'Please select another drive.';
@@ -826,6 +832,11 @@ const
   sCDPlayerCDROMError          = 'An error has occured. CDROM driver reports:' + #13#10;
   sCDPlayerCDROMDataTrack      = 'A data track has been found.' + #13#10 +
                                  'Such tracks do not contain audio information.';
+
+  sCDPlayerCDROMDriveType: packed array[Boolean] of String[Length(sCDPlayerCDROMATAPI)] = (
+    sCDPlayerCDROMATAPI,
+    sCDPlayerCDROMSCSI
+  );
 
   { CD Player program color theme }
   clCDPlayerFore               = clLightGray;
@@ -918,7 +929,7 @@ const
   kCDPlayerProgressBarX        = kCDPlayerKeyX;
   kCDPlayerProgressBarWidth    = 47;
   kCDPlayerProgressBarMin      = 0;
-  kCDPlayerProgressBarMax      = 256;
+  kCDPlayerProgressBarMaxDef   = 256;
 
   kCDPlayerTrackProgressY      = 15;
   kCDPlayerDiskProgressY       = 19;
@@ -944,10 +955,8 @@ const
   kCDPlayerOptionWidth         = 21;
   kCDPlayerOptionHeight        = 1;
 
-  kCDPlayerCDROMExtensionsX    = 2;
-  kCDPlayerCDROMExtensionsY    = 23;
-  kCDPlayerDriverVersionX      = 2;
-  kCDPlayerDriverVersionY      = 24;
+  kCDPlayerCDEXDriverVersionX  = 2;
+  kCDPlayerCDEXDriverVersionY  = 24;
 
   { CD Player program default initialization values }
   kCDPlayerAutoEjectDefault    = False;

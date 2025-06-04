@@ -7,6 +7,16 @@
 { --------------------------------------------------------------------------- }
 
 {
+  Notes:
+    * A 16-bit CPU is required by the Audio Interface hardware.
+    * Since the CD Player sub-program could be independently used with 8-bit
+      (i.e.: 8088-class) CPUs, with or without a sound card installed, the
+      following directive can be undefined.
+}
+
+{$DEFINE CPU16BIT}
+
+{
   Disambiguation:
     * Undefine the appropriate statement to remove a sub-program from the
       main program compiled code.

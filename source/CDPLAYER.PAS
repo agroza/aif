@@ -6,7 +6,11 @@
 { - License: GNU General Public License v3.0                                - }
 { --------------------------------------------------------------------------- }
 
-{$G+}
+{$I cdefines.inc}
+
+{$IFDEF CPU16BIT}
+  {$G+}
+{$ENDIF}
 
 unit CDPlayer;
 
@@ -59,7 +63,7 @@ type
 
   TCDPlayerTracks = packed record
     Data: PAudioTracks;
-    OrderIndex: Byte;
+    Index: Byte;
   end;
 
   TCDPlayerDoor = packed record
@@ -281,6 +285,7 @@ procedure CDTracksShuffleOrder; forward;
 procedure CDTracksReverseOrder; forward;
 procedure CDSwitchTrack(const ATrackNumber: Byte); forward;
 
+procedure CDStartPlayback; forward;
 procedure CDPlayPreviousTrack; forward;
 procedure CDPlayTrack; forward;
 procedure CDPauseTrack; forward;
@@ -291,7 +296,7 @@ procedure CDQuickPlay(const ATrackNumber: Byte); forward;
 procedure CDPlayRemaining; forward;
 
 function CDHasReached(const ACurrent, ATarget: TTimeData): Boolean; forward;
-procedure CDCheckOptions; forward;
+procedure CDPerformStateLogic; forward;
 
 procedure CDPlayerConfigClearPlayMode; forward;
 procedure CDPlayerConfigSet; forward;
@@ -376,7 +381,7 @@ begin
   IGTrackProgressBar.Colors.Progress := clCDPlayerProgressColor;
   IGTrackProgressBar.DrawMode := dmRepaint;
   IGTrackProgressBar.Min := kCDPlayerProgressBarMin;
-  IGTrackProgressBar.Max := kCDPlayerProgressBarMax;
+  IGTrackProgressBar.Max := kCDPlayerProgressBarMaxDef;
   IGTrackProgressBar.Progress := kCDPlayerProgressBarMin;
   IGTrackProgressBar.Title := sCDPlayerTrackProgress;
 
@@ -389,7 +394,7 @@ begin
   IGDiskProgressBar.Colors.Progress := clCDPlayerProgressColor;
   IGDiskProgressBar.DrawMode := dmRepaint;
   IGDiskProgressBar.Min := kCDPlayerProgressBarMin;
-  IGDiskProgressBar.Max := kCDPlayerProgressBarMax;
+  IGDiskProgressBar.Max := kCDPlayerProgressBarMaxDef;
   IGDiskProgressBar.Progress := kCDPlayerProgressBarMin;
   IGDiskProgressBar.Title := sCDPlayerDiskProgress;
 
@@ -610,21 +615,15 @@ begin
   LCDEXVersion := CDROMGetCDEXVersion;
 
   VideoWriteStringAt(
-    kCDPlayerCDROMExtensionsX,
-    kCDPlayerCDROMExtensionsY,
-    sCDPlayerCDROMExtensions,
-    clCDPlayerFore,
-    clCDPlayerBack
-  );
-
-  VideoWriteStringAt(
-    kCDPlayerDriverVersionX,
-    kCDPlayerDriverVersionY,
-    sCDPlayerDriverVersion + IfThenElse(
-      LCDEXVersion = 0,
-      sNA,
-      IntToStr(Hi(LCDEXVersion)) + cFullStop + IntToStr(Lo(LCDEXVersion))
-    ),
+    kCDPlayerCDEXDriverVersionX,
+    kCDPlayerCDEXDriverVersionY,
+    sCDPlayerCDEXDriverVersion +
+      IfThenElse(
+        LCDEXVersion = 0,
+        sNA,
+        IntToStr(Hi(LCDEXVersion)) + cFullStop + IntToStr(Lo(LCDEXVersion))
+      ) +
+      sCDPlayerDriveTypeSeparator + sCDPlayerCDROMDriveType[CDROMProbeSCSI],
     clCDPlayerFore,
     clCDPlayerBack
   );
@@ -786,7 +785,7 @@ begin
       Exclude(IGSysTimerTriggers, stt50ms);
 
       CDUpdateAudioQChannel;
-      CDCheckOptions;
+      CDPerformStateLogic;
     end;
 
     if stt250ms in IGSysTimerTriggers then
@@ -882,7 +881,7 @@ begin
   UISetDrawValue(kCDPlayerKVDoorLocked, sNoYes[IGCDPlayer.Door.Locked]);
   UISetDrawValue(kCDPlayerKVDisk, sCDPlayerDisk[IGCDPlayer.Disk]);
   UISetDrawValue(kCDPlayerKVStatus, StrPas(sCDPlayerStatuses[IGCDPlayer.Status]));
-  UISetDrawValue(kCDPlayerKVTrack, IntToStr(IGCDPlayer.Tracks.OrderIndex));
+  UISetDrawValue(kCDPlayerKVTrack, IntToStr(IGCDPlayer.Tracks.Index));
   UISetDrawValue(kCDPlayerKVTotalTracks, IntToStr(IGCDPlayer.AudioDisk.HighestTrackNumber));
   UISetDrawValue(kCDPlayerKVTrackTime, CDROMFormatTime(IGCDPlayer.Time.Track));
   UISetDrawValue(kCDPlayerKVTrackPlayTime, CDROMFormatTime(IGCDPlayer.Time.TrackPlay));
@@ -1075,11 +1074,11 @@ begin
         Inc(LPositionY);
       end;
 
-      if LIndex < IGCDPlayer.Tracks.OrderIndex then
+      if LIndex < IGCDPlayer.Tracks.Index then
       begin
         LForeground := clCDPlayerTrackOrderPast;
       end else
-      if LIndex = IGCDPlayer.Tracks.OrderIndex then
+      if LIndex = IGCDPlayer.Tracks.Index then
       begin
         LForeground := clCDPlayerTrackOrderCurrent;
       end else
@@ -1138,16 +1137,24 @@ end;
 procedure CDUpdateAudioQChannel;
 var
   LAudioQChannel: TAudioQChannel;
+  LTrackNumber: Byte;
   LTrackOrder: Byte;
 
 begin
   if IGCDPlayer.Disk and CDSucceeded(CDROMGetAudioQChannelInfo(LAudioQChannel)) then
   begin
-    LTrackOrder := CDTracksGetOrder(LAudioQChannel.TrackNumber);
+    LTrackNumber := LAudioQChannel.TrackNumber;
 
-    if IGCDPlayer.Tracks.OrderIndex <> LTrackOrder then
+    if LTrackNumber = 0 then
     begin
-      CDSwitchTrack(LTrackOrder);
+      LTrackNumber := IGCDPlayer.AudioDisk.HighestTrackNumber;
+    end;
+
+    LTrackOrder := CDTracksGetOrder(LTrackNumber);
+
+    if IGCDPlayer.Tracks.Index <> LTrackOrder then
+    begin
+      CDSwitchTrack(LTrackNumber);
     end;
 
     IGCDPlayer.Time.Track := LAudioQChannel.TrackTime;
@@ -1171,18 +1178,27 @@ begin
 end;
 
 procedure CDLoad;
+var
+  LTrackNumber: Byte;
+
 begin
   if CDSucceeded(CDROMGetAudioDiskInfo(IGCDPlayer.AudioDisk)) then
   begin
+    FillChar(IGCDPlayer.Time, SizeOf(TCDPlayerTime) - SizeOf(TTimeData), $00);
     IGCDPlayer.Time.DiskPlay.Value := IGCDPlayer.AudioDisk.LeadOutTrackSector;
-
-    IGCDPlayer.Time.Track.Value := 0;
-    IGCDPlayer.Time.Disk.Value := 0;
 
     CDTracksRead;
     CDTracksSetPlayMode;
 
-    CDSwitchTrack(IGCDPlayer.Tracks.Data^[IGCDPlayer.Tracks.OrderIndex].Order);
+    if IGCDPlayer.Control.WasReset then
+    begin
+      LTrackNumber := IGCDPlayer.AudioDisk.HighestTrackNumber;
+    end else
+    begin
+      LTrackNumber := IGCDPlayer.Tracks.Data^[IGCDPlayer.Tracks.Index].Order;
+    end;
+
+    CDSwitchTrack(LTrackNumber);
 
     IGDiskProgressBar.Max := CDROMTimeToSeconds(IGCDPlayer.Time.DiskPlay);
   end;
@@ -1197,8 +1213,8 @@ begin
 
   CDPlayerReset;
 
-  IGTrackProgressBar.Max := kCDPlayerProgressBarMax;
-  IGDiskProgressBar.Max := kCDPlayerProgressBarMax;
+  IGTrackProgressBar.Max := kCDPlayerProgressBarMaxDef;
+  IGDiskProgressBar.Max := kCDPlayerProgressBarMaxDef;
 
   UIUpdateAllResetProgressBars;
   UITracksOrderDisplay;
@@ -1217,16 +1233,13 @@ end;
 
 procedure CDResetDrive;
 begin
-  if IGCDPlayer.Status <> cdpsStop then
-  begin
-    CDStopTrack;
-  end;
+  CDUnload;
 
   if CDSucceeded(CDROMResetDrive) then
   begin
-    CDLoad;
-
     IGCDPlayer.Control.WasReset := True;
+
+    CDLoad;
   end;
 end;
 
@@ -1280,8 +1293,6 @@ begin
 
     CDSucceeded(CDROMGetAudioTrackInfo(IGCDPlayer.AudioDisk, IGCDPlayer.Tracks.Data^[LIndex]));
   end;
-
-  IGCDPlayer.Tracks.OrderIndex := IGCDPlayer.AudioDisk.LowestTrackNumber;
 end;
 
 procedure CDTracksClear;
@@ -1313,9 +1324,6 @@ begin
   begin
     CDTracksNormalOrder;
   end;
-
-  IGCDPlayer.Tracks.OrderIndex := CDTracksGetOrder(
-    IGCDPlayer.Tracks.Data^[IGCDPlayer.Tracks.OrderIndex].Number);
 end;
 
 procedure CDTracksNormalOrder;
@@ -1333,7 +1341,7 @@ procedure CDTracksShuffleOrder;
 var
   LIndex: Byte;
   LRandomIndex: Byte;
-  LTrackNumber: Byte;
+  LOrderIndex: Byte;
 
 begin
   Randomize;
@@ -1342,63 +1350,46 @@ begin
   begin
     LRandomIndex := Succ(Random(LIndex));
 
-    LTrackNumber := IGCDPlayer.Tracks.Data^[LIndex].Order;
+    LOrderIndex := IGCDPlayer.Tracks.Data^[LIndex].Order;
     IGCDPlayer.Tracks.Data^[LIndex].Order := IGCDPlayer.Tracks.Data^[LRandomIndex].Order;
-    IGCDPlayer.Tracks.Data^[LRandomIndex].Order := LTrackNumber;
+    IGCDPlayer.Tracks.Data^[LRandomIndex].Order := LOrderIndex;
   end;
 end;
 
 procedure CDTracksReverseOrder;
 var
   LIndex: Byte;
-  LTrackNumber: Byte;
+  LOrderIndex: Byte;
 
 begin
   for LIndex := IGCDPlayer.AudioDisk.LowestTrackNumber to IGCDPlayer.AudioDisk.HighestTrackNumber div 2 do
   begin
-    LTrackNumber := IGCDPlayer.Tracks.Data^[LIndex].Order;
+    LOrderIndex := IGCDPlayer.Tracks.Data^[LIndex].Order;
     IGCDPlayer.Tracks.Data^[LIndex].Order :=
       IGCDPlayer.Tracks.Data^[Succ(IGCDPlayer.AudioDisk.HighestTrackNumber - LIndex)].Order;
-    IGCDPlayer.Tracks.Data^[Succ(IGCDPlayer.AudioDisk.HighestTrackNumber - LIndex)].Order := LTrackNumber;
+    IGCDPlayer.Tracks.Data^[Succ(IGCDPlayer.AudioDisk.HighestTrackNumber - LIndex)].Order := LOrderIndex;
   end;
 end;
 
 procedure CDSwitchTrack(const ATrackNumber: Byte);
 begin
+  IGCDPlayer.Tracks.Index := CDTracksGetOrder(ATrackNumber);
+
   IGCDPlayer.Time.Track.Value := 0;
-
-  IGCDPlayer.Tracks.OrderIndex := CDTracksGetOrder(ATrackNumber);
-
   CDROMGetTrackPlayTime(IGCDPlayer.Tracks.Data^[ATrackNumber], IGCDPlayer.Time.TrackPlay);
+
+  IGTrackProgressBar.Max :=
+    CDROMTimeToSeconds(IGCDPlayer.Time.TrackPlay) - kSecondsLeadInPreGap;
 
   UISetDrawValue(kCDPlayerKVTrack, IntToStr(ATrackNumber));
   UISetDrawValue(kCDPlayerKVTrackPlayTime, CDROMFormatTime(IGCDPlayer.Time.TrackPlay));
 
   UITracksOrderDisplay;
 
-  IGTrackProgressBar.Max := CDROMTimeToSeconds(IGCDPlayer.Time.TrackPlay) -
-    kSecondsLeadInPreGap;
-
   UIResetTrackProgressBar;
 end;
 
-procedure CDPlayPreviousTrack;
-begin
-  if IGCDPlayer.Disk then
-  begin
-    if IGCDPlayer.Tracks.OrderIndex = IGCDPlayer.AudioDisk.LowestTrackNumber then
-    begin
-      IGCDPlayer.Tracks.OrderIndex := IGCDPlayer.AudioDisk.HighestTrackNumber;
-    end else
-    begin
-      Dec(IGCDPlayer.Tracks.OrderIndex);
-    end;
-
-    CDPlayTrack;
-  end;
-end;
-
-procedure CDPlayTrack;
+procedure CDStartPlayback;
 var
   LTrackOrder: Byte;
 
@@ -1407,15 +1398,7 @@ begin
   begin
     CDStopTrack;
 
-    if IGCDPlayer.Control.WasReset then
-    begin
-      LTrackOrder := IGCDPlayer.Tracks.Data^[IGCDPlayer.AudioDisk.LowestTrackNumber].Order;
-
-      IGCDPlayer.Control.WasReset := False;
-    end else
-    begin
-      LTrackOrder := IGCDPlayer.Tracks.Data^[IGCDPlayer.Tracks.OrderIndex].Order;
-    end;
+    LTrackOrder := IGCDPlayer.Tracks.Data^[IGCDPlayer.Tracks.Index].Order;
 
     CDSwitchTrack(LTrackOrder);
 
@@ -1434,12 +1417,40 @@ begin
     begin
       if CDSucceeded(CDROMPlayAudio(IGCDPlayer.Tracks.Data^[LTrackOrder])) then
       begin
-        IGCDPLayer.Control.Play := True;
-        IGCDPLayer.Control.Pause := False;
+        IGCDPlayer.Control.Play := True;
+        IGCDPlayer.Control.Pause := False;
         IGCDPlayer.Control.LED := True;
       end;
     end;
   end;
+end;
+
+procedure CDPlayPreviousTrack;
+begin
+  if IGCDPlayer.Disk then
+  begin
+    if IGCDPlayer.Tracks.Index = IGCDPlayer.AudioDisk.LowestTrackNumber then
+    begin
+      IGCDPlayer.Tracks.Index := IGCDPlayer.AudioDisk.HighestTrackNumber;
+    end else
+    begin
+      Dec(IGCDPlayer.Tracks.Index);
+    end;
+
+    CDStartPlayback;
+  end;
+end;
+
+procedure CDPlayTrack;
+begin
+  if IGCDPlayer.Control.WasReset then
+  begin
+    IGCDPlayer.Tracks.Index := IGCDPlayer.AudioDisk.LowestTrackNumber;
+
+    IGCDPlayer.Control.WasReset := False;
+  end;
+
+  CDStartPlayback;
 end;
 
 procedure CDPauseTrack;
@@ -1482,15 +1493,15 @@ procedure CDPlayNextTrack;
 begin
   if IGCDPlayer.Disk then
   begin
-    if IGCDPlayer.Tracks.OrderIndex = IGCDPlayer.AudioDisk.HighestTrackNumber then
+    if IGCDPlayer.Tracks.Index = IGCDPlayer.AudioDisk.HighestTrackNumber then
     begin
-      IGCDPlayer.Tracks.OrderIndex := IGCDPlayer.AudioDisk.LowestTrackNumber;
+      IGCDPlayer.Tracks.Index := IGCDPlayer.AudioDisk.LowestTrackNumber;
     end else
     begin
-      Inc(IGCDPlayer.Tracks.OrderIndex);
+      Inc(IGCDPlayer.Tracks.Index);
     end;
 
-    CDPlayTrack;
+    CDStartPlayback;
   end;
 end;
 
@@ -1500,7 +1511,7 @@ begin
   begin
     Randomize;
 
-    IGCDPlayer.Tracks.OrderIndex := CDTracksGetOrder(
+    IGCDPlayer.Tracks.Index := CDTracksGetOrder(
       Random(
         Succ(
           IGCDPlayer.AudioDisk.HighestTrackNumber -
@@ -1509,7 +1520,7 @@ begin
       ) + IGCDPlayer.AudioDisk.LowestTrackNumber
     );
 
-    CDPlayTrack;
+    CDStartPlayback;
   end;
 end;
 
@@ -1518,9 +1529,9 @@ begin
   if IGCDPlayer.Disk and (ATrackNumber >= IGCDPlayer.AudioDisk.LowestTrackNumber) and
     (ATrackNumber <= IGCDPlayer.AudioDisk.HighestTrackNumber) then
   begin
-    IGCDPlayer.Tracks.OrderIndex := CDTracksGetOrder(ATrackNumber);
+    IGCDPlayer.Tracks.Index := CDTracksGetOrder(ATrackNumber);
 
-    CDPlayTrack;
+    CDStartPlayback;
   end;
 end;
 
@@ -1548,22 +1559,21 @@ begin
   CDHasReached :=
     ACurrent.Minutes * kSecondsPerMinute +
     ACurrent.Seconds + kSecondsLeadInPreGap +
-    CDROMRoundFrames(ACurrent.Frames) >=
+    CDROMFramesToSeconds(ACurrent.Frames) >=
     ATarget.Minutes * kSecondsPerMinute +
     ATarget.Seconds +
-    CDROMRoundFrames(ATarget.Frames);
+    CDROMFramesToSeconds(ATarget.Frames);
 end;
 
-procedure CDCheckOptions;
+procedure CDPerformStateLogic;
 begin
   if IGCDPlayer.Disk and CDHasReached(IGCDPlayer.Time.Track, IGCDPlayer.Time.TrackPlay) then
   begin
     if IGCDPlayerOptions[cdpRepeatTrack].Enabled then
     begin
-      CDPlayTrack;
+      CDStartPlayback;
     end else
-    if IGCDPlayer.Tracks.OrderIndex = IGCDPlayer.Tracks.Data^[
-      IGCDPlayer.AudioDisk.HighestTrackNumber].Order then
+    if IGCDPlayer.Tracks.Index = IGCDPlayer.AudioDisk.HighestTrackNumber then
     begin
       if IGCDPlayerOptions[cdpRepeatAll].Enabled then
       begin

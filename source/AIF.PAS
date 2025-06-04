@@ -6,12 +6,15 @@
 { - License: GNU General Public License v3.0                                - }
 { --------------------------------------------------------------------------- }
 
-{$G+}
+{$I cdefines.inc}
+
+{$IFDEF CPU16BIT}
+  {$G+}
+{$ENDIF}
+
 {$M 16384, 65535, 655360}
 
 program aif;
-
-{$I cdefines.inc}
 
 uses
   CDPlayer,
@@ -33,7 +36,8 @@ var
 begin
   ConMsgWriteProgramHeader;
 
-  if Error16bitCPURequired or ErrorNotEnoughMemory then
+  if {$IFDEF CPU16BIT}Error16bitCPURequired or {$ENDIF}
+    ErrorNotEnoughMemory or ErrorDOS321Required then
   begin
     Exit;
   end;
