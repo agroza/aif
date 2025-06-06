@@ -729,21 +729,9 @@ begin
 end;
 
 function MixerStart: Boolean;
-var
-  LPositionY: Byte;
-  LVideoRAMData: PVideoRAMData;
-
 begin
-  Routines.Delay(kMixerStartupDelay);
-
-  VideoInitialize(LPositionY, LVideoRAMData);
-  ScreenInitialize;
-
   UIDraw;
   UILoop;
-
-  ScreenFinalize;
-  VideoFinalize(LPositionY, LVideoRAMData);
 
   MixerStart := IGMixerConfigChanged;
 end;

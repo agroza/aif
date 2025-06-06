@@ -1107,21 +1107,9 @@ begin
 end;
 
 function SetupStart: Boolean;
-var
-  LPositionY: Byte;
-  LVideoRAMData: PVideoRAMData;
-
 begin
-  Routines.Delay(kSetupStartupDelay);
-
-  VideoInitialize(LPositionY, LVideoRAMData);
-  ScreenInitialize;
-
   UIDraw;
   UILoop;
-
-  ScreenFinalize;
-  VideoFinalize(LPositionY, LVideoRAMData);
 
   SetupStart := IGSetupConfigChanged;
 end;

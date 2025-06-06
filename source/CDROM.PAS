@@ -35,7 +35,7 @@ type
     HSGRedBookAddressing: Boolean;
   end;
 
-  TAudioDisk = packed record
+  TAudioDisc = packed record
     LowestTrackNumber: Byte;
     HighestTrackNumber: Byte;
     LeadOutTrackSector: Longint;
@@ -44,6 +44,7 @@ type
   TAudioTrack = packed record
     Number: Byte;
     Order: Byte;
+    Played: Boolean;
     Data: Boolean;
     StartSector: Longint;
     SectorCount: Longint;
@@ -66,7 +67,7 @@ type
     TrackNumber: Byte;
     PointIndex: Byte;
     TrackTime: TTimeData;
-    DiskTime: TTimeData;
+    DiscTime: TTimeData;
   end;
 
   TAudioStatus = packed record
@@ -95,12 +96,12 @@ function CDROMGetCDEXVersion: Word;
 
 function CDROMGetDeviceStatus(var ADeviceStatus: TDeviceStatus): Word;
 
-function CDROMGetAudioDiskInfo(var AAudioDisk: TAudioDisk): Word;
-function CDROMGetAudioTrackInfo(const AAudioDisk: TAudioDisk; var AAudioTrack: TAudioTrack): Word;
+function CDROMGetAudioDiscInfo(var AAudioDisc: TAudioDisc): Word;
+function CDROMGetAudioTrackInfo(const AAudioDisc: TAudioDisc; var AAudioTrack: TAudioTrack): Word;
 function CDROMGetAudioQChannelInfo(var AAudioQChannel: TAudioQChannel): Word;
 function CDROMGetAudioStatusInfo(var AAudioStatus: TAudioStatus): Word;
 
-function CDROMEjectDisk: Word;
+function CDROMEjectDisc: Word;
 function CDROMLockUnlock(const ALock: Boolean): Word;
 function CDROMResetDrive: Word;
 function CDROMCloseTray: Word;
@@ -170,7 +171,7 @@ type
     DevStat: Longint;
   end;
 
-  TAudioDiskInfoCtlBlock = packed record
+  TAudioDiscInfoCtlBlock = packed record
     Command: Byte;
     LowestTrackNumber: Byte;
     HighestTrackNumber: Byte;
@@ -193,9 +194,9 @@ type
     TrackSeconds: Byte;
     TrackFrames: Byte;
     Reserved: Byte;
-    DiskMinutes: Byte;
-    DiskSeconds: Byte;
-    DiskFrames: Byte;
+    DiscMinutes: Byte;
+    DiscSeconds: Byte;
+    DiscFrames: Byte;
   end;
 
   TAudioStatusInfoCtlBlock = packed record
@@ -228,26 +229,26 @@ const
 
   { input control block commands }
   kICBCMD_DEVICE_STATUS        = 6;
-  kICBCMD_AUDIO_DISK_INFO      = 10;
+  kICBCMD_AUDIO_DISC_INFO      = 10;
   kICBCMD_AUDIO_TRACK_INFO     = 11;
   kICBCMD_AUDIO_Q_CHANNEL_INFO = 12;
   kICBCMD_AUDIO_STATUS         = 15;
 
   { input control block command transfer bytes count }
   kICBTBC_DEVICE_STATUS        = 5;
-  kICBTBC_AUDIO_DISK_INFO      = 7;
+  kICBTBC_AUDIO_DISC_INFO      = 7;
   kICBTBC_AUDIO_TRACK_INFO     = 7;
   kICBTBC_AUDIO_Q_CHANNEL_INFO = 11;
   kICBTBC_AUDIO_STATUS         = 11;
 
   { output control block commands }
-  kOCBCMD_EJECT_DISK           = 0;
+  kOCBCMD_EJECT_DISC           = 0;
   kOCBCMD_LOCK_UNLOCK_DOOR     = 1;
   kOCBCMD_RESET_DRIVE          = 2;
   kOCBCMD_CLOSE_TRAY           = 5;
 
   { output control block command transfer bytes count }
-  kOCBTBC_EJECT_DISK           = 1;
+  kOCBTBC_EJECT_DISC           = 1;
   kOCBTBC_LOCK_UNLOCK_DOOR     = 2;
   kOCBTBC_RESET_DRIVE          = 1;
   kOCBTBC_CLOSE_TRAY           = 1;
@@ -288,7 +289,7 @@ const
   kERR_GENERAL_FAILURE         = 12;
   kERR_RESERVED2               = 13;
   kERR_RESERVED3               = 14;
-  kERR_INVALID_DISK_CHANGE     = 15;
+  kERR_INVALID_DISC_CHANGE     = 15;
   kERR_UNKNOWN_ERROR           = 16;
 
   kErrorCodeTexts: packed array[kERR_WRITE_PROTECT_VIOLATION..kERR_UNKNOWN_ERROR] of PChar = (
@@ -307,7 +308,7 @@ const
     sCDROMGeneralFailure,
     sCDROMReserved,
     sCDROMReserved,
-    sCDROMInvalidDiskChange,
+    sCDROMInvalidDiscChange,
     sCDROMUnknownError
   );
 
@@ -403,7 +404,7 @@ end;
 
 function CDROMGetError(const AErrorCode: Byte): PChar;
 begin
-  if AErrorCode <= kERR_INVALID_DISK_CHANGE then
+  if AErrorCode <= kERR_INVALID_DISC_CHANGE then
   begin
     CDROMGetError := kErrorCodeTexts[AErrorCode];
   end else
@@ -581,28 +582,28 @@ begin
   CDROMGetDeviceStatus := LIOCTLInputRequest.Header.Status;
 end;
 
-function CDROMGetAudioDiskInfo(var AAudioDisk: TAudioDisk): Word;
+function CDROMGetAudioDiscInfo(var AAudioDisc: TAudioDisc): Word;
 var
   LIOCTLInputRequest: TIOCTLInputRequest;
-  LAudioDiskInfoCtlBlock: TAudioDiskInfoCtlBlock;
+  LAudioDiscInfoCtlBlock: TAudioDiscInfoCtlBlock;
 
 begin
-  LAudioDiskInfoCtlBlock.Command := kICBCMD_AUDIO_DISK_INFO;
+  LAudioDiscInfoCtlBlock.Command := kICBCMD_AUDIO_DISC_INFO;
 
   CDROMSendInputRequest(
     LIOCTLInputRequest,
-    LAudioDiskInfoCtlBlock,
-    kICBTBC_AUDIO_DISK_INFO
+    LAudioDiscInfoCtlBlock,
+    kICBTBC_AUDIO_DISC_INFO
   );
 
-  AAudioDisk.LowestTrackNumber := LAudioDiskInfoCtlBlock.LowestTrackNumber;
-  AAudioDisk.HighestTrackNumber := LAudioDiskInfoCtlBlock.HighestTrackNumber;
-  AAudioDisk.LeadOutTrackSector := LAudioDiskInfoCtlBlock.LeadOutTrackSector;
+  AAudioDisc.LowestTrackNumber := LAudioDiscInfoCtlBlock.LowestTrackNumber;
+  AAudioDisc.HighestTrackNumber := LAudioDiscInfoCtlBlock.HighestTrackNumber;
+  AAudioDisc.LeadOutTrackSector := LAudioDiscInfoCtlBlock.LeadOutTrackSector;
 
-  CDROMGetAudioDiskInfo := LIOCTLInputRequest.Header.Status;
+  CDROMGetAudioDiscInfo := LIOCTLInputRequest.Header.Status;
 end;
 
-function CDROMGetAudioTrackInfo(const AAudioDisk: TAudioDisk; var AAudioTrack: TAudioTrack): Word;
+function CDROMGetAudioTrackInfo(const AAudioDisc: TAudioDisc; var AAudioTrack: TAudioTrack): Word;
 var
   LIOCTLInputRequest: TIOCTLInputRequest;
   LAudioTrackInfoCtlBlock: TAudioTrackInfoCtlBlock;
@@ -626,9 +627,9 @@ begin
   LStatus := LIOCTLInputRequest.Header.Status;
   if CDROMSucceeded(LStatus, LErrorCode) then
   begin
-    if AAudioTrack.Number = AAudioDisk.HighestTrackNumber then
+    if AAudioTrack.Number = AAudioDisc.HighestTrackNumber then
     begin
-      LEndSector.Value := AAudioDisk.LeadOutTrackSector;
+      LEndSector.Value := AAudioDisc.LeadOutTrackSector;
     end else
     begin
       LAudioTrackInfoCtlBlock.Number := Succ(AAudioTrack.Number);
@@ -644,7 +645,7 @@ begin
         LEndSector.Value := LAudioTrackInfoCtlBlock.StartSector;
       end else
       begin
-        LEndSector.Value := AAudioDisk.LeadOutTrackSector;
+        LEndSector.Value := AAudioDisc.LeadOutTrackSector;
       end;
     end;
 
@@ -676,9 +677,9 @@ begin
   AAudioQChannel.TrackTime.Minutes := LAudioQChannelInfoCtlBlock.TrackMinutes;
   AAudioQChannel.TrackTime.Seconds := LAudioQChannelInfoCtlBlock.TrackSeconds;
   AAudioQChannel.TrackTime.Frames := LAudioQChannelInfoCtlBlock.TrackFrames;
-  AAudioQChannel.DiskTime.Minutes := LAudioQChannelInfoCtlBlock.DiskMinutes;
-  AAudioQChannel.DiskTime.Seconds := LAudioQChannelInfoCtlBlock.DiskSeconds;
-  AAudioQChannel.DiskTime.Frames := LAudioQChannelInfoCtlBlock.DiskFrames;
+  AAudioQChannel.DiscTime.Minutes := LAudioQChannelInfoCtlBlock.DiscMinutes;
+  AAudioQChannel.DiscTime.Seconds := LAudioQChannelInfoCtlBlock.DiscSeconds;
+  AAudioQChannel.DiscTime.Frames := LAudioQChannelInfoCtlBlock.DiscFrames;
 
   CDROMGetAudioQChannelInfo := LIOCTLInputRequest.Header.Status;
 end;
@@ -704,11 +705,11 @@ begin
   CDROMGetAudioStatusInfo := LIOCTLInputRequest.Header.Status;
 end;
 
-function CDROMEjectDisk: Word;
+function CDROMEjectDisc: Word;
 begin
-  CDROMEjectDisk := CDROMSendOutputRequest(
-    kOCBCMD_EJECT_DISK,
-    kOCBTBC_EJECT_DISK,
+  CDROMEjectDisc := CDROMSendOutputRequest(
+    kOCBCMD_EJECT_DISC,
+    kOCBTBC_EJECT_DISC,
     False
   );
 end;

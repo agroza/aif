@@ -38,7 +38,7 @@
  with a DOS-compatible text viewer that supports extended ASCII characters.
 
  Document ID: 2486-AIF-401-MANUAL-15.25
- First Edition, Revision A (April, 2025)
+ First Edition, Revision B (June, 2025)
 
 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
 
@@ -723,7 +723,7 @@
 
  3.6.1 CDROM Extensions
 
- The CD Player software communicates with the CDROM hardware through the CD
+ The CD Player program communicates with the CDROM hardware through the CDROM
  Extensions interrupt 0x2F. While this interrupt is also shared with the
  Network Redirector, the CD Player sub-program will first check the presence
  of the CDROM Extensions driver via function 0x1100.
@@ -733,6 +733,9 @@
 
  In short, you need to install and configure the MSCDEX.EXE CDROM Extensions
  device driver first.
+
+ The CD Player works with both ATAPI and SCSI CDROM drives, assuming that the
+ correct drivers are loaded before the MSCDEX.EXE initialization.
 
  3.6.2 Description
 
@@ -812,7 +815,7 @@
 
    Shortcut ³ Function              ³ Description
   ÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
-   E        ³ Auto Eject            ³ Ejects the disk when playback done.
+   E        ³ Auto Eject            ³ Ejects the disc when playback done.
    T        ³ Repeat Track          ³ Repeats current track indefinitely.
    R        ³ Repeat All            ³ Repeats all tracks indefinitely.
    V        ³ Shuffle Order         ³ Shuffles the playback order.
@@ -835,24 +838,34 @@
  In addition, if the tracks are first shuffled and then Reverse Order is
  selected, the shuffled track order list is reversed as well.
 
- The user interface shows the selected Drive Letter, Door and Disk status,
+ The user interface shows the selected Drive Letter, Door and Disc status,
  Track-related information, and various time data. The Track List displays
  the total tracks on the audio CD. The already played tracks are marked, the
  current track is highlighted, and the remaining tracks are unmarked.
 
+ When all CD tracks have been played, and the repeat functions are disabled,
+ then all tracks will be marked as unplayed. Until then, as long as a track
+ has been even partially played, it is marked as such.
+
  Finally, two progress bars show the elapsed percentage of the current track,
- and the disk, as a whole.
+ and the disc, as a whole.
 
  For the record, the UI is updated each second, and the CD Player is closely
  monitoring the CDROM hardware for changes. This means that once you start
- the CD-Player sub-program and you already have an audio CD playing, it will
- pick-up the disk and current track data in real-time. You can even control
+ the CD Player sub-program and there is already an audio CD playing, it will
+ pick-up the disc and current track data in real-time. You can even control
  the CDROM via the buttons on the front panel, and the software will detect
  the changes and update the UI accordingly.
 
  Furthermore, if the CDROM playback was manually started, and the CD Player
  program never launched, upon starting it, it will adjust the UI to reflect
  the current CD progress.
+
+ Once the CD Player is started, it will take complete control over the CDROM
+ hardware. This means that, the standard sequential track order employed by
+ the CDROM drive will be overriden with the custom track order defined within
+ the program (reversed or shuffled). If the order is not defined, then tracks
+ will still play in sequential order, albeit in a software-controlled manner.
 
 
 
@@ -866,7 +879,7 @@
 
  For now, the PnP Setup sub-program is excluded from the compiled AIF.EXE
  file, as it is no more than an entrypoint for the upcoming fully-featured
- sub-program. However, this document states the point of the PnP Setup, and
+ sub-program. However, this document states the purpose of the PnP Setup, and
  provides a glimpse of the future use-cases of this feature.
 
 

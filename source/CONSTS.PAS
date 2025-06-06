@@ -407,8 +407,6 @@ const
   clSetupCmdBack               = clDarkGray;
 
   { Setup program constants }
-  kSetupStartupDelay           = 500;
-
   kSetupKeyX                   = 2;
   kSetupValueX                 = 25;
   kSetupKeyValueWidth          = 26;
@@ -558,7 +556,6 @@ const
   clROMSetupCmdBack            = clDarkGray;
 
   { ROM Setup program constants }
-  kROMSetupStartupDelay        = 500;
   kROMSetupOperationDelay      = 500;
 
   kROMSetupComponentsLeft      = 1;
@@ -681,8 +678,6 @@ const
   clMixerDynCmdBack            = clBlue;
 
   { Mixer program constants }
-  kMixerStartupDelay           = 500;
-
   kMixerSlidersLeft            = 1;
   kMixerSlidersTop             = 2;
   kMixerSlidersWidth           = 49;
@@ -757,22 +752,22 @@ const
   sCDPlayerDriveLetter         = 'Drive Letter';
   sCDPlayerDoorClosed          = 'Door Closed';
   sCDPlayerDoorLocked          = 'Door Locked';
-  sCDPlayerDisk                = 'Disk';
+  sCDPlayerDisc                = 'Disc';
   sCDPlayerStatus              = 'Status';
   sCDPlayerTrack               = 'Track';
   sCDPlayerTotalTracks         = 'Total Tracks';
   sCDPlayerTrackTime           = 'Track Time';
   sCDPlayerTrackPlayTime       = 'Track Play Time';
-  sCDPlayerDiskTime            = 'Disk Time';
-  sCDPlayerDiskPlayTime        = 'Disk Play Time';
+  sCDPlayerDiscTime            = 'Disc Time';
+  sCDPlayerDiscPlayTime        = 'Disc Play Time';
 
   sCDPlayerTrackOrder          = 'Track Order';
 
   sCDPlayerTrackProgress       = 'Track Progress';
-  sCDPlayerDiskProgress        = 'Disk Progress';
+  sCDPlayerDiscProgress        = 'Disc Progress';
 
-  sCDPlayerDiskUnloaded        = 'Unloaded';
-  sCDPlayerDiskLoaded          = 'Loaded';
+  sCDPlayerDiscUnloaded        = 'Unloaded';
+  sCDPlayerDiscLoaded          = 'Loaded';
 
   sCDPlayerStatusStop          = 'Stop';
   sCDPlayerStatusPlay          = 'Play';
@@ -850,9 +845,14 @@ const
   clCDPlayerTrackOrderFore     = clCDPlayerFore;
   clCDPlayerTrackOrderBack     = clCDPlayerBack;
   clCDPlayerTrackOrderTitle    = clCDPlayerFore;
-  clCDPlayerTrackOrderPast     = clGreen;
   clCDPlayerTrackOrderCurrent  = clCyan;
   clCDPlayerTrackOrderFuture   = clCDPlayerFore;
+  clCDPlayerTrackOrderPast     = clGreen;
+
+  clCDPlayerTrackOrderPlayed: packed array[Boolean] of Byte = (
+    clCDPlayerTrackOrderFuture,
+    clCDPlayerTrackOrderPast
+  );
 
   clCDPlayerProgressFore       = clCDPlayerFore;
   clCDPlayerProgressBack       = clCDPlayerBack;
@@ -890,8 +890,6 @@ const
   );
 
   { CD Player program constants }
-  kCDPlayerStartupDelay        = 500;
-
   kCDPlayerComponentsLeft      = 1;
   kCDPlayerComponentsTop       = 2;
   kCDPlayerComponentsWidth     = 49;
@@ -905,14 +903,14 @@ const
   kCDPlayerKVDriveLetter       = 0;
   kCDPlayerKVDoorClosed        = 1;
   kCDPlayerKVDoorLocked        = 2;
-  kCDPlayerKVDisk              = 3;
+  kCDPlayerKVDisc              = 3;
   kCDPlayerKVStatus            = 4;
   kCDPlayerKVTrack             = 5;
   kCDPlayerKVTotalTracks       = 6;
   kCDPlayerKVTrackTime         = 7;
   kCDPlayerKVTrackPlayTime     = 8;
-  kCDPlayerKVDiskTime          = 9;
-  kCDPlayerKVDiskPlayTime      = 10;
+  kCDPlayerKVDiscTime          = 9;
+  kCDPlayerKVDiscPlayTime      = 10;
 
   kCDPlayerEditX               = kCDPlayerValueX;
   kCDPlayerEditY               = 3;
@@ -932,7 +930,7 @@ const
   kCDPlayerProgressBarMaxDef   = 256;
 
   kCDPlayerTrackProgressY      = 15;
-  kCDPlayerDiskProgressY       = 19;
+  kCDPlayerDiscProgressY       = 19;
 
   kCDPlayerCommandsLeft        = 50;
   kCDPlayerCommandsTop         = 2;
@@ -979,7 +977,7 @@ const
   sCDROMWriteFault             = 'Write Fault';
   sCDROMReadFault              = 'Read Fault';
   sCDROMGeneralFailure         = 'General Failure';
-  sCDROMInvalidDiskChange      = 'Invalid Disk Change';
+  sCDROMInvalidDiscChange      = 'Invalid Disc Change';
   sCDROMUnknownError           = 'Unknown Error';
 
 implementation

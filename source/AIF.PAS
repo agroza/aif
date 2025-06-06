@@ -6,13 +6,13 @@
 { - License: GNU General Public License v3.0                                - }
 { --------------------------------------------------------------------------- }
 
+{$M 16384, 65536, 655360}
+
 {$I cdefines.inc}
 
 {$IFDEF CPU16BIT}
   {$G+}
 {$ENDIF}
-
-{$M 16384, 65535, 655360}
 
 program aif;
 
@@ -28,7 +28,8 @@ uses
   PnPSetup,
   ROMSetup,
   Status,
-  Types;
+  Types,
+  VVSubPrg;
 
 var
   GConfigLoaded: Boolean;
@@ -51,14 +52,14 @@ begin
     begin
       if GParameters.ROMSetup then
       begin
-        ROMSetupStart;
+        VVSubPrgExecute(ROMSetupStart);
 
         Exit;
       end;
 {$IFDEF PNPSETUP}
       if GParameters.PnPSetup then
       begin
-        PnPSetupStart;
+        VVSubPrgExecute(PnPSetupStart);
 
         Exit;
       end;
@@ -80,12 +81,12 @@ begin
 
         if GParameters.Setup or not GConfigLoaded then
         begin
-          ConMsgWriteConfigChanged(sAIFConfig, SetupStart);
+          ConMsgWriteConfigChanged(sAIFConfig, VVSubPrgExecute(SetupStart));
         end;
 
         if GParameters.Mixer then
         begin
-          ConMsgWriteConfigChanged(sMixerConfig, MixerStart);
+          ConMsgWriteConfigChanged(sMixerConfig, VVSubPrgExecute(MixerStart));
         end;
 
         ErrorHaltOnErrors;
@@ -129,7 +130,7 @@ begin
 
         ErrorHaltOnErrors;
 
-        if CDPlayerStart or not GConfigLoaded then
+        if VVSubPrgExecute(CDPlayerStart) or not GConfigLoaded then
         begin
           CDPlayerConfigSave;
         end;

@@ -16,7 +16,7 @@ unit PnPSetup;
 
 interface
 
-procedure PnPSetupStart;
+function PnPSetupStart: Boolean;
 
 implementation
 
@@ -161,22 +161,12 @@ end;
 
 { public declarations }
 
-procedure PnPSetupStart;
-var
-  LPositionY: Byte;
-  LVideoRAMData: PVideoRAMData;
-
+function PnPSetupStart: Boolean;
 begin
-  Routines.Delay(kStartupDelay);
-
-  VideoInitialize(LPositionY, LVideoRAMData);
-  ScreenInitialize;
-
   UIDraw;
   UILoop;
 
-  ScreenFinalize;
-  VideoFinalize(LPositionY, LVideoRAMData);
+  PnPSetupStart := True;
 end;
 
 end.

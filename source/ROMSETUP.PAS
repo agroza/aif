@@ -16,7 +16,7 @@ unit ROMSetup;
 
 interface
 
-procedure ROMSetupStart;
+function ROMSetupStart: Boolean;
 
 implementation
 
@@ -390,22 +390,12 @@ end;
 
 { public declarations }
 
-procedure ROMSetupStart;
-var
-  LPositionY: Byte;
-  LVideoRAMData: PVideoRAMData;
-
+function ROMSetupStart: Boolean;
 begin
-  Routines.Delay(kROMSetupStartupDelay);
-
-  VideoInitialize(LPositionY, LVideoRAMData);
-  ScreenInitialize;
-
   UIDraw;
   UILoop;
 
-  ScreenFinalize;
-  VideoFinalize(LPositionY, LVideoRAMData);
+  ROMSetupStart := True;
 end;
 
 end.
