@@ -26,6 +26,7 @@ function CDPlayerStart: Boolean;
 implementation
 
 uses
+  ATAPI,
   Dos,
   CDROM,
   Consts,
@@ -242,7 +243,7 @@ procedure UIOptionHighlightMode(const AOption, ASearchFrom, ASearchTo: TCDPlayer
 procedure UIOptionHighlightRepeatMode(const AOption: TCDPlayerOption); forward;
 procedure UIOptionHighlightPlayMode(const AOption: TCDPlayerOption); forward;
 
-procedure UICDEXVersionDraw; forward;
+procedure UICDROMAndCDEXInfoDraw; forward;
 
 procedure UIDraw; forward;
 procedure UILoop; forward;
@@ -604,16 +605,35 @@ procedure UIOptionHighlightPlayMode(const AOption: TCDPlayerOption);
 begin
   UIOptionHighlightMode(AOption, cdpShuffleOrder, cdpReverseOrder);
 
-  CDTracksSetPlayMode;
+  if IGCDPlayer.Disc then
+  begin
+    CDTracksSetPlayMode;
 
-  UITracksOrderDisplay;
+    UITracksOrderDisplay;
+  end;
 end;
 
-procedure UICDEXVersionDraw;
+procedure UICDROMAndCDEXInfoDraw;
 var
+  LInterface: Byte;
+  LDrive: Byte;
+  LModel: String;
   LCDEXVersion: Word;
 
 begin
+  if ATAPIProbe(LInterface, LDrive, LModel) then
+  begin
+    VideoWriteStringAt(
+      kCDPlayerCDROMInformationX,
+      kCDPlayerCDROMInformationY,
+      LModel +
+        sCDPlayerATAInterface[LInterface] +
+        sCDPlayerATADriveType[LDrive],
+      clCDPlayerFore,
+      clCDPlayerBack
+    );
+  end;
+
   LCDEXVersion := CDROMGetCDEXVersion;
 
   VideoWriteStringAt(
@@ -625,7 +645,8 @@ begin
         sNA,
         IntToStr(Hi(LCDEXVersion)) + cFullStop + IntToStr(Lo(LCDEXVersion))
       ) +
-      sCDPlayerDriveTypeSeparator + sCDPlayerCDROMDriveType[CDROMProbeSCSI],
+      sCDPlayerDriveTypeSeparator +
+      sCDPlayerCDROMDriveType[CDROMProbeSCSI],
     clCDPlayerFore,
     clCDPlayerBack
   );
@@ -644,7 +665,7 @@ begin
   UIOptionsDraw;
   UIOptionsHighlight;
 
-  UICDEXVersionDraw;
+  UICDROMAndCDEXInfoDraw;
 end;
 
 procedure UILoop;
@@ -947,8 +968,7 @@ begin
       IGCDPlayer.Door.Closed := not LDeviceStatus.DoorOpen;
       UISetDrawValue(kCDPlayerKVDoorClosed, sNoYes[IGCDPlayer.Door.Closed]);
 
-      IGCDPlayer.Disc := IGCDPlayer.Door.Closed and CDROMDriveReady(LStatus);
-      UISetDrawValue(kCDPlayerKVDisc, sCDPlayerDisc[IGCDPlayer.Door.Closed]);
+      IGCDPlayer.Disc := IGCDPlayer.Door.Closed;
 
       if IGCDPlayer.Control.OldDisc <> IGCDPlayer.Disc then
       begin
@@ -966,10 +986,15 @@ begin
 
     IGCDPlayer.Control.Play := CDROMBusy(LStatus);
 
-    if CDSucceeded(CDROMGetAudioStatusInfo(LAudioStatus)) then
+    if IGCDPlayer.Disc and CDROMDriveReady(CDROMGetAudioStatusInfo(LAudioStatus)) then
     begin
       IGCDPlayer.Control.Pause := LAudioStatus.Paused;
+    end else
+    begin
+      IGCDPlayer.Disc := False;
     end;
+
+    UISetDrawValue(kCDPlayerKVDisc, sCDPlayerDisc[IGCDPlayer.Disc]);
   end;
 end;
 
@@ -1183,7 +1208,7 @@ var
   LPlayIndex: Byte;
 
 begin
-  if CDSucceeded(CDROMGetAudioDiscInfo(IGCDPlayer.AudioDisc)) then
+  if CDROMDriveReady(CDROMGetAudioDiscInfo(IGCDPlayer.AudioDisc)) then
   begin
     FillChar(IGCDPlayer.Time, SizeOf(TCDPlayerTime), $00);
     IGCDPlayer.Time.DiscPlay.Value := IGCDPlayer.AudioDisc.LeadOutTrackSector;

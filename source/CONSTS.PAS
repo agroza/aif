@@ -28,7 +28,7 @@ const
 
   { program stringtable }
   sProgramTitle                = 'AUDIO INTERFACE'#32 +
-               {$IFNDEF CPU16BIT}'8-bit ' +{$ENDIF}
+               {$IFNDEF CPU16BIT}'(8-bit CPU) ' +{$ENDIF}
                 {$IFDEF PNPSETUP}'+PnP SETUP ' +{$ENDIF}
                 {$IFDEF CDPLAYER}'+CD PLAYER ' +{$ENDIF}
                                  #32 + sVersion;
@@ -813,6 +813,12 @@ const
   sCDPlayerCmd5                = 'R';
   sCDPlayerCmdReverseOrder     = 'Reverse Order';
 
+  sCDPlayerATAInterfacePRI     = 'PRI. ';
+  sCDPlayerATAInterfaceSEC     = 'SEC. ';
+  sCDPlayerATAInterfaceTER     = 'TER. ';
+  sCDPlayerATAInterfaceQUA     = 'QUA. ';
+  sCDPlayerATADriveTypeMaster  = 'MASTER';
+  sCDPlayerATADriveTypeSlave   = 'SLAVE';
   sCDPlayerCDEXDriverVersion   = 'CDROM EXTENSIONS DRIVER VER. ';
   sCDPlayerCDROMATAPI          = 'ATAPI';
   sCDPlayerCDROMSCSI           = 'SCSI';
@@ -827,6 +833,18 @@ const
   sCDPlayerCDROMError          = 'An error has occured. CDROM driver reports:' + #13#10;
   sCDPlayerCDROMDataTrack      = 'A data track has been found.' + #13#10 +
                                  'Such tracks do not contain audio information.';
+
+  sCDPlayerATAInterface: array[0..3] of String[Length(sCDPlayerATAInterfacePRI)] = (
+    sCDPlayerATAInterfacePRI,
+    sCDPlayerATAInterfaceSEC,
+    sCDPlayerATAInterfaceTER,
+    sCDPlayerATAInterfaceQUA
+  );
+
+  sCDPlayerATADriveType: array[0..1] of String[Length(sCDPlayerATADriveTypeMaster)] = (
+    sCDPlayerATADriveTypeMaster,
+    sCDPlayerATADriveTypeSlave
+  );
 
   sCDPlayerCDROMDriveType: packed array[Boolean] of String[Length(sCDPlayerCDROMATAPI)] = (
     sCDPlayerCDROMATAPI,
@@ -953,6 +971,8 @@ const
   kCDPlayerOptionWidth         = 21;
   kCDPlayerOptionHeight        = 1;
 
+  kCDPlayerCDROMInformationX   = 2;
+  kCDPlayerCDROMInformationY   = 23;
   kCDPlayerCDEXDriverVersionX  = 2;
   kCDPlayerCDEXDriverVersionY  = 24;
 

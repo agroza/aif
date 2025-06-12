@@ -108,6 +108,7 @@
    3.6 CD Player
      3.6.1 CDROM Extensions
      3.6.2 Description
+     3.6.3 Issues with CPUidle (DOSidle)
  4.0 Additional Information
    4.1 Legal Mentions
 
@@ -220,11 +221,11 @@
 
  AIF is a non-resident program and frees all allocated memory upon exit.
 
- You also need around 27 KB of free drive space for the main executable file
+ You also need around 28 KB of free drive space for the main executable file
  and the hardware configuration files. This User's Guide and Reference Manual
- occupies an additional 38 KB of drive space. The text viewer program takes
+ occupies an additional 40 KB of drive space. The text viewer program takes
  less than 1 KB of drive space, and its documentation around 3 KB. In total,
- you need around 70 KB of free drive space for the entire software package.
+ you need around 72 KB of free drive space for the entire software package.
 
  2.1.2 8-bit CPU Support
 
@@ -839,13 +840,17 @@
  selected, the shuffled track order list is reversed as well.
 
  The user interface shows the selected Drive Letter, Door and Disc status,
- Track-related information, and various time data. The Track List displays
- the total tracks on the audio CD. The already played tracks are marked, the
- current track is highlighted, and the remaining tracks are unmarked.
+ Track-related information, and various time data.
 
- When all CD tracks have been played, and the repeat functions are disabled,
- then all tracks will be marked as unplayed. Until then, as long as a track
- has been even partially played, it is marked as such.
+ The Track Order list displays the tracks available on the audio CD. The
+ already played tracks are marked, the current track is highlighted, and the
+ remaining tracks are unmarked.
+
+ When the last track in the list is played, then all tracks will be marked as
+ unplayed. As a side note, as long as a track has been even partially played,
+ it will still be marked as such. If the last track is currently playing and
+ you manually switch to the next track, effectively jumping to the first item
+ in the list, then the track played markers are not reset.
 
  Finally, two progress bars show the elapsed percentage of the current track,
  and the disc, as a whole.
@@ -866,6 +871,13 @@
  the CDROM drive will be overriden with the custom track order defined within
  the program (reversed or shuffled). If the order is not defined, then tracks
  will still play in sequential order, albeit in a software-controlled manner.
+
+ 3.6.3 Issues with CPUidle (DOSidle)
+
+ The CD Player sub-program is partially compatible with CPUidle, also known
+ as DOSidle. Technically, everything works, albeit the UI is not correctly
+ refreshed. This happens due to the CPU suspend state introduced by CPUidle
+ in order to lower the operating temperature.
 
 
 

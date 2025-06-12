@@ -9,8 +9,8 @@
 {$DEFINE BETA}
 
   sMajor    = '3';
-  sMinor    = '4';
-  sBuild    = '630';
-  sRevision = 'G';
+  sMinor    = '5';
+  sBuild    = '644';
+  sRevision = 'A';
   sVersion  = 'VER.'#32 + sMajor + '.' + sMinor + '.' + sBuild +
               {$IFDEF BETA}'-á' + {$ENDIF}#32'REV.'#32 + sRevision;
