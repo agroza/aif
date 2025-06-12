@@ -21,18 +21,8 @@ function ATAPIProbe(var AInterface, ADrive: Byte; var AModel: String): Boolean;
 implementation
 
 const
-  kATA_POLLING_TIMEOUT         = 65535;
-
-  kATA_DEVICE_MASTER           = $0A0;
-
-  kATA_DEVICE_ERROR            = $01;
-  kATA_DEVICE_BUSY             = $80;
-  kATA_DEVICE_DRQ              = $08;
-  kATA_DEVICE_ABORT            = $04;
-  kATA_DEVICE_SRST             = $04;
-
-  kATAPI_LOW_CYLINDER_MARKER   = $014;
-  kATAPI_HIGH_CYLINDER_MARKER  = $0EB;
+  kATA_POLLING_TIMEOUT         = $FFFF;
+  kATA_INTERFACE_RESET_DELAY   = $FFFF;
 
   kATA_IDENTIFY_BUFFER_SIZE    = 256;
 
@@ -62,9 +52,28 @@ const
   kATA_REGISTER_STATUS         = $07;
   kATA_REGISTER_COMMAND        = $07;
 
+  { Error register bits }
+  kATA_ERROR_ABRT              = 1 shl 2;
+
+  { Status register bits }
+  kATA_STATUS_ERR              = 1 shl 0;
+  kATA_STATUS_DRQ              = 1 shl 3;
+  kATA_STATUS_RDY              = 1 shl 6;
+  kATA_STATUS_BSY              = 1 shl 7;
+
+  { Device Control register bits }
+  kATA_DEVICE_CONTROL_SRST     = 1 shl 2;
+
+  { ATA device select }
+  kATA_DEVICE_MASTER           = $A0;
+
   { ATA commands }
   kATA_COMMAND_IDENTIFY        = $EC;
   kATAPI_COMMAND_IDENTIFY      = $A1;
+
+  { ATAPI markers }
+  kATAPI_LOW_CYLINDER_MARKER   = $14;
+  kATAPI_HIGH_CYLINDER_MARKER  = $EB;
 
   kDriveMaster                 = 0;
   kDriveSlave                  = 1;
@@ -115,48 +124,65 @@ asm
 
   retn
 
-@@procWaitNotBusyDRQ:
+@@procWaitNotBusy:
   mov cx, kATA_POLLING_TIMEOUT
 
 @waitNotBusy:
   in al, dx
-  test al, kATA_DEVICE_BUSY
-  jz @waitDRQLoop
+  test al, kATA_STATUS_BSY
+  jz @endpWaitNotBusy
   loop @waitNotBusy
-  jmp @endWaitNotBusyDRQ
 
-@waitDRQLoop:
+@endpWaitNotBusy:
+  retn
+
+@@procWaitDRDY:
+  call @@procWaitNotBusy
+
+  mov cx, kATA_POLLING_TIMEOUT
+
+@waitDRDY:
+  in al, dx
+  test al, kATA_STATUS_RDY
+  jnz @endpWaitDRDY
+  loop @waitDRDY
+
+@endpWaitDRDY:
+  retn
+
+@@procWaitDRQ:
+  call @@procWaitNotBusy
+
   mov cx, kATA_POLLING_TIMEOUT
 
 @waitDRQ:
   in al, dx
-  test al, kATA_DEVICE_DRQ
-  jnz @endWaitNotBusyDRQ
+  test al, kATA_STATUS_DRQ
+  jnz @endpWaitDRQ
   loop @waitDRQ
 
-@endWaitNotBusyDRQ:
+@endpWaitDRQ:
   retn
 
 @start:
   mov dx, AInterface
   add dx, kATA_REGISTER_CONTROL_OFFSET
-  mov al, kATA_DEVICE_SRST
+  mov al, kATA_DEVICE_CONTROL_SRST
   out dx, al
 
-  mov cx, 0FFFFh
+  mov cx, kATA_INTERFACE_RESET_DELAY
 
 @resetDelay:
+  nop
   loop @resetDelay
 
   xor al, al
   out dx, al
 
-@w:
   mov dx, AInterface
   add dx, kATA_REGISTER_STATUS
-  in al, dx
-  test al, 80h
-  jnz @w
+
+  call @@procWaitDRDY
 
   xor al, al
   mov cx, 04h
@@ -176,15 +202,15 @@ asm
   add dx, kATA_REGISTER_COMMAND
   out dx, al
 
-  call @@procWaitNotBusyDRQ
+  call @@procWaitDRQ
   jnz @readWords
-  test al, kATA_DEVICE_ERROR
+  test al, kATA_STATUS_ERR
   jz @noDevice
 
   mov dx, AInterface
   add dx, kATA_REGISTER_ERROR
   in al, dx
-  test al, kATA_DEVICE_ABORT
+  test al, kATA_ERROR_ABRT
   jz @noDevice
 
   mov dx, AInterface
@@ -206,15 +232,15 @@ asm
   add dx, kATA_REGISTER_COMMAND
   out dx, al
 
-  call @@procWaitNotBusyDRQ
+  call @@procWaitDRQ
   jnz @readWords
-  test al, kATA_DEVICE_ERROR
+  test al, kATA_STATUS_ERR
   jz @noDevice
 
 @readWords:
   cld
 
-  mov ax, cs
+  mov ax, ss
   mov es, ax
   lea di, [LIdentifyResponse]
   mov cx, kATA_IDENTIFY_BUFFER_SIZE
@@ -230,7 +256,7 @@ asm
 
   sti
 
-  mov ax, cs
+  mov ax, ss
   mov ds, ax
   lea si, [LIdentifyResponse]
   add si, kATA_DRIVE_MODEL_INDEX * 2
