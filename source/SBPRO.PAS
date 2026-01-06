@@ -1,7 +1,7 @@
 { --------------------------------------------------------------------------- }
 { - Audio Interface - Sound Blaster Pro Interface (sbpro.pas)               - }
 { - Copyright (C) 2000 Jan Knipperts                                        - }
-{ - Improvements (C) 2020-2022 Alexandru Groza                              - }
+{ - Improvements (C) 2020-2026 Alexandru Groza                              - }
 { - All rights reserved.                                                    - }
 { --------------------------------------------------------------------------- }
 { - License: GNU General Public License v3.0                                - }
@@ -46,42 +46,43 @@ procedure SBMixerGetOutput(var AStereo, AFilter: Boolean);
 implementation
 
 const
-  { general mixer and DSP related constants }
-  kMixerCommunicationDelay            = 1;
-  kDSPCommunicationDelay              = 10;
-  kDSPReadRetries                     = $FFFF;
-  kDSPWriteRetries                    = $FF;
+  { general DSP and SB mixer related constants }
+  kDSPCommunicationDelay               = 10;
+  kDSPReadRetries                      = $FFFF;
+  kDSPWriteRetries                     = $FF;
 
-  kPORT_DSP_RESET_OFFSET              = $06;
-  kPORT_DSP_READ_DATA_OFFSET          = $0A;
-  kPORT_DSP_READ_BUFFER_STATUS_OFFSET = $0E;
-  kPORT_DSP_WRITE_COMMAND_DATA_OFFSET = $0C;
+  kSBMixerCommunicationDelay           = 1;
 
-  kPORT_MIXER_ADDRESS_OFFSET          = $04;
-  kPORT_MIXER_DATA_OFFSET             = $05;
+  kPORT_DSP_RESET_OFFSET               = $06;
+  kPORT_DSP_READ_DATA_OFFSET           = $0A;
+  kPORT_DSP_READ_BUFFER_STATUS_OFFSET  = $0E;
+  kPORT_DSP_WRITE_COMMAND_DATA_OFFSET  = $0C;
 
-  kDSP_COMMAND_ENABLE_SPEAKER         = $D1;
-  kDSP_COMMAND_DISABLE_SPEAKER        = $D3;
-  kDSP_COMMAND_DSP_VERSION            = $E1;
+  kDSP_COMMAND_ENABLE_SPEAKER          = $D1;
+  kDSP_COMMAND_DISABLE_SPEAKER         = $D3;
+  kDSP_COMMAND_DSP_VERSION             = $E1;
 
-  kMIXER_REGISTER_RESET               = $00;
-  kMIXER_REGISTER_DAC_VOLUME          = $04;
-  kMIXER_REGISTER_MICROPHONE_VOLUME   = $0A;
-  kMIXER_REGISTER_OUTPUT_FILTER       = $0E;
-  kMIXER_REGISTER_MASTER_VOLUME       = $22;
-  kMIXER_REGISTER_FM_VOLUME           = $26;
-  kMIXER_REGISTER_CD_VOLUME           = $28;
-  kMIXER_REGISTER_LINE_IN_VOLUME      = $2E;
+  kPORT_SB_MIXER_ADDRESS_OFFSET        = $04;
+  kPORT_SB_MIXER_DATA_OFFSET           = $05;
 
-  kMIXER_COMMAND_RESET                = $FF;
+  kSB_MIXER_REGISTER_RESET             = $00;
+  kSB_MIXER_REGISTER_DAC_VOLUME        = $04;
+  kSB_MIXER_REGISTER_MICROPHONE_VOLUME = $0A;
+  kSB_MIXER_REGISTER_OUTPUT_FILTER     = $0E;
+  kSB_MIXER_REGISTER_MASTER_VOLUME     = $22;
+  kSB_MIXER_REGISTER_FM_VOLUME         = $26;
+  kSB_MIXER_REGISTER_CD_VOLUME         = $28;
+  kSB_MIXER_REGISTER_LINE_IN_VOLUME    = $2E;
+
+  kSB_MIXER_COMMAND_RESET              = $FF;
 
   kDeviceTypes: packed array[TSBMixerDeviceType] of Byte = (
-    kMIXER_REGISTER_MASTER_VOLUME,
-    kMIXER_REGISTER_MICROPHONE_VOLUME,
-    kMIXER_REGISTER_CD_VOLUME,
-    kMIXER_REGISTER_LINE_IN_VOLUME,
-    kMIXER_REGISTER_DAC_VOLUME,
-    kMIXER_REGISTER_FM_VOLUME
+    kSB_MIXER_REGISTER_MASTER_VOLUME,
+    kSB_MIXER_REGISTER_MICROPHONE_VOLUME,
+    kSB_MIXER_REGISTER_CD_VOLUME,
+    kSB_MIXER_REGISTER_LINE_IN_VOLUME,
+    kSB_MIXER_REGISTER_DAC_VOLUME,
+    kSB_MIXER_REGISTER_FM_VOLUME
   );
 
 var
@@ -90,8 +91,8 @@ var
 function DSPRead: Byte; forward;
 procedure DSPWrite(const AValue: Byte); forward;
 
-function MixerRead(const AIndex: Byte): Byte; forward;
-procedure MixerWrite(const AIndex, AValue: Byte); forward;
+function SBMixerRead(const AIndex: Byte): Byte; forward;
+procedure SBMixerWrite(const AIndex, AValue: Byte); forward;
 
 { private declarations }
 
@@ -134,26 +135,26 @@ begin
   end;
 end;
 
-function MixerRead(const AIndex: Byte): Byte;
+function SBMixerRead(const AIndex: Byte): Byte;
 begin
-  Port[IGSBPort + kPORT_MIXER_ADDRESS_OFFSET] := AIndex;
+  Port[IGSBPort + kPORT_SB_MIXER_ADDRESS_OFFSET] := AIndex;
 
-  Routines.Delay(kMixerCommunicationDelay);
+  Routines.Delay(kSBMixerCommunicationDelay);
 
-  MixerRead := Port[IGSBPort + kPORT_MIXER_DATA_OFFSET];
+  SBMixerRead := Port[IGSBPort + kPORT_SB_MIXER_DATA_OFFSET];
 
-  Routines.Delay(kMixerCommunicationDelay);
+  Routines.Delay(kSBMixerCommunicationDelay);
 end;
 
-procedure MixerWrite(const AIndex, AValue: Byte);
+procedure SBMixerWrite(const AIndex, AValue: Byte);
 begin
-  Port[IGSBPort + kPORT_MIXER_ADDRESS_OFFSET] := AIndex;
+  Port[IGSBPort + kPORT_SB_MIXER_ADDRESS_OFFSET] := AIndex;
 
-  Routines.Delay(kMixerCommunicationDelay);
+  Routines.Delay(kSBMixerCommunicationDelay);
 
-  Port[IGSBPort + kPORT_MIXER_DATA_OFFSET] := AValue;
+  Port[IGSBPort + kPORT_SB_MIXER_DATA_OFFSET] := AValue;
 
-  Routines.Delay(kMixerCommunicationDelay);
+  Routines.Delay(kSBMixerCommunicationDelay);
 end;
 
 { public declarations }
@@ -199,7 +200,7 @@ end;
 
 procedure SBMixerReset;
 begin
-  MixerWrite(kMIXER_REGISTER_RESET, kMIXER_COMMAND_RESET);
+  SBMixerWrite(kSB_MIXER_REGISTER_RESET, kSB_MIXER_COMMAND_RESET);
 end;
 
 function SBMixerGetVolume(const ADeviceType: TSBMixerDeviceType; const AChannel: TCodecSoundChannel): Byte;
@@ -207,7 +208,7 @@ var
   LVolume: Byte;
 
 begin
-  LVolume := MixerRead(kDeviceTypes[ADeviceType]);
+  LVolume := SBMixerRead(kDeviceTypes[ADeviceType]);
 
   if (AChannel = scLeft) and (ADeviceType <> mdtMicrophone) then
   begin
@@ -253,7 +254,7 @@ begin
     end;
   end;
 
-  MixerWrite(kDeviceTypes[ADeviceType], LVolume);
+  SBMixerWrite(kDeviceTypes[ADeviceType], LVolume);
 end;
 
 procedure SBMixerSetOutput(const AStereo, AFilter: Boolean);
@@ -274,7 +275,7 @@ begin
     LValue := LValue or $20;
   end;
 
-  MixerWrite(kMIXER_REGISTER_OUTPUT_FILTER, LValue);
+  SBMixerWrite(kSB_MIXER_REGISTER_OUTPUT_FILTER, LValue);
 end;
 
 procedure SBMixerGetOutput(var AStereo, AFilter: Boolean);
@@ -282,7 +283,7 @@ var
   LValue: Byte;
 
 begin
-  LValue := MixerRead(kMIXER_REGISTER_OUTPUT_FILTER);
+  LValue := SBMixerRead(kSB_MIXER_REGISTER_OUTPUT_FILTER);
 
   AStereo := LValue and $02 = $02;
   AFilter := LValue and $20 = $20;

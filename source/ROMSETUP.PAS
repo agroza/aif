@@ -302,7 +302,7 @@ procedure UILoop;
 var
   LScanCode: Word;
   LKey: Char;
-      i: integer;
+
 begin
   while True do
   begin

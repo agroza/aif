@@ -1,6 +1,6 @@
 { --------------------------------------------------------------------------- }
 { - Audio Interface - Sound Controller Interface (control.pas)              - }
-{ - Copyright (C) 1998-2025 Alexandru Groza of Microprogramming TECHNIQUES  - }
+{ - Copyright (C) 1998-2026 Alexandru Groza of Microprogramming TECHNIQUES  - }
 { - Portions Copyright (C) 2018 Jan Knipperts                               - }
 { - All rights reserved.                                                    - }
 { --------------------------------------------------------------------------- }
@@ -192,7 +192,7 @@ const
   kEEPROMSize                  = 256;
   kEEPROMIODelay               = 1;
 
-procedure SetBitStatus(var ABitVariable: TBitStatus; const AValue: Boolean); forward;
+procedure SetBitStatus(var ABitStatus: TBitStatus; const AValue: Boolean); forward;
 procedure SetBitByStatus(var AByte: Byte; const ABit: Byte; const ABitStatus: TBitStatus); forward;
 
 function ControllerRead(const APort: Word): Byte; forward;
@@ -247,20 +247,14 @@ function EEPROMWrite(const AAddress: Word; const AByte: Byte): Boolean; forward;
 
 { private declarations }
 
-procedure SetBitStatus(var ABitVariable: TBitStatus; const AValue: Boolean);
+procedure SetBitStatus(var ABitStatus: TBitStatus; const AValue: Boolean);
 begin
-  if AValue then
-  begin
-    ABitVariable := bsSet;
-  end else
-  begin
-    ABitVariable := bsNotSet;
-  end;
+  ABitStatus := TBitStatus(AValue);
 end;
 
 procedure SetBitByStatus(var AByte: Byte; const ABit: Byte; const ABitStatus: TBitStatus);
 begin
-  SetBit(AByte, ABit, ABitStatus = bsSet);
+  SetBit(AByte, ABit, Boolean(ABitStatus));
 end;
 
 function ControllerRead(const APort: Word): Byte;

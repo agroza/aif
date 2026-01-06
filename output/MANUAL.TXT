@@ -2,7 +2,7 @@
 º                                                                            º
 º                        AIF - Audio Interface Driver                        º
 º                   ISA Audio Interface model 2486-AIF-401                   º
-º            Copyright (C) 1998-2025 Microprogramming TECHNIQUES             º
+º            Copyright (C) 1998-2026 Microprogramming TECHNIQUES             º
 º                                                                            º
 º                   = User's Guide and Reference Manual =                    º
 º                                                                            º
@@ -38,7 +38,7 @@
  with a DOS-compatible text viewer that supports extended ASCII characters.
 
  Document ID: 2486-AIF-401-MANUAL-15.25
- First Edition, Revision B (June, 2025)
+ First Edition, Revision C (January, 2026)
 
 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
 
@@ -236,7 +236,7 @@
 
  The drawback is that the compiled program code size increases by at least
  2 KB, and the execution speed decreases. On the other hand, on such a slow
- speed CPU, this is not a big issue.
+ speed 8-bit CPU, this is not a big issue.
 
  Besides running the CD Player sub-program, 8-bit mode is not really of use,
  since the Audio Interface is a 16-bit ISA card, thus it requires a 16-bit
@@ -412,6 +412,14 @@
 
  will cause the program to terminate immediately. Combining this -noinit with
  any other parameter than -cdplayer, will terminate the program immediately.
+
+ Effectively, only the following command involving -noinit is valid:
+
+   aif.exe -noinit -cdplayer
+
+ However, this only works if the CD Player sub-program is included within the
+ AIF.EXE program at compile time.
+ Refer to Section 3.1 Which Sub-programs are Available? for more details.
 
 
  2.5 Controlling the Line Output Relay
@@ -877,7 +885,7 @@
  The CD Player sub-program is partially compatible with CPUidle, also known
  as DOSidle. Technically, everything works, albeit the UI is not correctly
  refreshed. This happens due to the CPU suspend state introduced by CPUidle
- in order to lower the operating temperature.
+ in order to lower the CPU package operating temperature.
 
 
 
