@@ -210,8 +210,9 @@
  If any of these files are deleted, or corrupted, then AIF.EXE will re-create
  them.
 
- It is recommended to start AIF through AUTOEXEC.BAT, in order to automate
- the sound card initialization.
+ Once the initial audio interface setup is completed, in order to automate
+ the sound card initialization during each system boot cycle, it is advised
+ to start AIF through AUTOEXEC.BAT.
 
  2.1.1 System Requirements
 
@@ -380,7 +381,7 @@
    aif.exe -init
 
  If you don't have the AIF directory referenced by the PATH variable, then
- you need to specify the fully qualified path and filename. For instance,
+ you need to specify the fully qualified path and filename. For instance:
 
    c:\drivers\aif\aif.exe -init
 
@@ -392,7 +393,7 @@
 
  If you don't want AIF to be verbose and output a lot of text during the
  initialization sequence, while loaded by AUTOEXEC.BAT, then you can use the
- following command.
+ following command:
 
    aif.exe -init -quiet
 
@@ -425,13 +426,13 @@
  2.5 Controlling the Line Output Relay
 
  AIF is able to control the line output relay via a complex parameter. The
- audio output can be turned on or off by using the following commands.
+ audio output can be turned on or off by using the following commands:
 
    aif.exe -lineout=on
    aif.exe -lineout=off
 
- This parameter can work either standalone, or in conjunction with the the
- other parameters. For example:
+ This parameter can be used either standalone, or in conjunction with other
+ parameters. For example:
 
    aif.exe -setup -lineout=off
    aif.exe -setup -mixer -lineout=off
@@ -452,7 +453,7 @@
  2.6 Combining Parameters
 
  As previously stated, multiple commandline parameters can be combined. For
- example, these commands are valid.
+ example, these commands are valid:
 
    aif.exe -setup -mixer -init -cdplayer
    aif.exe -setup -mixer -lineout=on -cdplayer
@@ -480,17 +481,17 @@
  3.1 Which Sub-programs are Available?
 
  When the AIF program is compiled, some of the sub-programs could be omitted
- by conditional defines. This option exists for a number of reasons, such as.
+ by conditional defines. This option exists for a number of reasons, such as:
    * reduce executable file size
    * exclude PnP Setup, which is an experimental sub-program
    * exclude CD Player, if a lightweight version of the driver is required
 
- The following sub-programs are always compiled in the executable file.
+ The following sub-programs are always compiled in the executable file:
    * Setup
    * EEPROM Setup
    * Mixer
 
- The following sub-programs could, or could not be part of the compiled file.
+ The following sub-programs could, or could not be part of the compiled file:
    * PnP Setup
    * CD Player
 
@@ -654,11 +655,11 @@
  only the file name. In this case, the file will be written to, or read from,
  the same directory where the AIF.EXE program resides.
 
- The Raw Data window dynamically updates with byte data, while the EEPROM
- contents are being read. At the same time, the progress bar is updated to
- show the completion percentage of the current operation.
+ The Raw Data window dynamically updates with byte data representation, while
+ the EEPROM content is being read or written. At the same time, the progress
+ bar is updated to show the completion percentage of the current operation.
 
- For feedback purposes, the program also updates the operation and status
+ For feedback purposes, the program also updates the Operation and Status
  fields accordingly.
 
 
@@ -716,7 +717,7 @@
  If any volume or switch has been altered, upon pressing the ESC key, you are
  prompted to save the settings. Failing to do so will still initialize the
  sound card, but the settings will not persist the next time you attempt to
- initialize the sound card, using the following command.
+ initialize the sound card, using the following command:
 
    aif.exe -init
 
@@ -915,7 +916,7 @@
  Yamaha Corporation.
  Crystal and CS4231A are trademarks or registered trademarks of
  Cirrus Logic, Inc.
- OPTi and 82c924 are trademarks or registered trademarks of OPTi Inc.
+ OPTi and 82c924 are trademarks or registered trademarks of OPTi, Inc.
  All other trademarks are the property of their respective owners.
  No affiliation or endorsement is implied.
 
